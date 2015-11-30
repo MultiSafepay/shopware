@@ -291,7 +291,7 @@ With MultiSafepay you can offer specific local payment options for Germany, The 
 	//get MultiSafepay plugin. 
     public function getVersion()
     {
-        return '1.0.0';
+        return '1.1.0';
     }
 	
 	

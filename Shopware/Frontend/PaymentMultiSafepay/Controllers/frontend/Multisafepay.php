@@ -148,7 +148,7 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
          */
         $msp->transaction['id'] = $transaction_id; // generally the shop's order ID is used here
         $msp->transaction['currency'] = $this->getCurrencyShortName();
-        $msp->transaction['amount'] = (float) str_replace(',', '.', $basket['Amount']) * 100; //$this->getAmount() * 100; // cents
+        $msp->transaction['amount'] = (float) str_replace(',', '.', $this->getAmount()) * 100; //$this->getAmount() * 100; // cents
         $msp->transaction['description'] = 'Order #' . $msp->transaction['id'];
         //$msp->transaction['items']        = 	$items;
         $msp->transaction['var1'] = $uniquePaymentID;
