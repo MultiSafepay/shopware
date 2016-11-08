@@ -145,8 +145,21 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
 		$msp->customer['city']             	=	$userinfo["billingaddress"]["city"];
 		$msp->customer['country']          	= 	$userinfo["additional"]["country"]["countryiso"];
 		$msp->customer['email']				= 	$userinfo["additional"]["user"]["email"];
-		$msp->customer['address1']			=	$userinfo["billingaddress"]["street"];
-		$msp->customer['housenumber']		= 	$userinfo["billingaddress"]["streetnumber"];
+		
+		
+		
+		 $addressData = $this->parseCustomerAddress($userinfo["billingaddress"]["street"]);
+        if (isset($addressData['housenumber']) && !empty($addressData['housenumber'])) {
+            $street = $addressData['address'];
+            $housenumber = $addressData['housenumber'];
+        } else {
+            $street = $userinfo["billingaddress"]["street"];
+            $housenumber = $userinfo["billingaddress"]["streetnumber"];
+        }
+		
+		
+		$msp->customer['address1']			=	$street;
+		$msp->customer['housenumber']		= 	$housenumber;
 		$msp->customer['phone']				= 	$userinfo["billingaddress"]["phone"];
 
 		/* 
@@ -220,6 +233,7 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
 			$url = $msp->startTransaction();
 		}
 	
+	print_r($msp);exit;
 	
 	
 		/*
@@ -234,6 +248,71 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
 			$this->redirect($url);
 		}
 	}
+	
+	
+	/*
+     * Parses and splits up an address in street and housenumber
+     */
+	function parseCustomerAddress($street_address) {
+        list($address, $apartment) = $this->parseAddress($street_address);
+        $customer['address'] = $address;
+        $customer['housenumber'] = $apartment;
+        return $customer;
+    }
+
+    /*
+     * Parses and splits up an address in street and housenumber
+     */
+    function parseAddress($street_address) {
+        $address = $street_address;
+        $apartment = "";
+
+        $offset = strlen($street_address);
+
+        while (($offset = $this->rstrpos($street_address, ' ', $offset)) !== false) {
+            if ($offset < strlen($street_address) - 1 && is_numeric($street_address[$offset + 1])) {
+                $address = trim(substr($street_address, 0, $offset));
+                $apartment = trim(substr($street_address, $offset + 1));
+                break;
+            }
+        }
+
+        if (empty($apartment) && strlen($street_address) > 0 && is_numeric($street_address[0])) {
+            $pos = strpos($street_address, ' ');
+
+            if ($pos !== false) {
+                $apartment = trim(substr($street_address, 0, $pos), ", \t\n\r\0\x0B");
+                $address = trim(substr($street_address, $pos + 1));
+            }
+        }
+
+        return array($address, $apartment);
+    }
+    
+
+    /*
+     * Parses and splits up an address in street and housenumber
+     */
+    function rstrpos($haystack, $needle, $offset = null) {
+        $size = strlen($haystack);
+
+        if (is_null($offset)) {
+            $offset = $size;
+        }
+
+        $pos = strpos(strrev($haystack), strrev($needle), $size - $offset);
+
+        if ($pos === false) {
+            return false;
+        }
+
+        return $size - $pos - strlen($needle);
+    }
+
+	
+	
+	
+	
 	
      
 	 
