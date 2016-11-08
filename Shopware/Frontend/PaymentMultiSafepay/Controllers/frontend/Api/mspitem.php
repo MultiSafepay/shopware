@@ -21,17 +21,17 @@
  * @version $Id: googleitem.php 1234 2007-09-25 14:58:57Z ropu $
  */
 
- /**
-  * Creates an item to be added to the shopping cart.
-  * A new instance of the class must be created for each item to be added.
-  * 
-  * Required fields are the item name, description, quantity and price
-  * The private-data and tax-selector for each item can be set in the 
-  * constructor call or using individual Set functions
-  */
-  class MspItem {
-     
-    var $item_name; 
+/**
+ * Creates an item to be added to the shopping cart.
+ * A new instance of the class must be created for each item to be added.
+ * 
+ * Required fields are the item name, description, quantity and price
+ * The private-data and tax-selector for each item can be set in the 
+ * constructor call or using individual Set functions
+ */
+class MspItem {
+
+    var $item_name;
     var $item_description;
     var $unit_price;
     var $quantity;
@@ -39,11 +39,10 @@
     var $merchant_item_id;
     var $tax_table_selector;
     var $email_delivery;
-    var $digital_content=false;
+    var $digital_content = false;
     var $digital_description;
     var $digital_key;
     var $digital_url;
-    
     var $item_weight;
     var $numeric_weight;
 
@@ -61,31 +60,27 @@
      * @param double $numeric_weight the weight of the item
      * 
      */
-      function xmlEscape($str){
-		$ts = array("/[?-?]/","/?/","/?/","/[?-?]/","/[?-?]/","/?/","/?/","/[?-??]/","/?/","/[?-?]/","/[?-?]/","/[?-?]/","/?/","/?/","/[?-?]/","/[?-?]/","/?/","/?/","/[?-??]/","/?/","/[?-?]/","/[§-?]/");
-		$tn = array("A","AE","C","E","I","D","N","O","X","U","Y","a","ae","c","e","i","d","n","o","x","u","y");
+    function xmlEscape($str) {
+        $ts = array("/[?-?]/", "/?/", "/?/", "/[?-?]/", "/[?-?]/", "/?/", "/?/", "/[?-??]/", "/?/", "/[?-?]/", "/[?-?]/", "/[?-?]/", "/?/", "/?/", "/[?-?]/", "/[?-?]/", "/?/", "/?/", "/[?-??]/", "/?/", "/[?-?]/", "/[ï¿½-?]/");
+        $tn = array("A", "AE", "C", "E", "I", "D", "N", "O", "X", "U", "Y", "a", "ae", "c", "e", "i", "d", "n", "o", "x", "u", "y");
 
-		$str = preg_replace($ts,$tn, $str);
-	  
-		$string = htmlspecialchars($str,ENT_COMPAT, "UTF-8");
-	
-	
-	
-	return htmlentities($string , ENT_COMPAT, "UTF-8", true);
+        $str = preg_replace($ts, $tn, $str);
 
-  }
+        $string = htmlspecialchars($str, ENT_COMPAT, "UTF-8");
 
-  
 
-  
-  /*
-   * Returns the string with all XML escaping removed
-   */
-  function xmlUnescape($str){
-    return html_entity_decode($str,ENT_COMPAT, "UTF-8");
-  }
-	
-	
+
+        return htmlentities($string, ENT_COMPAT, "UTF-8", true);
+    }
+
+    /*
+     * Returns the string with all XML escaping removed
+     */
+
+    function xmlUnescape($str) {
+        return html_entity_decode($str, ENT_COMPAT, "UTF-8");
+    }
+
     /**
      * {@link http://code.google.com/apis/checkout/developer/index.html#tag_item <item>}
      * 
@@ -100,27 +95,27 @@
      * @param double $numeric_weight the weight of the item
      * 
      */
-    function MspItem($name, $desc, $qty, $price, $item_weight='', $numeric_weight='') {
-      $this->item_name = $this->xmlEscape($name); 
-      $this->item_description=  $this->xmlEscape($desc);
-      $this->unit_price = $price;
-      $this->quantity = $qty;
+    function MspItem($name, $desc, $qty, $price, $item_weight = '', $numeric_weight = '') {
+        $this->item_name = $this->xmlEscape($name);
+        $this->item_description = $this->xmlEscape($desc);
+        $this->unit_price = $price;
+        $this->quantity = $qty;
 
-      if($item_weight != '' && $numeric_weight !== '') {
-        switch(strtoupper($item_weight)){
-          case 'KG':
-            $this->item_weight = strtoupper($item_weight);
-            break;
-          case 'LB':
-          default:
-            $this->item_weight = 'LB';
+        if ($item_weight != '' && $numeric_weight !== '') {
+            switch (strtoupper($item_weight)) {
+                case 'KG':
+                    $this->item_weight = strtoupper($item_weight);
+                    break;
+                case 'LB':
+                default:
+                    $this->item_weight = 'LB';
+            }
+            $this->numeric_weight = (double) $numeric_weight;
         }
-        $this->numeric_weight = (double)$numeric_weight;
-      }
     }
-    
+
     function SetMerchantPrivateItemData($private_data) {
-      $this->merchant_private_item_data = $private_data;  
+        $this->merchant_private_item_data = $private_data;
     }
 
     /**
@@ -136,9 +131,9 @@
      * @return void
      */
     function SetMerchantItemId($item_id) {
-      $this->merchant_item_id = $item_id;  
+        $this->merchant_item_id = $item_id;
     }
-    
+
     /**
      * Sets the tax table selector which identifies an alternate tax table that
      * should be used to calculate tax for a particular item. 
@@ -151,7 +146,7 @@
      * @return void
      */
     function SetTaxTableSelector($tax_selector) {
-      $this->tax_table_selector = $tax_selector;  
+        $this->tax_table_selector = $tax_selector;
     }
 
     /**
@@ -167,14 +162,14 @@
      * 
      * @return void
      */
-    function SetEmailDigitalDelivery($email_delivery='false') {
-      $this->digital_url = '';
-      $this->digital_key = '';
-      $this->digital_description = '';
-      $this->email_delivery = $email_delivery;  
-      $this->digital_content=true;
+    function SetEmailDigitalDelivery($email_delivery = 'false') {
+        $this->digital_url = '';
+        $this->digital_key = '';
+        $this->digital_description = '';
+        $this->email_delivery = $email_delivery;
+        $this->digital_content = true;
     }
-    
+
     /**
      * Sets the information related to the digital delivery of the item.
      * 
@@ -191,12 +186,13 @@
      * @return void
      */
     function SetURLDigitalContent($digital_url, $digital_key, $digital_description) {
-      $this->digital_url = $digital_url;
-      $this->digital_key = $digital_key;
-      $this->digital_description = $digital_description;
-      $this->email_delivery = 'false';  
-      $this->digital_content = true;
+        $this->digital_url = $digital_url;
+        $this->digital_key = $digital_key;
+        $this->digital_description = $digital_description;
+        $this->email_delivery = 'false';
+        $this->digital_content = true;
     }
-  }
-  
-  ?>
+
+}
+
+?>

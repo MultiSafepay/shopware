@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Shopware 4.0
  * Copyright © 2012 shopware AG
@@ -29,9 +30,8 @@
  * @author     Multisafepay.
  * @author     $Author$
  */
+class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Controllers_Frontend_Payment {
 
-class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Controllers_Frontend_Payment
-{
     private static $pay_to_email;
     private static $secret_word;
     private static $hide_login = 1;
@@ -39,119 +39,113 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
     private static $recipient_description;
     private static $multisafepay_url;
     private $sid;
-    
-	
-	
-	/**
-	* This function is called when the order is confirmed.
-	*/
-    public function indexAction ()
-    {
-		//Check if selected gateway was in a MultiSafepay method, if not then return to the checkout page.
-        switch ($this->getPaymentShortName())
-        {
-			case 'multisafepay_wallet' :
-			case 'multisafepay_visa' :
-			case 'multisafepay_mastercard' :
-			case 'multisafepay_amex' :
-			case 'multisafepay_maestro' :
-			case 'multisafepay_banktrans' :
-			case 'multisafepay_dirdeb' :
-			case 'multisafepay_directbank' :
-			case 'multisafepay_giropay' :
-			case 'multisafepay_ideal' :
-			case 'multisafepay_mistercash' :
-			case 'multisafepay_paypal' :
+
+    /**
+     * This function is called when the order is confirmed.
+     */
+    public function indexAction() {
+        //Check if selected gateway was in a MultiSafepay method, if not then return to the checkout page.
+        switch ($this->getPaymentShortName()) {
+            case 'multisafepay_wallet' :
+            case 'multisafepay_visa' :
+            case 'multisafepay_mastercard' :
+            case 'multisafepay_amex' :
+            case 'multisafepay_maestro' :
+            case 'multisafepay_banktrans' :
+            case 'multisafepay_dirdeb' :
+            case 'multisafepay_directbank' :
+            case 'multisafepay_giropay' :
+            case 'multisafepay_ideal' :
+            case 'multisafepay_mistercash' :
+            case 'multisafepay_paypal' :
             case 'multisafepay_eps' :
             case 'multisafepay_ferbuy' :
             case 'multisafepay_klarna' :
-			case 'multisafepay_payafter' :
-	  
-			// If a MultiSafepay gateway was selected then redirect to the gateway action url
-			if (preg_match('/multisafepay_(.+)/',$this->getPaymentShortName(), $matches))
-				$payment_methods = strtoupper($matches[1]);
-				return $this->redirect(array('action' => 'gateway', 'payment' => $payment_methods, 'forceSecure' => true));
-			break;
-			default :
+            case 'multisafepay_payafter' :
+
+                // If a MultiSafepay gateway was selected then redirect to the gateway action url
+                if (preg_match('/multisafepay_(.+)/', $this->getPaymentShortName(), $matches))
+                    $payment_methods = strtoupper($matches[1]);
+                return $this->redirect(array('action' => 'gateway', 'payment' => $payment_methods, 'forceSecure' => true));
+                break;
+            default :
                 return $this->redirect(array('controller' => 'checkout'));
         }
-	}
-	
-       
-	/**
-	* 	Gateway action, called when the order is confirmed and the validation is successful within the index function.
-	*/
-    public function gatewayAction()
-    {
-	    $config =Shopware()->Plugins()->Frontend()->MltisafePaymentMultiSafepay()->Config();
-	    
-	    
-		//Include the MultiSafepay API, used to build the transaction request and start the transaction.
-		include('Api/MultiSafepay.combined.php');	
-		$msp = new MultiSafepay();
-		$router 					= 	$this->Front()->Router();
-		$transaction_id 		= 	$this->createPaymentUniqueId();    
-		$userinfo 				= 	$this->getUser();
+    }
 
-		
-		if (!$userinfo) // Redirect to payment failed page
-			$this->forward('cancel');
-	
-		$uniquePaymentID 		= 	$this->createPaymentUniqueId();
+    /**
+     * 	Gateway action, called when the order is confirmed and the validation is successful within the index function.
+     */
+    public function gatewayAction() {
+        $config = Shopware()->Plugins()->Frontend()->MltisafePaymentMultiSafepay()->Config();
 
-		//Check if we need the Live or Test environment
-		if($config->get("environment") == 1) {
-			$environment		=	 '0';
-		}else{
-			$environment		=  '1';
-		}
-		$basket 	= 	$this->getBasket();
 
-	
+        //Include the MultiSafepay API, used to build the transaction request and start the transaction.
+        include('Api/MultiSafepay.combined.php');
+        $msp = new MultiSafepay();
+        $router = $this->Front()->Router();
+        $transaction_id = $this->createPaymentUniqueId();
+        $userinfo = $this->getUser();
 
-		/* 
-		* Create Transaction Request
-		*/
-		$msp = new MultiSafepay();
 
-			
-		/*
-		*	Set the plugin info data
-		*/
-		$msp->plugin_name					= 	'Shopware '.$config->get('version');
-		$msp->version						= 	'(1.0.1)';
-		$msp->plugin['shop']				= 'Shopware';
-		$msp->plugin['shop_version']		= $config->get('version');
-		$msp->plugin['plugin_version']		= '1.0.1';
+        if (!$userinfo) // Redirect to payment failed page
+            $this->forward('cancel');
+
+        $uniquePaymentID = $this->createPaymentUniqueId();
+
+        //Check if we need the Live or Test environment
+        if ($config->get("environment") == 1) {
+            $environment = '0';
+        } else {
+            $environment = '1';
+        }
+        $basket = $this->getBasket();
 
 
 
-		/* 
-		* Merchant Settings
-		*/
-		$msp->test                         	= 	$environment;
-		$msp->merchant['account_id']      	= 	$config->get("accountid");
-		$msp->merchant['site_id']          	=  	$config->get("siteid");
-		$msp->merchant['site_code']        	= 	$config->get("securecode");
-		$msp->merchant['notification_url'] 	= 	$router->assemble(array('action' => 'notify', 'forceSecure' => true, 'appendSession' => true)).'&type=initial';
-		$msp->merchant['cancel_url']       	= 	$router->assemble(array('action' => 'cancel', 'forceSecure' => true));
-		$msp->merchant['redirect_url'] 	 	= 	$router->assemble(array('action' => 'finish', 'forceSecure' 	=> 	true)) . '?uniquePaymentID=' . $uniquePaymentID . '&transactionID=' . $transaction_id;
-		$msp->merchant['close_window']		= 	true;
-		
-		/* 
-		* Customer Details - supply if available
-		*/
-		$msp->customer['locale']          	= 	Shopware()->System()->sLanguageData[Shopware()->System()->sLanguage]["isocode"];
-		$msp->customer['firstname']       	= 	$userinfo["billingaddress"]["firstname"];
-		$msp->customer['lastname']         	= 	$userinfo["billingaddress"]["lastname"];
-		$msp->customer['zipcode']          	=	$userinfo["billingaddress"]["zipcode"];
-		$msp->customer['city']             	=	$userinfo["billingaddress"]["city"];
-		$msp->customer['country']          	= 	$userinfo["additional"]["country"]["countryiso"];
-		$msp->customer['email']				= 	$userinfo["additional"]["user"]["email"];
-		
-		
-		
-		 $addressData = $this->parseCustomerAddress($userinfo["billingaddress"]["street"]);
+        /*
+         * Create Transaction Request
+         */
+        $msp = new MultiSafepay();
+
+
+        /*
+         * 	Set the plugin info data
+         */
+        $msp->plugin_name = 'Shopware ' . $config->get('version');
+        $msp->version = '(1.0.1)';
+        $msp->plugin['shop'] = 'Shopware';
+        $msp->plugin['shop_version'] = $config->get('version');
+        $msp->plugin['plugin_version'] = '1.0.1';
+
+
+
+        /*
+         * Merchant Settings
+         */
+        $msp->test = $environment;
+        $msp->merchant['account_id'] = $config->get("accountid");
+        $msp->merchant['site_id'] = $config->get("siteid");
+        $msp->merchant['site_code'] = $config->get("securecode");
+        $msp->merchant['notification_url'] = $router->assemble(array('action' => 'notify', 'forceSecure' => true, 'appendSession' => true)) . '&type=initial';
+        $msp->merchant['cancel_url'] = $router->assemble(array('action' => 'cancel', 'forceSecure' => true));
+        $msp->merchant['redirect_url'] = $router->assemble(array('action' => 'finish', 'forceSecure' => true)) . '?uniquePaymentID=' . $uniquePaymentID . '&transactionID=' . $transaction_id;
+        $msp->merchant['close_window'] = true;
+
+        /*
+         * Customer Details - supply if available
+         */
+        $msp->customer['locale'] = Shopware()->System()->sLanguageData[Shopware()->System()->sLanguage]["isocode"];
+        $msp->customer['firstname'] = $userinfo["billingaddress"]["firstname"];
+        $msp->customer['lastname'] = $userinfo["billingaddress"]["lastname"];
+        $msp->customer['zipcode'] = $userinfo["billingaddress"]["zipcode"];
+        $msp->customer['city'] = $userinfo["billingaddress"]["city"];
+        $msp->customer['country'] = $userinfo["additional"]["country"]["countryiso"];
+        $msp->customer['email'] = $userinfo["additional"]["user"]["email"];
+
+
+
+        $addressData = $this->parseCustomerAddress($userinfo["billingaddress"]["street"]);
         if (isset($addressData['housenumber']) && !empty($addressData['housenumber'])) {
             $street = $addressData['address'];
             $housenumber = $addressData['housenumber'];
@@ -159,108 +153,97 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
             $street = $userinfo["billingaddress"]["street"];
             $housenumber = $userinfo["billingaddress"]["streetnumber"];
         }
-		
-		
-		$msp->customer['address1']			=	$street;
-		$msp->customer['housenumber']		= 	$housenumber;
-		$msp->customer['phone']				= 	$userinfo["billingaddress"]["phone"];
 
-		/* 
-		 * Transaction Details
-		 */
-		$msp->transaction['id']            	= 	$transaction_id; // generally the shop's order ID is used here
-		$msp->transaction['currency']      	= 	$this->getCurrencyShortName();
-		$msp->transaction['amount']        	= 	(float)str_replace(',','.', $this->getAmount())*100;//$this->getAmount() * 100; // cents
-		$msp->transaction['description']  	= 	'Order #' . $msp->transaction['id'];
-		//$msp->transaction['items']        = 	$items;
-		$msp->transaction['var1']			= 	$uniquePaymentID;
-		$msp->transaction['gateway']		= 	$this->Request()->payment;
 
-		//request the payment link
-		
-		if($this->Request()->payment == 'PAYAFTER' || $this->Request()->payment == 'KLARNA')
-		{
-			//For Pay After Delivery we need all cart contents, including fee's, discount, shippingmethod etc. We will store it within the $basket
-			$items 	= 	$basket['content'];
-			//Add shipping
-			if(isset($basket['sShippingcostsNet'])){
+        $msp->customer['address1'] = $street;
+        $msp->customer['housenumber'] = $housenumber;
+        $msp->customer['phone'] = $userinfo["billingaddress"]["phone"];
 
-				$c_item = new MspItem('Shipping', 'Shipping', 1, $basket['sShippingcostsNet'], 'KG', 0);
-				$c_item->SetMerchantItemId('msp-shipping');
-				$c_item->SetTaxTableSelector($basket['sShippingcostsTax']);
-				$msp->cart->AddItem($c_item);
+        /*
+         * Transaction Details
+         */
+        $msp->transaction['id'] = $transaction_id; // generally the shop's order ID is used here
+        $msp->transaction['currency'] = $this->getCurrencyShortName();
+        $msp->transaction['amount'] = (float) str_replace(',', '.', $this->getAmount()) * 100; //$this->getAmount() * 100; // cents
+        $msp->transaction['description'] = 'Order #' . $msp->transaction['id'];
+        //$msp->transaction['items']        = 	$items;
+        $msp->transaction['var1'] = $uniquePaymentID;
+        $msp->transaction['gateway'] = $this->Request()->payment;
 
-			}
-			
-			
-			//Create a tax array that will contain all used taxes. These will then be added to the transaction request
-			$tax_array 							=	 array();
+        //request the payment link
 
-			//add all tax rates to the array
-			foreach($items as $product => $data)
-			{
-				if(isset($data['additional_details']['tax']))
-				{
-					$tax_array[$data['additional_details']['tax']]	=	$data['additional_details']['tax']/100;
-				}elseif(isset($data['tax_rate']))
-				{
-					$tax_array[$data['tax_rate']]	=	$data['tax_rate']/100;
-				}
-			}
-			
-			//Add the taxtables to the request
-			foreach($tax_array as $name => $rate)
-			{
-				$table 						= 	new MspAlternateTaxTable();
-				$table->name				=	$name;
-				$rule 						= 	new MspAlternateTaxRule($rate);
-				$table->AddAlternateTaxRules($rule);
-				$msp->cart->AddAlternateTaxTables($table);
-			}
-		
-			//Add all products to the request
-			foreach($items as $product => $data)
-			{
-				//if set then this is a product
-				if(isset($data['additional_details']['tax']))
-				{
-					$c_item = new MspItem($data['additional_details']['articleName'], $data['additional_details']['description'], $data['quantity'], $data['netprice'], $data['additional_details']['sUnit']['unit'], $data['additional_details']['weight'] );
-					$msp->cart->AddItem($c_item);
-					$c_item->SetMerchantItemId($data['id']);
-					$c_item->SetTaxTableSelector($data['additional_details']['tax']);
-				}elseif(isset($data['tax_rate']))
-				{
-					$c_item = new MspItem($data['additional_details']['articleName'], $data['additional_details']['description'], $data['quantity'], $data['netprice'], $data['additional_details']['sUnit']['unit'], $data['additional_details']['weight'] );
-					$msp->cart->AddItem($c_item);
-					$c_item->SetMerchantItemId($data['id']);
-					$c_item->SetTaxTableSelector($data['tax_rate']);
+        if ($this->Request()->payment == 'PAYAFTER' || $this->Request()->payment == 'KLARNA') {
+            //For Pay After Delivery we need all cart contents, including fee's, discount, shippingmethod etc. We will store it within the $basket
+            $items = $basket['content'];
+            //Add shipping
+            if (isset($basket['sShippingcostsNet'])) {
 
-				}
+                $c_item = new MspItem('Shipping', 'Shipping', 1, $basket['sShippingcostsNet'], 'KG', 0);
+                $c_item->SetMerchantItemId('msp-shipping');
+                $c_item->SetTaxTableSelector($basket['sShippingcostsTax']);
+                $msp->cart->AddItem($c_item);
+            }
 
-			}
-			$url = $msp->startCheckout();
-		}else{
-			$url = $msp->startTransaction();
-		}
-	
-		/*
-		*	Check if there was an error while requesting the payment link
-		*/
-		if ($msp->error){
-			// TODO LOAD FAILED TEMPLATE WITH ERROR CODE
-			echo "Error " . $msp->error_code . ": " . $msp->error;
-			exit();
-		}else{
-			//There was no error while requesting the transaction so we received a payment url (because we don't use the direct payment requests for now) so redirect the customer to the payment page.
-			$this->redirect($url);
-		}
-	}
-	
-	
-	/*
+
+            //Create a tax array that will contain all used taxes. These will then be added to the transaction request
+            $tax_array = array();
+
+            //add all tax rates to the array
+            foreach ($items as $product => $data) {
+                if (isset($data['additional_details']['tax'])) {
+                    $tax_array[$data['additional_details']['tax']] = $data['additional_details']['tax'] / 100;
+                } elseif (isset($data['tax_rate'])) {
+                    $tax_array[$data['tax_rate']] = $data['tax_rate'] / 100;
+                }
+            }
+
+            //Add the taxtables to the request
+            foreach ($tax_array as $name => $rate) {
+                $table = new MspAlternateTaxTable();
+                $table->name = $name;
+                $rule = new MspAlternateTaxRule($rate);
+                $table->AddAlternateTaxRules($rule);
+                $msp->cart->AddAlternateTaxTables($table);
+            }
+
+            //Add all products to the request
+            foreach ($items as $product => $data) {
+                //if set then this is a product
+                if (isset($data['additional_details']['tax'])) {
+                    $c_item = new MspItem($data['additional_details']['articleName'], $data['additional_details']['description'], $data['quantity'], $data['netprice'], $data['additional_details']['sUnit']['unit'], $data['additional_details']['weight']);
+                    $msp->cart->AddItem($c_item);
+                    $c_item->SetMerchantItemId($data['id']);
+                    $c_item->SetTaxTableSelector($data['additional_details']['tax']);
+                } elseif (isset($data['tax_rate'])) {
+                    $c_item = new MspItem($data['additional_details']['articleName'], $data['additional_details']['description'], $data['quantity'], $data['netprice'], $data['additional_details']['sUnit']['unit'], $data['additional_details']['weight']);
+                    $msp->cart->AddItem($c_item);
+                    $c_item->SetMerchantItemId($data['id']);
+                    $c_item->SetTaxTableSelector($data['tax_rate']);
+                }
+            }
+            $url = $msp->startCheckout();
+        } else {
+            $url = $msp->startTransaction();
+        }
+
+        /*
+         * 	Check if there was an error while requesting the payment link
+         */
+        if ($msp->error) {
+            // TODO LOAD FAILED TEMPLATE WITH ERROR CODE
+            echo "Error " . $msp->error_code . ": " . $msp->error;
+            exit();
+        } else {
+            //There was no error while requesting the transaction so we received a payment url (because we don't use the direct payment requests for now) so redirect the customer to the payment page.
+            $this->redirect($url);
+        }
+    }
+
+    /*
      * Parses and splits up an address in street and housenumber
      */
-	function parseCustomerAddress($street_address) {
+
+    function parseCustomerAddress($street_address) {
         list($address, $apartment) = $this->parseAddress($street_address);
         $customer['address'] = $address;
         $customer['housenumber'] = $apartment;
@@ -270,6 +253,7 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
     /*
      * Parses and splits up an address in street and housenumber
      */
+
     function parseAddress($street_address) {
         $address = $street_address;
         $apartment = "";
@@ -295,11 +279,11 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
 
         return array($address, $apartment);
     }
-    
 
     /*
      * Parses and splits up an address in street and housenumber
      */
+
     function rstrpos($haystack, $needle, $offset = null) {
         $size = strlen($haystack);
 
@@ -316,141 +300,123 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
         return $size - $pos - strlen($needle);
     }
 
-	
-	
-	
-	
-	
-     
-	 
-	/**
-	* This is the fail action. This should be called whenever we receive errors when requesting the transaction. This must be implemented.
-	*/  
-	public function failAction ()
-	{
+    /**
+     * This is the fail action. This should be called whenever we receive errors when requesting the transaction. This must be implemented.
+     */
+    public function failAction() {
         $this->View()->extendsTemplate('fail.tpl');
-	}
+    }
 
-   
-   
-	/**
-	* This action is called whenever the customer cancelles the transaction at MultiSafepay or an external acquirer.
-	*/  
-	public function cancelAction ()
-	{
-		return $this->redirect(array('controller' => 'checkout'));
-	}
+    /**
+     * This action is called whenever the customer cancelles the transaction at MultiSafepay or an external acquirer.
+     */
+    public function cancelAction() {
+        return $this->redirect(array('controller' => 'checkout'));
+    }
 
-    
-	
-	
-	/**
-	* This action is called when the customer is redirected back to the shop. This one saves the order and redirects to finish checkout page.
-	*/
-	public function finishAction ()
-	{
-		$request 							= 	$this->Request();
-		$orderNumber 						= 	$this->saveOrder($request->getParam('transactionID'), $request->getParam('uniquePaymentID'), NULL, true);
-		$this->redirect(array('controller' => 'checkout', 'action' => 'finish', 'sUniqueID' => $request->getParam('uniquePaymentID')));
-	}
-	
-    
-	/**
-	* This action is called by the MultiSafepay offline actions system. This one is used to update the 
-	*/
-	public function notifyAction ()
-	{
-		
-		$config =Shopware()->Plugins()->Frontend()->MltisafePaymentMultiSafepay()->Config();
-		include('Api/MultiSafepay.combined.php');	
-		$msp 								= 	new MultiSafepay();
-		
-		$request 							= 	$this->Request();
-		
-		$transactionid						=	$request->getParam('transactionid');
-		
-		$type								=	$request->getParam('type');
+    /**
+     * This action is called when the customer is redirected back to the shop. This one saves the order and redirects to finish checkout page.
+     */
+    public function finishAction() {
+        $request = $this->Request();
+        $orderNumber = $this->saveOrder($request->getParam('transactionID'), $request->getParam('uniquePaymentID'), NULL, true);
+        $this->redirect(array('controller' => 'checkout', 'action' => 'finish', 'sUniqueID' => $request->getParam('uniquePaymentID')));
+    }
 
-		//Check if we need the Live or Test environment
-		if($config->get("environment") == 1) {
-			$environment		=	 '0';
-		}else{
-			$environment		=  '1';
-		}
-		
-		$msp->test                         	= 	$environment;
-		$msp->merchant['account_id']       	= 	$config->get("accountid");
-		$msp->merchant['site_id']          	=  	$config->get("siteid");
-		$msp->merchant['site_code']        	= 	$config->get("securecode");
-	
-		$msp->transaction['id']            	= 	$transactionid; 
-		
-		//Get the transaction status
-		$status 							= 	$msp->getStatus();	
-		
-		//Get all transaction details, this can be used for further processing.
-		$details 							=	$msp->details;
+    /**
+     * This action is called by the MultiSafepay offline actions system. This one is used to update the 
+     */
+    public function notifyAction() {
 
-		
-		switch ($status) 
-		{
-			case "initialized":
-				$status_verbose 			= 	'Pending';
-				$stat_code 					= 	17;
-              	break;
+        $config = Shopware()->Plugins()->Frontend()->MltisafePaymentMultiSafepay()->Config();
+        include('Api/MultiSafepay.combined.php');
+        $msp = new MultiSafepay();
 
-			case "completed":
-				$status_verbose 			= 	'Completed';
-				$stat_code 					= 	12;
-				break;
-			case "uncleared":
-			 	$status_verbose 			= 	'Pending';
-				$stat_code 					= 	17;
+        $request = $this->Request();
+
+        $transactionid = $request->getParam('transactionid');
+
+        $type = $request->getParam('type');
+
+        //Check if we need the Live or Test environment
+        if ($config->get("environment") == 1) {
+            $environment = '0';
+        } else {
+            $environment = '1';
+        }
+
+        $msp->test = $environment;
+        $msp->merchant['account_id'] = $config->get("accountid");
+        $msp->merchant['site_id'] = $config->get("siteid");
+        $msp->merchant['site_code'] = $config->get("securecode");
+
+        $msp->transaction['id'] = $transactionid;
+
+        //Get the transaction status
+        $status = $msp->getStatus();
+
+        //Get all transaction details, this can be used for further processing.
+        $details = $msp->details;
+
+
+        switch ($status) {
+            case "initialized":
+                $status_verbose = 'Pending';
+                $stat_code = 17;
                 break;
-			case "void":
-				$status_verbose 			= 	'Cancelled';
-				$stat_code 					= 	-1;
-				break;
-			case "declined":
-				$status_verbose 			= 	'Declined';
-				$stat_code 					= 	4;
-				break;
-			case "refunded":
-				$status_verbose 			= 	'Refunded';
-				$stat_code 					= 	20;
-				break;
-                        case "partial_refunded":
-				$status_verbose 			= 	'Partially Refunded';
-				$stat_code 					= 	20;
-				break;
-			case "expired":
-				$status_verbose 			= 	'Expired';
-				$stat_code 					= 	4;
-				break;
-			case "cancelled":
-				$status_verbose 			= 	'Cancelled';
-				$stat_code 					= 	4;
-				break;
-			default:
-				$status_verbose 			= 	'Pending';
-				$stat_code 					= 	4;
-			break;
-		}	
-	
-		//if ($status == 'initialized' || $status == 'completed') //TODO ->Check current order status to check if we can/should update.
-	   // {
-			$this->savePaymentStatus($request->getParam('transactionid'),$details['transaction']['var1'], $stat_code, true);
-	   // }
 
-		if($type == 'initial')
-		{
-			//Setup the url back to the webshop. This one is shown whenever the notification url from within the transaction xml is called. (This is done on the MultiSafepay pages after transaction, if active)
-			$router 						= 	$this->Front()->Router();
-			$ret_url						=	$router->assemble(array('action' => 'finish', 'forceSecure' 	=> 	true)) . '?uniquePaymentID=' . $details['transaction']['var1'] . '&transactionID=' . $transactionid;
-			echo '<a href="'.$ret_url.'">Return to webshop</a>';
-		}else{
-			//We show OK when everything has gone OK. The status has been updated etc. OK is shown when the configured Notification url is called. This one is different then the notification url within the transaction request.
-			echo 'OK';
-		}
-	}	
+            case "completed":
+                $status_verbose = 'Completed';
+                $stat_code = 12;
+                break;
+            case "uncleared":
+                $status_verbose = 'Pending';
+                $stat_code = 17;
+                break;
+            case "void":
+                $status_verbose = 'Cancelled';
+                $stat_code = -1;
+                break;
+            case "declined":
+                $status_verbose = 'Declined';
+                $stat_code = 4;
+                break;
+            case "refunded":
+                $status_verbose = 'Refunded';
+                $stat_code = 20;
+                break;
+            case "partial_refunded":
+                $status_verbose = 'Partially Refunded';
+                $stat_code = 20;
+                break;
+            case "expired":
+                $status_verbose = 'Expired';
+                $stat_code = 4;
+                break;
+            case "cancelled":
+                $status_verbose = 'Cancelled';
+                $stat_code = 4;
+                break;
+            default:
+                $status_verbose = 'Pending';
+                $stat_code = 4;
+                break;
+        }
+
+        //if ($status == 'initialized' || $status == 'completed') //TODO ->Check current order status to check if we can/should update.
+        // {
+        $this->savePaymentStatus($request->getParam('transactionid'), $details['transaction']['var1'], $stat_code, true);
+        // }
+
+        if ($type == 'initial') {
+            //Setup the url back to the webshop. This one is shown whenever the notification url from within the transaction xml is called. (This is done on the MultiSafepay pages after transaction, if active)
+            $router = $this->Front()->Router();
+            $ret_url = $router->assemble(array('action' => 'finish', 'forceSecure' => true)) . '?uniquePaymentID=' . $details['transaction']['var1'] . '&transactionID=' . $transactionid;
+            echo '<a href="' . $ret_url . '">Return to webshop</a>';
+        } else {
+            //We show OK when everything has gone OK. The status has been updated etc. OK is shown when the configured Notification url is called. This one is different then the notification url within the transaction request.
+            echo 'OK';
+        }
+    }
+
 }

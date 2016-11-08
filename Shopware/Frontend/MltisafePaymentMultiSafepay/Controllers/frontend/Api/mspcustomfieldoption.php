@@ -1,19 +1,21 @@
 <?php
+
 /**
  * Custom field option class. Add options to the customer field
  */
 class MspCustomFieldOption {
+
     var $value;
     var $label;
-    
-	
-	
-	/**
-	* MspCustomFieldOtion for FCO transaction
-    */
-    function MspCustomFieldOption($value, $label){
+
+    /**
+     * MspCustomFieldOtion for FCO transaction
+     */
+    function MspCustomFieldOption($value, $label) {
         $this->value = $value;
         $this->label = $label;
     }
+
 }
+
 ?>

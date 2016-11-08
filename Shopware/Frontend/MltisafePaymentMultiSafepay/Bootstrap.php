@@ -60,7 +60,7 @@ class Shopware_Plugins_Frontend_MltisafePaymentMultiSafepay_Bootstrap extends Sh
         'PARFUMCADEAUKAART' => 'Parfumcadeaukaart',
         'PARFUMNL' => 'Parfumnl',
         'WEBSHOPGIFTCARD' => 'Webshop giftcard',
-        'EPS' =>'EPS',
+        'EPS' => 'EPS',
         'FERBUY' => 'Ferbuy',
         'KLARNA' => 'Klarna Invoice'
     );
@@ -92,7 +92,7 @@ class Shopware_Plugins_Frontend_MltisafePaymentMultiSafepay_Bootstrap extends Sh
         'PARFUMCADEAUKAART' => 'parfumcadeaukaart.gif',
         'PARFUMNL' => 'parfumnl.gif',
         'WEBSHOPGIFTCARD' => 'webshopgiftcard.gif',
-        'EPS'=> 'eps.gif',
+        'EPS' => 'eps.gif',
         'FERBUY' => 'ferbuy.gif',
         'KLARNA' => 'klarna.gif'
     );
@@ -111,9 +111,9 @@ class Shopware_Plugins_Frontend_MltisafePaymentMultiSafepay_Bootstrap extends Sh
         // Start adding the seperate gateways
         foreach ($elements as $element_id => $element_data) {
             foreach (self::$paymentMethods as $pAbbrMethod => $pMethod) {
-                /*if ($element_data['name'] != 'multisafepay_' . strtolower($pAbbrMethod)) {
-                    continue;
-                }*/
+                /* if ($element_data['name'] != 'multisafepay_' . strtolower($pAbbrMethod)) {
+                  continue;
+                  } */
 
                 $pMethodElement = new Shopware_Components_PaymentMultisafepay_Checkbox('multisafepay_' . strtolower($pAbbrMethod), $pluginId);
                 $pMethodElement->setValue($element_data['values'][0]['value']);
@@ -123,10 +123,9 @@ class Shopware_Plugins_Frontend_MltisafePaymentMultiSafepay_Bootstrap extends Sh
                 }
                 //$pMethodElement->save();
                 //$payment =  $this->Payments()->findOneBy(array('name' => $pMethodElement->_name));
-                $payment =  self::Payments()->findOneBy(array('name' => $pMethodElement->_name));
-            
-                if (!$payment)                
-                {
+                $payment = self::Payments()->findOneBy(array('name' => $pMethodElement->_name));
+
+                if (!$payment) {
                     $payment = $this->createPayment(array(
                         'name' => $pMethodElement->_name,
                         'description' => $pMethodElement->description,
@@ -134,14 +133,11 @@ class Shopware_Plugins_Frontend_MltisafePaymentMultiSafepay_Bootstrap extends Sh
                         'active' => $pMethodElement->getValue(),
                         'pluginID' => $pMethodElement->_pluginID,
                         'additionalDescription' => ''
-                    ));                
-                }
-                else
-                {
+                    ));
+                } else {
                     $payment->setActive(false);
-                //$payment->active = $pMethodElement->getValue() ? 1 : 0;
-                }           
-                
+                    //$payment->active = $pMethodElement->getValue() ? 1 : 0;
+                }
             }
         }
     }
@@ -151,25 +147,25 @@ class Shopware_Plugins_Frontend_MltisafePaymentMultiSafepay_Bootstrap extends Sh
      */
     protected function createPayments() {
         //$payment = Shopware()->Payments()->fetchRow(array('name=?' => 'multisafepay'));
-        $payment =  $this->Payments()->findOneBy(array('name' => 'multisafepay'));
+        $payment = $this->Payments()->findOneBy(array('name' => 'multisafepay'));
 
         if (!$payment) {
-            /*Shopware()->Payments()->createRow(array('name' => 'multisafepay', 'description' => 'Multisafepay', 'action' => 'payment_multisafepay', 'active' => 1, 'pluginID' => $this->getId(), 'additionaldescription' => '<div id="multisafepay_desc">
-						MultiSafepay offers innovative and solid payment products and solutions for small business and large corporations.
-With MultiSafepay you can offer specific local payment options for Germany, The Netherlands and Belgium and a wide variety of creditcards for all other countries.
-				    </div>'))->save();*/
-                    
-        $this->createPayment(array(
-            'name' => 'multisafepay',
-            'description' => 'Multisafepay',
-            'action' => 'payment_multisafepay',
-            'active' => 1,
-            'pluginID' => $this->getId(),
-            'additionalDescription' => '<div id="multisafepay_desc">
+            /* Shopware()->Payments()->createRow(array('name' => 'multisafepay', 'description' => 'Multisafepay', 'action' => 'payment_multisafepay', 'active' => 1, 'pluginID' => $this->getId(), 'additionaldescription' => '<div id="multisafepay_desc">
+              MultiSafepay offers innovative and solid payment products and solutions for small business and large corporations.
+              With MultiSafepay you can offer specific local payment options for Germany, The Netherlands and Belgium and a wide variety of creditcards for all other countries.
+              </div>'))->save(); */
+
+            $this->createPayment(array(
+                'name' => 'multisafepay',
+                'description' => 'Multisafepay',
+                'action' => 'payment_multisafepay',
+                'active' => 1,
+                'pluginID' => $this->getId(),
+                'additionalDescription' => '<div id="multisafepay_desc">
 						MultiSafepay offers innovative and solid payment products and solutions for small business and large corporations.
 With MultiSafepay you can offer specific local payment options for Germany, The Netherlands and Belgium and a wide variety of creditcards for all other countries.
 				    </div>'
-        ));                     
+            ));
         }
     }
 
@@ -197,32 +193,15 @@ With MultiSafepay you can offer specific local payment options for Germany, The 
     /**
      * Uninstall function to remove plugin 
      */
-    public function uninstall() {        
-        return true;
-
+    public function uninstall() {
         //Register the namespace to that the MultiSafepay checkboxes work
         Shopware()->Loader()->registerNamespace('Shopware_Components_PaymentMultisafepay', dirname(__FILE__) . '/Components/Multisafepay/');
+        //Remove paymentmeans by id 
+        Shopware()->Db()->delete('s_core_paymentmeans', 'pluginID = ' . (int) $this->getId());
 
         if ($payment = $this->Payment()) {
-            $payment->delete();
-        }
-
-        $form = $this->Form();
-
-        // Uninstall all gateways
-        foreach (self::$paymentMethods as $pAbbrMethod => $pMethod) {
-            $pMethodElement = $form->getElement('multisafepay_' . strtolower($pAbbrMethod));
-            if (!$pMethodElement) {
-                continue;
-            }
-
-            $pMethodNew = new Shopware_Components_PaymentMultisafepay_Checkbox('multisafepay_' . strtolower($pAbbrMethod), $this->getId());
-            //$pMethodNew->deletePayment();
-            $payment = $this->Payments()->findOneBy(array('name' => $pMethodNew->_name));
-            if (!$payment) {
-                $payment->delete();
-            }
-            
+            Shopware()->Models()->remove($payment);
+            Shopware()->Models()->flush();
         }
         return parent::uninstall();
     }
@@ -308,11 +287,10 @@ With MultiSafepay you can offer specific local payment options for Germany, The 
             }
             $pMethodElement->setValue(false);
             //$pMethodElement->save();
-            
-            $payment =  $this->Payments()->findOneBy(array('name' => $pMethodElement->_name));
-            
-            if (!$payment)                
-            {
+
+            $payment = $this->Payments()->findOneBy(array('name' => $pMethodElement->_name));
+
+            if (!$payment) {
                 $payment = $this->createPayment(array(
                     'name' => $pMethodElement->_name,
                     'description' => $pMethodElement->description,
@@ -320,13 +298,11 @@ With MultiSafepay you can offer specific local payment options for Germany, The 
                     'active' => $pMethodElement->getValue(),
                     'pluginID' => $pMethodElement->_pluginID,
                     'additionalDescription' => ''
-                ));                
-            }
-            else
-            {
+                ));
+            } else {
                 $payment->setActive(false);
                 //$payment->active = $pMethodElement->getValue() ? 1 : 0;
-            }            
+            }
 
             $form->setElement('checkbox', $pMethodElement->name, array('label' => $pMethodElement->description, 'value' => false));
         }

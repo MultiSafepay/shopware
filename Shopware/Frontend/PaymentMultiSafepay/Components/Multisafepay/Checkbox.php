@@ -2,7 +2,7 @@
 
 /**
  * Shopware 4.0
- * Copyright © 2012 shopware AG
+ * Copyright ï¿½ 2012 shopware AG
  *
  * According to our dual licensing model, this program can be used either
  * under the terms of the GNU Affero General Public License, version 3,
@@ -30,27 +30,23 @@
  * @author     Multisafepay
  * @author     $Author$
  */
-
 //namespace Shopware\Components\PaymentMultisafepay;
 //use Shopware\Models\Config;
 
-class Shopware_Components_PaymentMultisafepay_Checkbox extends Zend_Form_Element_Checkbox
-    {
-    protected $_pluginID;
+class Shopware_Components_PaymentMultisafepay_Checkbox extends Zend_Form_Element_Checkbox {
 
+    protected $_pluginID;
     public $description;
     public $logoName;
     public $name;
 
-	
-	/**
+    /**
      * Constructor
      *
      * @param string $name
      * @param int $pluginID
      */
-    public function __construct ($name, $pluginID)
-    {
+    public function __construct($name, $pluginID) {
         $this->_type = 'Checkbox';
         $this->_name = strtolower($name);
         $this->name = $this->_name;
@@ -58,47 +54,41 @@ class Shopware_Components_PaymentMultisafepay_Checkbox extends Zend_Form_Element
 
         parent::__construct(strtolower($name), $options);
     }
-	
-	
-	/**
+
+    /**
      * Save data
      *
      */
-    public function save ()
-    {
+    public function save() {
         $payment = Shopware()->Payments()->fetchRow(array('name=?' => $this->_name));
-		
+
         if (!$this->logoName)
             $this->logoName = 'multisafepay.gif';
 
-        if (!$payment)
-        {
+        if (!$payment) {
             $payment = Shopware()->Payments()->createRow(array(
-                                    'name' 					=> $this->_name,
-                                    'description' 			=> $this->description,
-                                    'action' 				=> 'payment_multisafepay',
-                                    'active' 				=> $this->getValue(),
-                                    'pluginID' 				=> $this->_pluginID,
-                                    'additionaldescription' =>''
-                                    ));
-		}
-        else
-		{
+                'name' => $this->_name,
+                'description' => $this->description,
+                'action' => 'payment_multisafepay',
+                'active' => $this->getValue(),
+                'pluginID' => $this->_pluginID,
+                'additionaldescription' => ''
+            ));
+        } else {
             $payment->active = $this->getValue() ? 1 : 0;
         }
 
         $payment->save();
     }
-	
 
-	/**
+    /**
      * Delete the payment record
      *
      */
-    public function deletePayment ()
-    {
+    public function deletePayment() {
         $payment = Shopware()->Payments()->fetchRow(array('name=?' => $this->_name));
         if ($payment)
             $payment->delete();
     }
+
 }

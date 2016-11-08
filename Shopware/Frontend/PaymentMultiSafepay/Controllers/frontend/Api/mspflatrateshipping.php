@@ -20,16 +20,16 @@
  * Classes used to represent shipping types
  * @version $Id: googleshipping.php 1234 2007-09-25 14:58:57Z ropu $
  */
- 
-  /**
-   * Class that represents flat rate shipping
-   * 
-   * info:
-   * {@link http://code.google.com/apis/checkout/developer/index.html#tag_flat-rate-shipping}
-   * {@link http://code.google.com/apis/checkout/developer/index.html#shipping_xsd}
-   *  
-   */
-  class MspFlatRateShipping {
+
+/**
+ * Class that represents flat rate shipping
+ * 
+ * info:
+ * {@link http://code.google.com/apis/checkout/developer/index.html#tag_flat-rate-shipping}
+ * {@link http://code.google.com/apis/checkout/developer/index.html#shipping_xsd}
+ *  
+ */
+class MspFlatRateShipping {
 
     var $price;
     var $name;
@@ -41,8 +41,8 @@
      * @param double $price the price for this shipping
      */
     function MspFlatRateShipping($name, $price) {
-      $this->name = $name;
-      $this->price = $price;
+        $this->name = $name;
+        $this->price = $price;
     }
 
     /**
@@ -51,8 +51,9 @@
      * @param GoogleShippingFilters $restrictions the shipping restrictions
      */
     function AddShippingRestrictions($restrictions) {
-      $this->shipping_restrictions = $restrictions;
+        $this->shipping_restrictions = $restrictions;
     }
-  }
-  
-  ?>
+
+}
+
+?>

@@ -2,9 +2,9 @@
 
 <script type="text/javascript">
 //<![CDATA[
-jQuery(document).ready(function() {
-    jQuery('#finished').css('display','none');
-});
+  jQuery(document).ready(function () {
+    jQuery('#finished').css('display', 'none');
+  });
 //]]>
 </script>
 

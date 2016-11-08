@@ -1,29 +1,28 @@
 <?php
 
-
-  /**
-   * Represents an alternate tax table
-   * 
-   * GC tag: {@link http://code.google.com/apis/checkout/developer/index.html#tag_alternate-tax-table <alternate-tax-table>}
-   */
-  class MspAlternateTaxTable {
+/**
+ * Represents an alternate tax table
+ * 
+ * GC tag: {@link http://code.google.com/apis/checkout/developer/index.html#tag_alternate-tax-table <alternate-tax-table>}
+ */
+class MspAlternateTaxTable {
 
     var $name;
     var $tax_rules_arr;
     var $standalone;
 
     function MspAlternateTaxTable($name = "", $standalone = "false") {
-      if($name != "") {
-        $this->name = $name;
-        $this->tax_rules_arr = array();
-        $this->standalone = $standalone;
-      }
+        if ($name != "") {
+            $this->name = $name;
+            $this->tax_rules_arr = array();
+            $this->standalone = $standalone;
+        }
     }
 
     function AddAlternateTaxRules($rules) {
-      $this->tax_rules_arr[] = $rules;
+        $this->tax_rules_arr[] = $rules;
     }
-  }
-  
-  
-  ?>
+
+}
+
+?>

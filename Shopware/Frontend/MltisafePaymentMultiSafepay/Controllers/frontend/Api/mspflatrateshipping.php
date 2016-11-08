@@ -20,42 +20,41 @@
  * Classes used to represent shipping types
  * @version $Id: googleshipping.php 1234 2007-09-25 14:58:57Z ropu $
  */
- 
-  /**
-   * Class that represents flat rate shipping
-   * 
-   * info:
-   * {@link http://code.google.com/apis/checkout/developer/index.html#tag_flat-rate-shipping}
-   * {@link http://code.google.com/apis/checkout/developer/index.html#shipping_xsd}
-   *  
-   */
-  class MspFlatRateShipping {
+
+/**
+ * Class that represents flat rate shipping
+ * 
+ * info:
+ * {@link http://code.google.com/apis/checkout/developer/index.html#tag_flat-rate-shipping}
+ * {@link http://code.google.com/apis/checkout/developer/index.html#shipping_xsd}
+ *  
+ */
+class MspFlatRateShipping {
 
     var $price;
     var $name;
     var $type = "flat-rate-shipping";
     var $shipping_restrictions;
 
-    
-	/**
-	* MspFlatRateShipping, ADD flatrate shipping for FCO transaction
-    * @param string $name a name for the shipping
-    * @param double $price the price for this shipping
-    */
+    /**
+     * MspFlatRateShipping, ADD flatrate shipping for FCO transaction
+     * @param string $name a name for the shipping
+     * @param double $price the price for this shipping
+     */
     function MspFlatRateShipping($name, $price) {
-      $this->name = $name;
-      $this->price = $price;
+        $this->name = $name;
+        $this->price = $price;
     }
 
-   
-	/**
-    * Adds a restriction to this shipping.
-    * 
-    * @param GoogleShippingFilters $restrictions the shipping restrictions
-    */
+    /**
+     * Adds a restriction to this shipping.
+     * 
+     * @param GoogleShippingFilters $restrictions the shipping restrictions
+     */
     function AddShippingRestrictions($restrictions) {
-      $this->shipping_restrictions = $restrictions;
+        $this->shipping_restrictions = $restrictions;
     }
-  }
-  
-  ?>
+
+}
+
+?>
