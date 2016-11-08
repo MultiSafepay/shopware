@@ -60,6 +60,9 @@ class Shopware_Plugins_Frontend_MltisafePaymentMultiSafepay_Bootstrap extends Sh
         'PARFUMCADEAUKAART' => 'Parfumcadeaukaart',
         'PARFUMNL' => 'Parfumnl',
         'WEBSHOPGIFTCARD' => 'Webshop giftcard',
+        'EPS' =>'EPS',
+        'FERBUY' => 'Ferbuy',
+        'KLARNA' => 'Klarna Invoice'
     );
 
     /*
@@ -89,6 +92,9 @@ class Shopware_Plugins_Frontend_MltisafePaymentMultiSafepay_Bootstrap extends Sh
         'PARFUMCADEAUKAART' => 'parfumcadeaukaart.gif',
         'PARFUMNL' => 'parfumnl.gif',
         'WEBSHOPGIFTCARD' => 'webshopgiftcard.gif',
+        'EPS'=> 'eps.gif',
+        'FERBUY' => 'ferbuy.gif',
+        'KLARNA' => 'klarna.gif'
     );
 
     /**

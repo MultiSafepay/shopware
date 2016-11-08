@@ -62,6 +62,9 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
 			case 'multisafepay_ideal' :
 			case 'multisafepay_mistercash' :
 			case 'multisafepay_paypal' :
+            case 'multisafepay_eps' :
+            case 'multisafepay_ferbuy' :
+            case 'multisafepay_klarna' :
 			case 'multisafepay_payafter' :
 	  
 			// If a MultiSafepay gateway was selected then redirect to the gateway action url
@@ -175,30 +178,19 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
 
 		//request the payment link
 		
-		if($this->Request()->payment == 'PAYAFTER')
+		if($this->Request()->payment == 'PAYAFTER' || $this->Request()->payment == 'KLARNA')
 		{
 			//For Pay After Delivery we need all cart contents, including fee's, discount, shippingmethod etc. We will store it within the $basket
 			$items 	= 	$basket['content'];
-			
-			
-			
 			//Add shipping
 			if(isset($basket['sShippingcostsNet'])){
-				
-				
-				
-				
+
 				$c_item = new MspItem('Shipping', 'Shipping', 1, $basket['sShippingcostsNet'], 'KG', 0);
 				$c_item->SetMerchantItemId('msp-shipping');
 				$c_item->SetTaxTableSelector($basket['sShippingcostsTax']);
 				$msp->cart->AddItem($c_item);
-			
-			
-			
-			
+
 			}
-			
-					
 			
 			
 			//Create a tax array that will contain all used taxes. These will then be added to the transaction request
@@ -246,15 +238,10 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
 				}
 
 			}
-
-
 			$url = $msp->startCheckout();
 		}else{
 			$url = $msp->startTransaction();
 		}
-	
-
-	
 	
 		/*
 		*	Check if there was an error while requesting the payment link
