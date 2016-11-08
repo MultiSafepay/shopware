@@ -80,15 +80,14 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
 	*/
     public function gatewayAction()
     {
+	    $config =Shopware()->Plugins()->Frontend()->MltisafePaymentMultiSafepay()->Config();
+	    
+	    
 		//Include the MultiSafepay API, used to build the transaction request and start the transaction.
 		include('Api/MultiSafepay.combined.php');	
 		$msp = new MultiSafepay();
-
 		$router 					= 	$this->Front()->Router();
-	
-		mt_srand(time());
-		$transaction_id 		= 	mt_rand();
-    
+		$transaction_id 		= 	$this->createPaymentUniqueId();    
 		$userinfo 				= 	$this->getUser();
 
 		
@@ -98,13 +97,14 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
 		$uniquePaymentID 		= 	$this->createPaymentUniqueId();
 
 		//Check if we need the Live or Test environment
-		if(Shopware()->Config()->environment){
-			$environment		=	 false;
+		if($config->get("environment") == 1) {
+			$environment		=	 '0';
 		}else{
-			$environment		= 	true;
+			$environment		=  '1';
 		}
 		$basket 	= 	$this->getBasket();
 
+	
 
 		/* 
 		* Create Transaction Request
@@ -115,10 +115,10 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
 		/*
 		*	Set the plugin info data
 		*/
-		$msp->plugin_name					= 	'Shopware '.Shopware()->Config()->get('version');
+		$msp->plugin_name					= 	'Shopware '.$config->get('version');
 		$msp->version						= 	'(1.0.1)';
 		$msp->plugin['shop']				= 'Shopware';
-		$msp->plugin['shop_version']		= Shopware()->Config()->get('version');
+		$msp->plugin['shop_version']		= $config->get('version');
 		$msp->plugin['plugin_version']		= '1.0.1';
 
 
@@ -127,9 +127,9 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
 		* Merchant Settings
 		*/
 		$msp->test                         	= 	$environment;
-		$msp->merchant['account_id']      	= 	Shopware()->Config()->accountid;
-		$msp->merchant['site_id']          	=  	Shopware()->Config()->siteid;
-		$msp->merchant['site_code']        	= 	Shopware()->Config()->securecode;
+		$msp->merchant['account_id']      	= 	$config->get("accountid");
+		$msp->merchant['site_id']          	=  	$config->get("siteid");
+		$msp->merchant['site_code']        	= 	$config->get("securecode");
 		$msp->merchant['notification_url'] 	= 	$router->assemble(array('action' => 'notify', 'forceSecure' => true, 'appendSession' => true)).'&type=initial';
 		$msp->merchant['cancel_url']       	= 	$router->assemble(array('action' => 'cancel', 'forceSecure' => true));
 		$msp->merchant['redirect_url'] 	 	= 	$router->assemble(array('action' => 'finish', 'forceSecure' 	=> 	true)) . '?uniquePaymentID=' . $uniquePaymentID . '&transactionID=' . $transaction_id;
@@ -220,6 +220,8 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
 			$url = $msp->startTransaction();
 		}
 	
+	
+	
 		/*
 		*	Check if there was an error while requesting the payment link
 		*/
@@ -272,22 +274,28 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
 	*/
 	public function notifyAction ()
 	{
+		
+		$config =Shopware()->Plugins()->Frontend()->MltisafePaymentMultiSafepay()->Config();
 		include('Api/MultiSafepay.combined.php');	
 		$msp 								= 	new MultiSafepay();
+		
 		$request 							= 	$this->Request();
+		
 		$transactionid						=	$request->getParam('transactionid');
+		
 		$type								=	$request->getParam('type');
 
-		if(Shopware()->Config()->environment){
-			$environment					= 	false;
+		//Check if we need the Live or Test environment
+		if($config->get("environment") == 1) {
+			$environment		=	 '0';
 		}else{
-			$environment					= 	true;
+			$environment		=  '1';
 		}
 		
 		$msp->test                         	= 	$environment;
-		$msp->merchant['account_id']       	= 	Shopware()->Config()->accountid;
-		$msp->merchant['site_id']          	=  	Shopware()->Config()->siteid;
-		$msp->merchant['site_code']        	= 	Shopware()->Config()->securecode;
+		$msp->merchant['account_id']       	= 	$config->get("accountid");
+		$msp->merchant['site_id']          	=  	$config->get("siteid");
+		$msp->merchant['site_code']        	= 	$config->get("securecode");
 	
 		$msp->transaction['id']            	= 	$transactionid; 
 		
