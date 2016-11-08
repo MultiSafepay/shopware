@@ -94,7 +94,7 @@ class Shopware_Plugins_Frontend_MltisafePaymentMultiSafepay_Bootstrap extends Sh
     /**
      * onSaveForm function for adding the seperate gateways
      */
-    public static function onSaveForm(Enlight_Hook_HookArgs $args) {
+    public static function onSaveForm($args) {
         //Register the namespace to that the MultiSafepay checkboxes work
         Shopware()->Loader()->registerNamespace('Shopware_Components_PaymentMultisafepay', dirname(__FILE__) . '/Components/Multisafepay/');
         $class = $args->getSubject();
