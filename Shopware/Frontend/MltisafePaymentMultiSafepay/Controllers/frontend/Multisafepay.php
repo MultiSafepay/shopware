@@ -179,7 +179,27 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
 		{
 			//For Pay After Delivery we need all cart contents, including fee's, discount, shippingmethod etc. We will store it within the $basket
 			$items 	= 	$basket['content'];
-			//print_r($items);exit;
+			
+			
+			
+			//Add shipping
+			if(isset($basket['sShippingcostsNet'])){
+				
+				
+				
+				
+				$c_item = new MspItem('Shipping', 'Shipping', 1, $basket['sShippingcostsNet'], 'KG', 0);
+				$c_item->SetMerchantItemId('msp-shipping');
+				$c_item->SetTaxTableSelector($basket['sShippingcostsTax']);
+				$msp->cart->AddItem($c_item);
+			
+			
+			
+			
+			}
+			
+					
+			
 			
 			//Create a tax array that will contain all used taxes. These will then be added to the transaction request
 			$tax_array 							=	 array();
@@ -233,7 +253,7 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
 			$url = $msp->startTransaction();
 		}
 	
-	print_r($msp);exit;
+
 	
 	
 		/*
