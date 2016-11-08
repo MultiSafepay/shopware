@@ -2,7 +2,7 @@
 
 /**
  * Shopware 4.0
- * Copyright © 2012 shopware AG
+ * Copyright ï¿½ 2012 shopware AG
  *
  * According to our dual licensing model, this program can be used either
  * under the terms of the GNU Affero General Public License, version 3,
@@ -38,10 +38,11 @@
 class Shopware_Components_PaymentMultisafepay_Checkbox extends Zend_Form_Element_Checkbox
     {
 	
-    protected $_pluginID;
+    public $_pluginID;
     public $description;
     public $logoName;
     public $name;
+    public $_name;
 
 	
 	/**
@@ -65,7 +66,7 @@ class Shopware_Components_PaymentMultisafepay_Checkbox extends Zend_Form_Element
      * Save data from the payment plugins
      *
      */
-    public function save ()
+    /*public function save ()
     {
         $payment = Shopware()->Payments()->fetchRow(array('name=?' => $this->_name));
 		
@@ -89,17 +90,17 @@ class Shopware_Components_PaymentMultisafepay_Checkbox extends Zend_Form_Element
         }
 
         $payment->save();
-    }
+    }*/
 	
 
 	/**
      * Delete the payment record
      *
      */
-    public function deletePayment ()
+    /*public function deletePayment ()
     {
         $payment = Shopware()->Payments()->fetchRow(array('name=?' => $this->_name));
         if ($payment)
             $payment->delete();
-    }
+    }*/
 }
