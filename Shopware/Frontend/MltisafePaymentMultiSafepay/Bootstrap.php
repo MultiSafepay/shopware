@@ -49,6 +49,9 @@ class Shopware_Plugins_Frontend_MltisafePaymentMultiSafepay_Bootstrap extends Sh
         'MISTERCASH' => 'MisterCash',
         'PAYPAL' => 'PayPal',
         'PAYAFTER' => 'Betaal na Ontvangst',
+        'KLARNA' => 'Klarna Invoice',
+        'EPS' => 'EPS',
+        'FERBUY' => 'Ferbuy',
         'BABYGIFTCARD' => 'Babygiftcard',
         'BOEKENBON' => 'Boekenbon',
         'DEGROTESPEELGOEDWINKEL' => 'De grote speelgoed winkel',
@@ -59,10 +62,7 @@ class Shopware_Plugins_Frontend_MltisafePaymentMultiSafepay_Bootstrap extends Sh
         'LIEF' => 'Lief',
         'PARFUMCADEAUKAART' => 'Parfumcadeaukaart',
         'PARFUMNL' => 'Parfumnl',
-        'WEBSHOPGIFTCARD' => 'Webshop giftcard',
-        'EPS' => 'EPS',
-        'FERBUY' => 'Ferbuy',
-        'KLARNA' => 'Klarna Invoice'
+        'WEBSHOPGIFTCARD' => 'Webshop giftcard'
     );
 
     /*
@@ -82,6 +82,9 @@ class Shopware_Plugins_Frontend_MltisafePaymentMultiSafepay_Bootstrap extends Sh
         'MISTERCASH' => 'mistercash.gif',
         'PAYPAL' => 'paypal.gif',
         'PAYAFTER' => 'payafter.gif',
+        'KLARNA' => 'klarna.gif',
+        'EPS' => 'eps.gif',
+        'FERBUY' => 'ferbuy.gif',
         'BOEKENBON' => 'boekenbon.gif',
         'DEGROTESPEELGOEDWINKEL' => 'degrotespeelgoedwinkel.gif',
         'EBON' => 'ebon.gif',
@@ -91,10 +94,7 @@ class Shopware_Plugins_Frontend_MltisafePaymentMultiSafepay_Bootstrap extends Sh
         'LIEF' => 'lief.gif',
         'PARFUMCADEAUKAART' => 'parfumcadeaukaart.gif',
         'PARFUMNL' => 'parfumnl.gif',
-        'WEBSHOPGIFTCARD' => 'webshopgiftcard.gif',
-        'EPS' => 'eps.gif',
-        'FERBUY' => 'ferbuy.gif',
-        'KLARNA' => 'klarna.gif'
+        'WEBSHOPGIFTCARD' => 'webshopgiftcard.gif'
     );
 
     /**

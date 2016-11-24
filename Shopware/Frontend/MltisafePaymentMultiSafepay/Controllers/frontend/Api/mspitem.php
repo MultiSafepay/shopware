@@ -95,8 +95,8 @@ class MspItem {
      * 
      */
     function MspItem($name, $desc, $qty, $price, $item_weight = '', $numeric_weight = '') {
-        $this->item_name = $this->xmlEscape($name);
-        $this->item_description = $this->xmlEscape($desc);
+        $this->item_name = $name;
+        $this->item_description = $desc;
         $this->unit_price = $price;
         $this->quantity = $qty;
 
