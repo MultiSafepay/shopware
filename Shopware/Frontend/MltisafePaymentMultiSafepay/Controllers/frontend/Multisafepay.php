@@ -183,12 +183,24 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
         if ($this->Request()->payment == 'PAYAFTER' || $this->Request()->payment == 'KLARNA') {
             //For Pay After Delivery we need all cart contents, including fee's, discount, shippingmethod etc. We will store it within the $basket
             $items = $basket['content'];
+            
+            //Add none tax table
+            $table = new MspAlternateTaxTable();
+            $table->name = 'none';
+            $rule = new MspAlternateTaxRule('0.00');
+            $table->AddAlternateTaxRules($rule);
+            $msp->cart->AddAlternateTaxTables($table);
+            
             //Add shipping
             if (isset($basket['sShippingcostsNet'])) {
 
                 $c_item = new MspItem('Shipping', 'Shipping', 1, $basket['sShippingcostsNet'], 'KG', 0);
                 $c_item->SetMerchantItemId('msp-shipping');
-                $c_item->SetTaxTableSelector($basket['sShippingcostsTax']);
+                if (isset($basket['sShippingcostsTax'])) {
+                    $c_item->SetTaxTableSelector($basket['sShippingcostsTax']);
+                } else {
+                    $c_item->SetTaxTableSelector('none');
+                }
                 $msp->cart->AddItem($c_item);
             }
 
