@@ -30,6 +30,7 @@
  * @author     Multisafepay.
  * @author     $Author$
  */
+ 
 class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Controllers_Frontend_Payment {
 
     private static $pay_to_email;
@@ -39,6 +40,12 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
     private static $recipient_description;
     private static $multisafepay_url;
     private $sid;
+    
+    //Shopware\Models\Order\Status
+    const PAYMENT_STATE_COMPLETELY_PAID = 12;
+    const PAYMENT_STATE_OPEN = 17;
+    const PAYMENT_STATE_RE_CREDITING = 20;
+    const PAYMENT_STATE_THE_PROCESS_HAS_BEEN_CANCELLED = 35;
 
     /**
      * This function is called when the order is confirmed.
@@ -116,7 +123,7 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
         $msp->version = '(1.0.1)';
         $msp->plugin['shop'] = 'Shopware';
         $msp->plugin['shop_version'] = $config->get('version');
-        $msp->plugin['plugin_version'] = '1.0.1';
+        $msp->plugin['plugin_version'] = '1.0.1-p';
 
 
 
@@ -128,6 +135,7 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
         $msp->merchant['site_id'] = $config->get("siteid");
         $msp->merchant['site_code'] = $config->get("securecode");
         $msp->merchant['notification_url'] = $router->assemble(array('action' => 'notify', 'forceSecure' => true, 'appendSession' => true)) . '&type=initial';
+        //$msp->merchant['cancel_url'] = $router->assemble(array('action' => 'cancel', 'forceSecure' => true));
         $msp->merchant['cancel_url'] = $router->assemble(array('action' => 'cancel', 'forceSecure' => true)) . '?uniquePaymentID=' . $uniquePaymentID;
         $msp->merchant['redirect_url'] = $router->assemble(array('action' => 'finish', 'forceSecure' => true)) . '?uniquePaymentID=' . $uniquePaymentID . '&transactionID=' . $transaction_id;
         $msp->merchant['close_window'] = true;
@@ -313,7 +321,7 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
      */
     public function cancelAction() {
         $request = $this->Request();
-        $this->savePaymentStatus($request->getParam('transactionid'), $request->getParam('uniquePaymentID'), 35, true);
+        $this->savePaymentStatus($request->getParam('transactionid'), $request->getParam('uniquePaymentID'), self::PAYMENT_STATE_THE_PROCESS_HAS_BEEN_CANCELLED, true);                
         return $this->redirect(array('controller' => 'checkout'));
     }
 
@@ -330,7 +338,7 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
      * This action is called by the MultiSafepay offline actions system. This one is used to update the 
      */
     public function notifyAction() {
-
+        
         $config = Shopware()->Plugins()->Frontend()->MltisafePaymentMultiSafepay()->Config();
         include('Api/MultiSafepay.combined.php');
         $msp = new MultiSafepay();
@@ -341,9 +349,8 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
         
         $timestamp = $request->getParam('timestamp');
         if(!isset($timestamp)) {
-            echo 'No timestamp is set so we are stopping the callback';
-            exit;
-        }
+            echo 'No timestamp is set so we are stopping the callback';exit;
+        }        
 
         $type = $request->getParam('type');
 
@@ -371,44 +378,44 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
         switch ($status) {
             case "initialized":
                 $status_verbose = 'Pending';
-                $stat_code = 17;
+                $stat_code = self::PAYMENT_STATE_OPEN;
                 break;
 
             case "completed":
                 $status_verbose = 'Completed';
-                $stat_code = 12;
+                $stat_code = self::PAYMENT_STATE_COMPLETELY_PAID;
                 break;
             case "uncleared":
                 $status_verbose = 'Pending';
-                $stat_code = 17;
+                $stat_code = self::PAYMENT_STATE_OPEN;
                 break;
             case "void":
                 $status_verbose = 'Cancelled';
-                $stat_code = -1;
+                $stat_code = self::PAYMENT_STATE_THE_PROCESS_HAS_BEEN_CANCELLED;
                 break;
             case "declined":
                 $status_verbose = 'Declined';
-                $stat_code = 4;
+                $stat_code = self::PAYMENT_STATE_THE_PROCESS_HAS_BEEN_CANCELLED;
                 break;
             case "refunded":
                 $status_verbose = 'Refunded';
-                $stat_code = 20;
+                $stat_code = self::PAYMENT_STATE_RE_CREDITING;
                 break;
             case "partial_refunded":
                 $status_verbose = 'Partially Refunded';
-                $stat_code = 20;
+                $stat_code = self::PAYMENT_STATE_RE_CREDITING;
                 break;
             case "expired":
                 $status_verbose = 'Expired';
-                $stat_code = 4;
+                $stat_code = self::PAYMENT_STATE_THE_PROCESS_HAS_BEEN_CANCELLED;
                 break;
             case "cancelled":
                 $status_verbose = 'Cancelled';
-                $stat_code = 4;
+                $stat_code = self::PAYMENT_STATE_THE_PROCESS_HAS_BEEN_CANCELLED;
                 break;
             default:
                 $status_verbose = 'Pending';
-                $stat_code = 4;
+                $stat_code = self::PAYMENT_STATE_THE_PROCESS_HAS_BEEN_CANCELLED;
                 break;
         }
 
@@ -421,9 +428,9 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
             //Setup the url back to the webshop. This one is shown whenever the notification url from within the transaction xml is called. (This is done on the MultiSafepay pages after transaction, if active)
             $router = $this->Front()->Router();
             $ret_url = $router->assemble(array('action' => 'finish', 'forceSecure' => true)) . '?uniquePaymentID=' . $details['transaction']['var1'] . '&transactionID=' . $transactionid;
-            
+
             $request = $this->Request();
-            $this->saveOrder($request->getParam('transactionid'), $details['transaction']['var1'], NULL, true);
+            $this->saveOrder($request->getParam('transactionid'), $details['transaction']['var1'], NULL, true);            
             
             echo '<a href="' . $ret_url . '">Return to webshop</a>';
         } else {
