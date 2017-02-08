@@ -41,7 +41,7 @@ class MspTaxRule {
     /**
      * unused MspTaxRule function for Fco
      */
-    function MspTaxRule() {
+    function __construct() {
         
     }
 

@@ -21,7 +21,7 @@ class MspCustomField {
     /**
      * MspCustomField create custom field for FCO transaction
      */
-    function MspCustomField($name = null, $type = null, $label = null) {
+    function __construct($name = null, $type = null, $label = null) {
         $this->name = $name;
         $this->type = $type;
         $this->label = $label;

@@ -13,7 +13,7 @@ class MspMerchantPrivate {
     /**
      * unused MspMerchantPrivate function for FCO transaction
      */
-    function MspMerchantPrivate() {
+    function __construct() {
         
     }
 

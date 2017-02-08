@@ -10,7 +10,7 @@ class MspAlternateTaxRule extends MspTaxRule {
     /**
      * MspAlternateTaxRule, add an alternate tax rule for FCO
      */
-    function MspAlternateTaxRule($tax_rate) {
+    function __construct($tax_rate) {
         $this->tax_rate = $tax_rate;
 
         $this->country_codes_arr = array();

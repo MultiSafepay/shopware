@@ -94,7 +94,7 @@ class MspItem {
      * @param double $numeric_weight the weight of the item
      * 
      */
-    function MspItem($name, $desc, $qty, $price, $item_weight = '', $numeric_weight = '') {
+    function __construct($name, $desc, $qty, $price, $item_weight = '', $numeric_weight = '') {
         $this->item_name = $name;
         $this->item_description = $desc;
         $this->unit_price = $price;

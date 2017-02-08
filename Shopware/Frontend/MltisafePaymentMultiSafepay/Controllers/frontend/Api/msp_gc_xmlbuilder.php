@@ -17,7 +17,7 @@ class msp_gc_XmlBuilder {
     /**
      * msp_gc_XmlBuilder construct
      */
-    function msp_gc_XmlBuilder($indent = '  ') {
+    function __construct($indent = '  ') {
         $this->indent = $indent;
         $this->xml = '<?xml version="1.0" encoding="utf-8"?>' . "\n";
     }

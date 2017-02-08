@@ -17,7 +17,7 @@ class MspPickUp {
      * @param string $name the name of this shipping option
      * @param double $price the handling cost (if there is one)
      */
-    function MspPickUp($name, $price) {
+    function __construct($name, $price) {
         $this->price = $price;
         $this->name = $name;
     }

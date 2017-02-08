@@ -11,7 +11,7 @@ class MspCustomFieldFilter {
     /**
      * MspCustomFieldFilter, filter for custom fields
      */
-    function MspCustomFieldFilter() {
+    function __construct() {
         $this->allowed_country_codes_arr = array();
         $this->excluded_country_codes_arr = array();
     }

@@ -14,7 +14,7 @@ class MspAlternateTaxTable {
     /**
      * MspAlternateTaxTable, add an alternative taxtable for FCO
      */
-    function MspAlternateTaxTable($name = "", $standalone = "false") {
+    function __construct($name = "", $standalone = "false") {
         if ($name != "") {
             $this->name = $name;
             $this->tax_rules_arr = array();

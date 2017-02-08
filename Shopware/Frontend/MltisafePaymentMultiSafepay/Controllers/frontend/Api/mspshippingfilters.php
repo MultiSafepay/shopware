@@ -39,7 +39,7 @@ class MspShippingFilters {
     /**
      * MspShippingFilters, add filters for FCO shippingmethods
      */
-    function MspShippingFilters() {
+    function __construct() {
         $this->allowed_country_codes_arr = array();
         $this->allowed_postal_patterns_arr = array();
         $this->allowed_state_areas_arr = array();

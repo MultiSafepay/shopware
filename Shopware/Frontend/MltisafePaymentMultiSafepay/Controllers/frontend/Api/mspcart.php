@@ -113,7 +113,7 @@ class MspCart {
      *                         , as of now values can be 'USD' or 'GBP'.
      *                         defaults to 'USD'
      */
-    function MspCart($id = '', $key = '', $server_type = "sandbox", $currency = "EUR") {
+    function __construct($id = '', $key = '', $server_type = "sandbox", $currency = "EUR") {
         $this->merchant_id = $id;
         $this->merchant_key = $key;
         $this->currency = $currency;

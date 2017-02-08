@@ -41,7 +41,7 @@ class MspFlatRateShipping {
      * @param string $name a name for the shipping
      * @param double $price the price for this shipping
      */
-    function MspFlatRateShipping($name, $price) {
+    function __construct($name, $price) {
         $this->name = $name;
         $this->price = $price;
     }

@@ -140,7 +140,7 @@ class MultiSafepay {
     /**
      * MulitiSafepy construct, setup the cart and customfields
      */
-    function MultiSafepay() {
+    function __construct() {
         $this->cart = new MspCart();
         $this->fields = new MspCustomFields();
     }
