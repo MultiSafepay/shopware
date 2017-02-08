@@ -969,16 +969,24 @@ class MultiSafepay {
      * Sets the customers ip variables
      */
     function setIp() {
-        $ip = $_SERVER['REMOTE_ADDR'];
-        preg_match("/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/", $ip, $matches);
 
-        $this->customer['ipaddress'] = $matches[0];
+        $ip = $_SERVER['REMOTE_ADDR'];
+        $isValid = filter_var($ip, FILTER_VALIDATE_IP);
+        
+        if($isValid) {
+            $this->customer['ipaddress'] = $isValid;
+        }
 
         if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
-            preg_match("/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/", $ip, $matches);
 
-            $this->customer['forwardedip'] = $matches[0];
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+            $isValid = filter_var($ip, FILTER_VALIDATE_IP);
+
+            if ($isValid) {
+                $this->customer['forwardedip'] = $isValid;
+            } else {
+                $this->customer['forwardedip'] = '127.0.0.1';
+            }
         }
     }
 
