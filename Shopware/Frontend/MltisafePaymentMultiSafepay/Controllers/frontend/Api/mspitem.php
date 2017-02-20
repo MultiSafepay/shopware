@@ -61,16 +61,12 @@ class MspItem {
      * 
      */
     function xmlEscape($str) {
-        $ts = array("/[?-?]/", "/?/", "/?/", "/[?-?]/", "/[?-?]/", "/?/", "/?/", "/[?-??]/", "/?/", "/[?-?]/", "/[?-?]/", "/[?-?]/", "/?/", "/?/", "/[?-?]/", "/[?-?]/", "/?/", "/?/", "/[?-??]/", "/?/", "/[?-?]/", "/[�-?]/");
-        $tn = array("A", "AE", "C", "E", "I", "D", "N", "O", "X", "U", "Y", "a", "ae", "c", "e", "i", "d", "n", "o", "x", "u", "y");
-
-        $str = preg_replace($ts, $tn, $str);
-
-        $string = htmlspecialchars($str, ENT_COMPAT, "UTF-8");
-
-
-
-        return htmlentities($string, ENT_COMPAT, "UTF-8", true);
+        //$ts = array("/[?-?]/", "/?/", "/?/", "/[?-?]/", "/[?-?]/", "/?/", "/?/", "/[?-??]/", "/?/", "/[?-?]/", "/[?-?]/", "/[?-?]/", "/?/", "/?/", "/[?-?]/", "/[?-?]/", "/?/", "/?/", "/[?-??]/", "/?/", "/[?-?]/", "/[�-?]/");
+        //$tn = array("A", "AE", "C", "E", "I", "D", "N", "O", "X", "U", "Y", "a", "ae", "c", "e", "i", "d", "n", "o", "x", "u", "y");
+        //$str = preg_replace($ts, $tn, $str);
+        //$string = htmlspecialchars($str, ENT_COMPAT, "UTF-8");
+        //return htmlentities($string, ENT_COMPAT, "UTF-8", true);
+        return htmlspecialchars($str, ENT_COMPAT, "UTF-8");
     }
 
     /**
@@ -95,8 +91,8 @@ class MspItem {
      * 
      */
     function __construct($name, $desc, $qty, $price, $item_weight = '', $numeric_weight = '') {
-        $this->item_name = $name;
-        $this->item_description = $desc;
+        $this->item_name = $this->xmlEscape($name);
+        $this->item_description = $this->xmlEscape($desc);
         $this->unit_price = $price;
         $this->quantity = $qty;
 
