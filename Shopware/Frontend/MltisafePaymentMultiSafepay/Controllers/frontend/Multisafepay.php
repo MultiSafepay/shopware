@@ -235,7 +235,7 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
                     $c_item->SetMerchantItemId($data['id']);
                     $c_item->SetTaxTableSelector($data['additional_details']['tax']);
                 } elseif (isset($data['tax_rate'])) {
-                    $c_item = new MspItem($data['additional_details']['articleName'], $data['additional_details']['description'], $data['quantity'], $data['netprice'], $data['additional_details']['sUnit']['unit'], $data['additional_details']['weight']);
+                    $c_item = new MspItem($data['articlename'], $data['additional_details']['description'], $data['quantity'], $data['netprice'], $data['additional_details']['sUnit']['unit'], $data['additional_details']['weight']);
                     $msp->cart->AddItem($c_item);
                     $c_item->SetMerchantItemId($data['id']);
                     $c_item->SetTaxTableSelector($data['tax_rate']);
