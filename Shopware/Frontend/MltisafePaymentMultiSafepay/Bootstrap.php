@@ -321,7 +321,7 @@ With MultiSafepay you can offer specific local payment options for Germany, The 
      * getVersion returns the currenct plugin version
      */
     public function getVersion() {
-        return '1.0.1';
+        return '1.0.2';
     }
 
     /**

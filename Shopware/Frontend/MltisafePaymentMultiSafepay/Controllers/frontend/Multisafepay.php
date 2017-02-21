@@ -120,10 +120,10 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
          * 	Set the plugin info data
          */
         $msp->plugin_name = 'Shopware ' . $config->get('version');
-        $msp->version = '(1.0.1)';
+        $msp->version = '(1.0.2)';
         $msp->plugin['shop'] = 'Shopware';
         $msp->plugin['shop_version'] = $config->get('version');
-        $msp->plugin['plugin_version'] = '1.0.1-p';
+        $msp->plugin['plugin_version'] = '1.0.2';
 
 
 
