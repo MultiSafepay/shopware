@@ -34,13 +34,14 @@
 /**
  * Checkbox class for the MultiSafepay plugin, usage of a checkbox
  */
-class Shopware_Components_PaymentMultisafepay_Checkbox extends Zend_Form_Element_Checkbox {
+class Shopware_Components_PaymentMultisafepay_Checkbox {
 
     public $_pluginID;
     public $description;
     public $logoName;
     public $name;
     public $_name;
+    public $value;
 
     /**
      * Constructor for checkbox object
@@ -53,8 +54,17 @@ class Shopware_Components_PaymentMultisafepay_Checkbox extends Zend_Form_Element
         $this->_name = strtolower($name);
         $this->name = $this->_name;
         $this->_pluginID = $pluginID;
+        $this->value = 0;
 
-        parent::__construct(strtolower($name), $options);
+        //parent::__construct(strtolower($name), $options);
+    }
+
+    public function setValue($value) {
+      $this->value = $value;
+    }
+
+    public function getValue(){
+      return $this->value;
     }
 
     /**

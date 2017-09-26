@@ -280,7 +280,7 @@ With MultiSafepay you can offer specific local payment options for Germany, The 
 
         foreach (self::$paymentMethods as $pAbbrMethod => $pMethod) {
             $pMethodElement = new Shopware_Components_PaymentMultisafepay_Checkbox('multisafepay_' . $pAbbrMethod, $this->getId());
-            $pMethodElement->setLabel($pMethod);
+            //$pMethodElement->setLabel($pMethod);
             $pMethodElement->description = 'Multisafepay ' . $pMethod;
             if (self::$logos[$pAbbrMethod]) {
                 $pMethodElement->logoName = self::$logos[$pAbbrMethod];
