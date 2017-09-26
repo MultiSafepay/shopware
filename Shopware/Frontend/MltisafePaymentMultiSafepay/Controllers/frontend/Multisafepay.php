@@ -135,8 +135,8 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
         $msp->merchant['site_id'] = $config->get("siteid");
         $msp->merchant['site_code'] = $config->get("securecode");
         $msp->merchant['notification_url'] = $router->assemble(array('action' => 'notify', 'forceSecure' => true, 'appendSession' => true)) . '&type=initial';
-        //$msp->merchant['cancel_url'] = $router->assemble(array('action' => 'cancel', 'forceSecure' => true));
-        $msp->merchant['cancel_url'] = $router->assemble(array('action' => 'cancel', 'forceSecure' => true)) . '?uniquePaymentID=' . $uniquePaymentID;
+        $msp->merchant['cancel_url'] = $router->assemble(array('action' => 'cancel', 'forceSecure' => true));
+        //$msp->merchant['cancel_url'] = $router->assemble(array('action' => 'cancel', 'forceSecure' => true)) . '?uniquePaymentID=' . $uniquePaymentID;
         $msp->merchant['redirect_url'] = $router->assemble(array('action' => 'finish', 'forceSecure' => true)) . '?uniquePaymentID=' . $uniquePaymentID . '&transactionID=' . $transaction_id;
         $msp->merchant['close_window'] = true;
 
@@ -255,7 +255,7 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
             exit();
         } else {
             //There was no error while requesting the transaction so we received a payment url (because we don't use the direct payment requests for now) so redirect the customer to the payment page.
-            $this->saveOrder($transaction_id, $uniquePaymentID);
+            //$this->saveOrder($transaction_id, $uniquePaymentID);
             $this->redirect($url);
         }
     }
@@ -332,8 +332,8 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
      * This action is called whenever the customer cancelles the transaction at MultiSafepay or an external acquirer.
      */
     public function cancelAction() {
-        $request = $this->Request();
-        $this->savePaymentStatus($request->getParam('transactionid'), $request->getParam('uniquePaymentID'), self::PAYMENT_STATE_THE_PROCESS_HAS_BEEN_CANCELLED, true);                
+        //$request = $this->Request();
+        //$this->savePaymentStatus($request->getParam('transactionid'), $request->getParam('uniquePaymentID'), self::PAYMENT_STATE_THE_PROCESS_HAS_BEEN_CANCELLED, true);                
         return $this->redirect(array('controller' => 'checkout'));
     }
 
@@ -441,8 +441,8 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
             $router = $this->Front()->Router();
             $ret_url = $router->assemble(array('action' => 'finish', 'forceSecure' => true)) . '?uniquePaymentID=' . $details['transaction']['var1'] . '&transactionID=' . $transactionid;
 
-            $request = $this->Request();
-            $this->saveOrder($request->getParam('transactionid'), $details['transaction']['var1'], NULL, true);            
+            //$request = $this->Request();
+            //$this->saveOrder($request->getParam('transactionid'), $details['transaction']['var1'], NULL, true);            
             
             echo '<a href="' . $ret_url . '">Return to webshop</a>';
         } else {
