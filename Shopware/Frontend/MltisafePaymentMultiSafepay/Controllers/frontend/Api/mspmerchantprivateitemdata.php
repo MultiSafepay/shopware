@@ -10,7 +10,7 @@ class MspMerchantPrivateItemData extends MspMerchantPrivate {
     /**
      * MspMerchantPrivateItemData, private data for FCO items
      */
-    function MspMerchantPrivateItemData($data = array()) {
+    function __construct($data = array()) {
         $this->data = $data;
         $this->type = 'merchant-private-item-data';
     }

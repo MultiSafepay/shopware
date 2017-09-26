@@ -30,6 +30,7 @@
  * @author     Multisafepay.
  * @author     $Author$
  */
+ 
 class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Controllers_Frontend_Payment {
 
     private static $pay_to_email;
@@ -39,6 +40,12 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
     private static $recipient_description;
     private static $multisafepay_url;
     private $sid;
+    
+    //Shopware\Models\Order\Status
+    const PAYMENT_STATE_COMPLETELY_PAID = 12;
+    const PAYMENT_STATE_OPEN = 17;
+    const PAYMENT_STATE_RE_CREDITING = 20;
+    const PAYMENT_STATE_THE_PROCESS_HAS_BEEN_CANCELLED = 35;
 
     /**
      * This function is called when the order is confirmed.
@@ -113,10 +120,10 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
          * 	Set the plugin info data
          */
         $msp->plugin_name = 'Shopware ' . $config->get('version');
-        $msp->version = '(1.0.1)';
+        $msp->version = '(1.0.2)';
         $msp->plugin['shop'] = 'Shopware';
         $msp->plugin['shop_version'] = $config->get('version');
-        $msp->plugin['plugin_version'] = '1.0.1';
+        $msp->plugin['plugin_version'] = '1.0.2';
 
 
 
@@ -128,7 +135,8 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
         $msp->merchant['site_id'] = $config->get("siteid");
         $msp->merchant['site_code'] = $config->get("securecode");
         $msp->merchant['notification_url'] = $router->assemble(array('action' => 'notify', 'forceSecure' => true, 'appendSession' => true)) . '&type=initial';
-        $msp->merchant['cancel_url'] = $router->assemble(array('action' => 'cancel', 'forceSecure' => true));
+        //$msp->merchant['cancel_url'] = $router->assemble(array('action' => 'cancel', 'forceSecure' => true));
+        $msp->merchant['cancel_url'] = $router->assemble(array('action' => 'cancel', 'forceSecure' => true)) . '?uniquePaymentID=' . $uniquePaymentID;
         $msp->merchant['redirect_url'] = $router->assemble(array('action' => 'finish', 'forceSecure' => true)) . '?uniquePaymentID=' . $uniquePaymentID . '&transactionID=' . $transaction_id;
         $msp->merchant['close_window'] = true;
 
@@ -175,12 +183,24 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
         if ($this->Request()->payment == 'PAYAFTER' || $this->Request()->payment == 'KLARNA') {
             //For Pay After Delivery we need all cart contents, including fee's, discount, shippingmethod etc. We will store it within the $basket
             $items = $basket['content'];
+            
+            //Add none tax table
+            $table = new MspAlternateTaxTable();
+            $table->name = 'none';
+            $rule = new MspAlternateTaxRule('0.00');
+            $table->AddAlternateTaxRules($rule);
+            $msp->cart->AddAlternateTaxTables($table);
+            
             //Add shipping
             if (isset($basket['sShippingcostsNet'])) {
 
                 $c_item = new MspItem('Shipping', 'Shipping', 1, $basket['sShippingcostsNet'], 'KG', 0);
                 $c_item->SetMerchantItemId('msp-shipping');
-                $c_item->SetTaxTableSelector($basket['sShippingcostsTax']);
+                if (isset($basket['sShippingcostsTax'])) {
+                    $c_item->SetTaxTableSelector($basket['sShippingcostsTax']);
+                } else {
+                    $c_item->SetTaxTableSelector('none');
+                }
                 $msp->cart->AddItem($c_item);
             }
 
@@ -215,7 +235,7 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
                     $c_item->SetMerchantItemId($data['id']);
                     $c_item->SetTaxTableSelector($data['additional_details']['tax']);
                 } elseif (isset($data['tax_rate'])) {
-                    $c_item = new MspItem($data['additional_details']['articleName'], $data['additional_details']['description'], $data['quantity'], $data['netprice'], $data['additional_details']['sUnit']['unit'], $data['additional_details']['weight']);
+                    $c_item = new MspItem($data['articlename'], $data['additional_details']['description'], $data['quantity'], $data['netprice'], $data['additional_details']['sUnit']['unit'], $data['additional_details']['weight']);
                     $msp->cart->AddItem($c_item);
                     $c_item->SetMerchantItemId($data['id']);
                     $c_item->SetTaxTableSelector($data['tax_rate']);
@@ -235,6 +255,7 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
             exit();
         } else {
             //There was no error while requesting the transaction so we received a payment url (because we don't use the direct payment requests for now) so redirect the customer to the payment page.
+            $this->saveOrder($transaction_id, $uniquePaymentID);
             $this->redirect($url);
         }
     }
@@ -311,6 +332,8 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
      * This action is called whenever the customer cancelles the transaction at MultiSafepay or an external acquirer.
      */
     public function cancelAction() {
+        $request = $this->Request();
+        $this->savePaymentStatus($request->getParam('transactionid'), $request->getParam('uniquePaymentID'), self::PAYMENT_STATE_THE_PROCESS_HAS_BEEN_CANCELLED, true);                
         return $this->redirect(array('controller' => 'checkout'));
     }
 
@@ -327,7 +350,7 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
      * This action is called by the MultiSafepay offline actions system. This one is used to update the 
      */
     public function notifyAction() {
-
+        
         $config = Shopware()->Plugins()->Frontend()->MltisafePaymentMultiSafepay()->Config();
         include('Api/MultiSafepay.combined.php');
         $msp = new MultiSafepay();
@@ -335,6 +358,11 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
         $request = $this->Request();
 
         $transactionid = $request->getParam('transactionid');
+        
+        $timestamp = $request->getParam('timestamp');
+        if(!isset($timestamp)) {
+            echo 'No timestamp is set so we are stopping the callback';exit;
+        }        
 
         $type = $request->getParam('type');
 
@@ -362,44 +390,44 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
         switch ($status) {
             case "initialized":
                 $status_verbose = 'Pending';
-                $stat_code = 17;
+                $stat_code = self::PAYMENT_STATE_OPEN;
                 break;
 
             case "completed":
                 $status_verbose = 'Completed';
-                $stat_code = 12;
+                $stat_code = self::PAYMENT_STATE_COMPLETELY_PAID;
                 break;
             case "uncleared":
                 $status_verbose = 'Pending';
-                $stat_code = 17;
+                $stat_code = self::PAYMENT_STATE_OPEN;
                 break;
             case "void":
                 $status_verbose = 'Cancelled';
-                $stat_code = -1;
+                $stat_code = self::PAYMENT_STATE_THE_PROCESS_HAS_BEEN_CANCELLED;
                 break;
             case "declined":
                 $status_verbose = 'Declined';
-                $stat_code = 4;
+                $stat_code = self::PAYMENT_STATE_THE_PROCESS_HAS_BEEN_CANCELLED;
                 break;
             case "refunded":
                 $status_verbose = 'Refunded';
-                $stat_code = 20;
+                $stat_code = self::PAYMENT_STATE_RE_CREDITING;
                 break;
             case "partial_refunded":
                 $status_verbose = 'Partially Refunded';
-                $stat_code = 20;
+                $stat_code = self::PAYMENT_STATE_RE_CREDITING;
                 break;
             case "expired":
                 $status_verbose = 'Expired';
-                $stat_code = 4;
+                $stat_code = self::PAYMENT_STATE_THE_PROCESS_HAS_BEEN_CANCELLED;
                 break;
             case "cancelled":
                 $status_verbose = 'Cancelled';
-                $stat_code = 4;
+                $stat_code = self::PAYMENT_STATE_THE_PROCESS_HAS_BEEN_CANCELLED;
                 break;
             default:
                 $status_verbose = 'Pending';
-                $stat_code = 4;
+                $stat_code = self::PAYMENT_STATE_THE_PROCESS_HAS_BEEN_CANCELLED;
                 break;
         }
 
@@ -412,6 +440,10 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
             //Setup the url back to the webshop. This one is shown whenever the notification url from within the transaction xml is called. (This is done on the MultiSafepay pages after transaction, if active)
             $router = $this->Front()->Router();
             $ret_url = $router->assemble(array('action' => 'finish', 'forceSecure' => true)) . '?uniquePaymentID=' . $details['transaction']['var1'] . '&transactionID=' . $transactionid;
+
+            $request = $this->Request();
+            $this->saveOrder($request->getParam('transactionid'), $details['transaction']['var1'], NULL, true);            
+            
             echo '<a href="' . $ret_url . '">Return to webshop</a>';
         } else {
             //We show OK when everything has gone OK. The status has been updated etc. OK is shown when the configured Notification url is called. This one is different then the notification url within the transaction request.

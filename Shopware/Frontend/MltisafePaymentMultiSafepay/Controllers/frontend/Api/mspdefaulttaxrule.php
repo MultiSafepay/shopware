@@ -12,7 +12,7 @@ class MspDefaultTaxRule extends MspTaxRule {
     /**
      * MspDefaultTaxRule, defaultaxrules for FCO transaction
      */
-    function MspDefaultTaxRule($tax_rate, $shipping_taxed = "false") {
+    function __construct($tax_rate, $shipping_taxed = "false") {
         $this->tax_rate = $tax_rate;
         $this->shipping_taxed = $shipping_taxed;
 

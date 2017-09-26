@@ -13,7 +13,7 @@ class msp_gc_xmlparser {
     /** Constructor for the class
      * Takes in XML data as input( do not include the <xml> tag
      */
-    function msp_gc_xmlparser($input, $xmlParams = array(XML_OPTION_CASE_FOLDING => 0)) {
+    function __construct($input, $xmlParams = array(XML_OPTION_CASE_FOLDING => 0)) {
 
         // XML PARSE BUG: http://bugs.php.net/bug.php?id=45996
         $input = str_replace('&amp;', '[msp-amp]', $input);

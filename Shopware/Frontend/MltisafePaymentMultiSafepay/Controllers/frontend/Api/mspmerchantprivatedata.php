@@ -10,7 +10,7 @@ class MspMerchantPrivateData extends MspMerchantPrivate {
     /**
      * 	MspMerchantPrivateData, for transaction request
      */
-    function MspMerchantPrivateData($data = array()) {
+    function __construct($data = array()) {
         $this->data = $data;
         $this->type = 'merchant-private-data';
     }

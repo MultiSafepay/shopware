@@ -11,7 +11,7 @@ class MspCustomFieldOption {
     /**
      * MspCustomFieldOtion for FCO transaction
      */
-    function MspCustomFieldOption($value, $label) {
+    function __construct($value, $label) {
         $this->value = $value;
         $this->label = $label;
     }

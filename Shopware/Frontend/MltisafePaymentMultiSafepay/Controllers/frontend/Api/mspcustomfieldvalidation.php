@@ -12,7 +12,7 @@ class MspCustomFieldValidation {
     /**
      * MspCustomFieldValidation add customfieldvalidation for FCO custom field
      */
-    function MspCustomFieldValidation($type, $data, $error) {
+    function __construct($type, $data, $error) {
         $this->type = $type;
         $this->data = $data;
         $this->error = $error;

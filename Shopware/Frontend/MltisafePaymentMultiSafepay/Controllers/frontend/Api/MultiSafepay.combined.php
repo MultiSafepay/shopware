@@ -140,7 +140,7 @@ class MultiSafepay {
     /**
      * MulitiSafepy construct, setup the cart and customfields
      */
-    function MultiSafepay() {
+    function __construct() {
         $this->cart = new MspCart();
         $this->fields = new MspCustomFields();
     }
@@ -969,16 +969,24 @@ class MultiSafepay {
      * Sets the customers ip variables
      */
     function setIp() {
-        $ip = $_SERVER['REMOTE_ADDR'];
-        preg_match("/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/", $ip, $matches);
 
-        $this->customer['ipaddress'] = $matches[0];
+        $ip = $_SERVER['REMOTE_ADDR'];
+        $isValid = filter_var($ip, FILTER_VALIDATE_IP);
+        
+        if($isValid) {
+            $this->customer['ipaddress'] = $isValid;
+        }
 
         if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
-            preg_match("/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/", $ip, $matches);
 
-            $this->customer['forwardedip'] = $matches[0];
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+            $isValid = filter_var($ip, FILTER_VALIDATE_IP);
+
+            if ($isValid) {
+                $this->customer['forwardedip'] = $isValid;
+            } else {
+                $this->customer['forwardedip'] = '127.0.0.1';
+            }
         }
     }
 
@@ -1111,10 +1119,10 @@ class MultiSafepay {
      * Returns the string escaped for use in XML documents
      */
     function xmlEscape($str) {
-        $ts = array("/[�-�]/", "/�/", "/�/", "/[�-�]/", "/[�-�]/", "/�/", "/�/", "/[�-��]/", "/�/", "/[�-�]/", "/[�-�]/", "/[�-�]/", "/�/", "/�/", "/[�-�]/", "/[�-�]/", "/�/", "/�/", "/[�-��]/", "/�/", "/[�-�]/", "/[�-�]/");
-        $tn = array("A", "AE", "C", "E", "I", "D", "N", "O", "X", "U", "Y", "a", "ae", "c", "e", "i", "d", "n", "o", "x", "u", "y");
+        //$ts = array("/[�-�]/", "/�/", "/�/", "/[�-�]/", "/[�-�]/", "/�/", "/�/", "/[�-��]/", "/�/", "/[�-�]/", "/[�-�]/", "/[�-�]/", "/�/", "/�/", "/[�-�]/", "/[�-�]/", "/�/", "/�/", "/[�-��]/", "/�/", "/[�-�]/", "/[�-�]/");
+        //$tn = array("A", "AE", "C", "E", "I", "D", "N", "O", "X", "U", "Y", "a", "ae", "c", "e", "i", "d", "n", "o", "x", "u", "y");
 
-        $str = preg_replace($ts, $tn, $str);
+        //$str = preg_replace($ts, $tn, $str);
         return htmlspecialchars($str, ENT_COMPAT, "UTF-8");
     }
 
