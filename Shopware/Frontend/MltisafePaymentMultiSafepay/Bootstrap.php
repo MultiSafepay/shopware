@@ -272,11 +272,11 @@ With MultiSafepay you can offer specific local payment options for Germany, The 
     public function createForm() {
         // Create to configurations form
         $form = $this->Form();
-        $form->setElement('text', 'accountid', array('label' => 'Account ID', 'required' => true));
-        $form->setElement('text', 'siteid', array('label' => 'Site ID', 'required' => true));
-        $form->setElement('text', 'securecode', array('label' => 'Site Secure Code', 'required' => true));
-        $form->setElement('text', 'apikey', array('label' => 'API Key', 'required' => false));
-        $form->setElement('checkbox', 'environment', array('label' => 'Live transactions', 'value' => true));
+        $form->setElement('text', 'accountid', array('label' => 'Account ID', 'required' => true, 'scope' => Shopware\Models\Config\Element::SCOPE_SHOP));
+        $form->setElement('text', 'siteid', array('label' => 'Site ID', 'required' => true, 'scope' => Shopware\Models\Config\Element::SCOPE_SHOP));
+        $form->setElement('text', 'securecode', array('label' => 'Site Secure Code', 'required' => true, 'scope' => Shopware\Models\Config\Element::SCOPE_SHOP));
+        $form->setElement('text', 'apikey', array('label' => 'API Key', 'required' => false, 'scope' => Shopware\Models\Config\Element::SCOPE_SHOP));
+        $form->setElement('checkbox', 'environment', array('label' => 'Live transactions', 'value' => true, 'scope' => Shopware\Models\Config\Element::SCOPE_SHOP));
 
         foreach (self::$paymentMethods as $pAbbrMethod => $pMethod) {
             $pMethodElement = new Shopware_Components_PaymentMultisafepay_Checkbox('multisafepay_' . $pAbbrMethod, $this->getId());
@@ -304,7 +304,7 @@ With MultiSafepay you can offer specific local payment options for Germany, The 
                 //$payment->active = $pMethodElement->getValue() ? 1 : 0;
             }
 
-            $form->setElement('checkbox', $pMethodElement->name, array('label' => $pMethodElement->description, 'value' => false));
+            $form->setElement('checkbox', $pMethodElement->name, array('label' => $pMethodElement->description, 'value' => false, 'scope' => Shopware\Models\Config\Element::SCOPE_SHOP));
         }
         /* All checkboxes must be replaced by the following code whenever we can save/load multiple option fields
          * in Shopware 4.0
