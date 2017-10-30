@@ -168,6 +168,29 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
         $msp->customer['phone'] = $userinfo["billingaddress"]["phone"];
 
         /*
+         * Customer Delivery - supply if available
+         */
+        $msp->delivery['firstname'] = $userinfo["shippingaddress"]["firstname"];
+        $msp->delivery['lastname'] = $userinfo["shippingaddress"]["lastname"];
+        $msp->delivery['zipcode'] = $userinfo["shippingaddress"]["zipcode"];
+        $msp->delivery['city'] = $userinfo["shippingaddress"]["city"];
+        $msp->delivery['country'] = $userinfo["additional"]["countryShipping"]["countryiso"];
+        $msp->delivery['email'] = $userinfo["additional"]["user"]["email"];
+
+        $addressData = $this->parseCustomerAddress($userinfo["shippingaddress"]["street"]);
+        if (isset($addressData['housenumber']) && !empty($addressData['housenumber'])) {
+            $street = $addressData['address'];
+            $housenumber = $addressData['housenumber'];
+        } else {
+            $street = $userinfo["shippingaddress"]["street"];
+            $housenumber = $userinfo["shippingaddress"]["streetnumber"];
+        }
+
+        $msp->delivery['address1'] = $street;
+        $msp->delivery['housenumber'] = $housenumber;
+        $msp->delivery['phone'] = $userinfo["shippingaddress"]["phone"];
+
+        /*
          * Transaction Details
          */
         $msp->transaction['id'] = $transaction_id; // generally the shop's order ID is used here
