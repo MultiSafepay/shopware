@@ -277,6 +277,8 @@ With MultiSafepay you can offer specific local payment options for Germany, The 
         $form->setElement('text', 'securecode', array('label' => 'Site Secure Code', 'required' => true));
         $form->setElement('text', 'apikey', array('label' => 'API Key', 'required' => false));
         $form->setElement('checkbox', 'environment', array('label' => 'Live transactions', 'value' => true));
+        $form->setElement('number', 'seconds_active', array('label' => 'Seconds Active', 'value' => true, 'scope' => Shopware\Models\Config\Element::SCOPE_SHOP));
+        $form->setElement('number', 'days_active', array('label' => 'Days Active', 'value' => true, 'scope' => Shopware\Models\Config\Element::SCOPE_SHOP));
 
         foreach (self::$paymentMethods as $pAbbrMethod => $pMethod) {
             $pMethodElement = new Shopware_Components_PaymentMultisafepay_Checkbox('multisafepay_' . $pAbbrMethod, $this->getId());
