@@ -378,7 +378,7 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
      */
     public function finishAction() {
         $request = $this->Request();
-        $orderNumber = $this->saveOrder($request->getParam('transactionID'), $request->getParam('uniquePaymentID'), NULL, true);
+        //$orderNumber = $this->saveOrder($request->getParam('transactionID'), $request->getParam('uniquePaymentID'), NULL, true);
         $this->redirect(array('controller' => 'checkout', 'action' => 'finish', 'sUniqueID' => $request->getParam('uniquePaymentID')));
     }
 
@@ -469,7 +469,8 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
 
         //if ($status == 'initialized' || $status == 'completed') //TODO ->Check current order status to check if we can/should update.
         // {
-        $this->savePaymentStatus($request->getParam('transactionid'), $details['transaction']['var1'], $stat_code, true);
+        //$this->savePaymentStatus($request->getParam('transactionid'), $details['transaction']['var1'], $stat_code, true);
+        $this->saveOrder($request->getParam('transactionid'), $details['transaction']['var1'], $stat_code, true);
         // }
 
         if ($type == 'initial') {
