@@ -193,17 +193,28 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
             
             //Add shipping
             if (isset($basket['sShippingcostsNet'])) {
+                $diff = $basket['sShippingcostsWithTax'] - $basket['sShippingcostsNet'];
+                $cost = ($diff / $basket['sShippingcostsNet']) * 100;
+                $shipping_percentage = 1 + round($cost, 0) / 100;
+                $shippin_exc_tac_calculated = $basket['sShippingcostsWithTax'] / $shipping_percentage;
+                $shipping_percentage = 0 + round($cost, 0) / 100;
+                $shipping_cost_orig = $basket['sShippingcostsNet'];
 
-                $c_item = new MspItem('Shipping', 'Shipping', 1, $basket['sShippingcostsNet'], 'KG', 0);
+                $table = new MspAlternateTaxTable();
+                $table->name = $shipping_percentage;
+                $rule = new MspAlternateTaxRule($shipping_percentage);
+                $table->AddAlternateTaxRules($rule);
+                $msp->cart->AddAlternateTaxTables($table);                
+
+                $c_item = new MspItem('Shipping', 'Shipping', 1, $shippin_exc_tac_calculated, 'KG', 0);
                 $c_item->SetMerchantItemId('msp-shipping');
                 if (isset($basket['sShippingcostsTax'])) {
-                    $c_item->SetTaxTableSelector($basket['sShippingcostsTax']);
+                    $c_item->SetTaxTableSelector($shipping_percentage);
                 } else {
                     $c_item->SetTaxTableSelector('none');
                 }
                 $msp->cart->AddItem($c_item);
             }
-
 
             //Create a tax array that will contain all used taxes. These will then be added to the transaction request
             $tax_array = array();
