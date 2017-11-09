@@ -246,10 +246,10 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
 
             //add all tax rates to the array
             foreach ($items as $product => $data) {
-                if (isset($data['additional_details']['tax'])) {
-                    $tax_array[$data['additional_details']['tax']] = $data['additional_details']['tax'] / 100;
-                } elseif (isset($data['tax_rate'])) {
+                if (isset($data['tax_rate'])) {
                     $tax_array[$data['tax_rate']] = $data['tax_rate'] / 100;
+                } elseif (isset($data['additional_details']['tax'])) {
+                    $tax_array[$data['additional_details']['tax']] = $data['additional_details']['tax'] / 100;
                 }
             }
 
@@ -265,16 +265,16 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
             //Add all products to the request
             foreach ($items as $product => $data) {
                 //if set then this is a product
-                if (isset($data['additional_details']['tax'])) {
-                    $c_item = new MspItem($data['additional_details']['articleName'], $data['additional_details']['description'], $data['quantity'], $data['netprice'], $data['additional_details']['sUnit']['unit'], $data['additional_details']['weight']);
-                    $msp->cart->AddItem($c_item);
-                    $c_item->SetMerchantItemId($data['id']);
-                    $c_item->SetTaxTableSelector($data['additional_details']['tax']);
-                } elseif (isset($data['tax_rate'])) {
+                if (isset($data['tax_rate'])) {
                     $c_item = new MspItem($data['articlename'], $data['additional_details']['description'], $data['quantity'], $data['netprice'], $data['additional_details']['sUnit']['unit'], $data['additional_details']['weight']);
                     $msp->cart->AddItem($c_item);
                     $c_item->SetMerchantItemId($data['id']);
                     $c_item->SetTaxTableSelector($data['tax_rate']);
+                } elseif (isset($data['additional_details']['tax'])) {
+                    $c_item = new MspItem($data['additional_details']['articleName'], $data['additional_details']['description'], $data['quantity'], $data['netprice'], $data['additional_details']['sUnit']['unit'], $data['additional_details']['weight']);
+                    $msp->cart->AddItem($c_item);
+                    $c_item->SetMerchantItemId($data['id']);
+                    $c_item->SetTaxTableSelector($data['additional_details']['tax']);
                 }
             }
             $url = $msp->startCheckout();
