@@ -95,6 +95,7 @@ class MultiSafepay {
         'manual' => 'false',
         'gateway' => '',
         'daysactive' => '',
+        'secondsactive' => '',
         'invoice_id' => '',
         'shipdate' => '',
         'special' => '',
@@ -600,7 +601,8 @@ class MultiSafepay {
 			<var3>' . $this->xmlEscape($this->transaction['var3']) . '</var3>
 			<items>' . $this->xmlEscape($this->transaction['items']) . '</items>
 			<manual>' . $this->xmlEscape($this->transaction['manual']) . '</manual>
-			<daysactive>' . $this->xmlEscape($this->transaction['daysactive']) . '</daysactive>
+            <daysactive>' . $this->xmlEscape($this->transaction['daysactive']) . '</daysactive>
+            <secondsactive>' . $this->xmlEscape($this->transaction['secondsactive']) . '</secondsactive>
 			<gateway' . $issuer . '>' . $this->xmlEscape($this->transaction['gateway']) . '</gateway>
 		  </transaction>
 		  <signature>' . $this->xmlEscape($this->signature) . '</signature>

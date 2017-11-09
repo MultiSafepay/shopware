@@ -177,6 +177,8 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
         //$msp->transaction['items']        = 	$items;
         $msp->transaction['var1'] = $uniquePaymentID;
         $msp->transaction['gateway'] = $this->Request()->payment;
+        $msp->transaction['secondsactive'] = $config->get("seconds_active");
+        $msp->transaction['daysactive'] = $config->get("days_active");
 
         //request the payment link
 
