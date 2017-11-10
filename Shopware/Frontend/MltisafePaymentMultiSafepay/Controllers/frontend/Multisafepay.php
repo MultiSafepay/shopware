@@ -219,11 +219,23 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
             //Add shipping
             if (isset($basket['sShippingcostsNet'])) {
                 $diff = $basket['sShippingcostsWithTax'] - $basket['sShippingcostsNet'];
-                $cost = ($diff / $basket['sShippingcostsNet']) * 100;
+                if ($basket['sShippingcostsNet'] > 0) {
+                    $cost = ($diff / $basket['sShippingcostsNet']) * 100;
+                } else {
+                    $cost = $diff * 100;
+                }
                 $shipping_percentage = 1 + round($cost, 0) / 100;
                 $shippin_exc_tac_calculated = $basket['sShippingcostsWithTax'] / $shipping_percentage;
                 $shipping_percentage = 0 + round($cost, 0) / 100;
                 $shipping_cost_orig = $basket['sShippingcostsNet'];
+
+                if ($shipping_percentage == 1 || $shipping_cost_orig == 0) {
+                    $shipping_percentage = "0.00";
+                }
+
+                if ($shipping_percentage == '0') {
+                    $shipping_percentage = "0.00";
+                }
 
                 $table = new MspAlternateTaxTable();
                 $table->name = $shipping_percentage;
