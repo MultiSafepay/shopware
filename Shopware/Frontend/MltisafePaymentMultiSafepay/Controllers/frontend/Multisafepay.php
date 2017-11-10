@@ -143,7 +143,7 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
         /*
          * Customer Details - supply if available
          */
-        $msp->customer['locale'] = Shopware()->System()->sLanguageData[Shopware()->System()->sLanguage]["isocode"];
+        $msp->customer['locale'] = Shopware()->Shop()->getLocale()->getLocale();
         $msp->customer['firstname'] = $userinfo["billingaddress"]["firstname"];
         $msp->customer['lastname'] = $userinfo["billingaddress"]["lastname"];
         $msp->customer['zipcode'] = $userinfo["billingaddress"]["zipcode"];
