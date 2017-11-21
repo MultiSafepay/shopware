@@ -200,8 +200,7 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
         //$msp->transaction['items']        = 	$items;
         $msp->transaction['var1'] = $uniquePaymentID;
         $msp->transaction['gateway'] = $this->Request()->payment;
-        $msp->transaction['secondsactive'] = $config->get("seconds_active");
-        $msp->transaction['daysactive'] = $config->get("days_active");
+        $msp->transaction['secondsactive'] = $this->getSecondsActive($config->get("msp_time_label"), $config->get("msp_time_active"));
 
         //request the payment link
 
@@ -306,6 +305,22 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
             //$this->saveOrder($transaction_id, $uniquePaymentID);
             $this->redirect($url);
         }
+    }
+
+    function getSecondsActive($time_label, $time_active) {
+        $seconds_active = 2592000;
+        switch ($time_label) {
+            case 1: //Days
+                $seconds_active = $time_active*24*60*60;
+                break;
+            case 2: //Hours
+                $seconds_active = $time_active*60*60;
+                break;
+            case 3: //Seconds
+                $seconds_active = $time_active;
+                break;
+        }
+        return $seconds_active;
     }
 
     /*
