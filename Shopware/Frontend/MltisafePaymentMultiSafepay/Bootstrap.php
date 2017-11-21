@@ -278,8 +278,13 @@ With MultiSafepay you can offer specific local payment options for Germany, The 
         $form->setElement('text', 'securecode', array('label' => 'Site Secure Code', 'required' => true, 'scope' => Shopware\Models\Config\Element::SCOPE_SHOP));
         $form->setElement('text', 'apikey', array('label' => 'API Key', 'required' => false, 'scope' => Shopware\Models\Config\Element::SCOPE_SHOP));
         $form->setElement('checkbox', 'environment', array('label' => 'Live transactions', 'value' => true, 'scope' => Shopware\Models\Config\Element::SCOPE_SHOP));
-        $form->setElement('number', 'seconds_active', array('label' => 'Seconds Active', 'value' => true, 'scope' => Shopware\Models\Config\Element::SCOPE_SHOP));
-        $form->setElement('number', 'days_active', array('label' => 'Days Active', 'value' => true, 'scope' => Shopware\Models\Config\Element::SCOPE_SHOP));        
+        $form->setElement('number', 'msp_time_active', array('label' => 'Time an order stays active', 'value' => 30, 'scope' => Shopware\Models\Config\Element::SCOPE_SHOP));
+        $form->setElement('select', 'msp_time_label', array('label' => '', 'store' => array(
+                array(1, 'Days'),
+                array(2, 'Hours'),
+                array(3, 'Seconds')
+            ), 'value' => 1, 'scope' => Shopware\Models\Config\Element::SCOPE_SHOP
+        ));
 
         foreach (self::$paymentMethods as $pAbbrMethod => $pMethod) {
             $pMethodElement = new Shopware_Components_PaymentMultisafepay_Checkbox('multisafepay_' . $pAbbrMethod, $this->getId());
