@@ -405,7 +405,7 @@ class Shopware_Controllers_Frontend_PaymentMultisafepay extends Shopware_Control
      */
     public function finishAction() {
         $request = $this->Request();
-        //$orderNumber = $this->saveOrder($request->getParam('transactionID'), $request->getParam('uniquePaymentID'), NULL, true);
+        $orderNumber = $this->saveOrder($request->getParam('transactionID'), $request->getParam('uniquePaymentID'), NULL, true);
         $this->redirect(array('controller' => 'checkout', 'action' => 'finish', 'sUniqueID' => $request->getParam('uniquePaymentID')));
     }
 
