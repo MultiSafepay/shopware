@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/shopware/shopware/5.3/engine/Shopware/Components/Plugin/schema/config.xsd">
+    <elements>
+        <element required="true" type="boolean" scope="shop">
+            <name>msp_environment</name>
+            <label lang="en">Live transactions</label>
+        </element>
+
+        <element required="true" type="text" scope="shop">
+            <name>msp_api_key</name>
+            <label lang="en">API Key</label>
+            <description lang="en">Enter your API Key which can be found in your MultiSafepay account.</description>
+        </element>
+
+        <element required="false" type="number" scope="shop">
+            <name>msp_time_active</name>
+            <label lang="en">Time active</label>
+            <value>30</value>
+            <description lang="en">Time an order stays active</description>
+        </element>
+
+        <element type="select" scope="shop">
+            <name>msp_time_label</name>
+            <label lang="en"></label>
+            <value>1</value>
+            <store>
+                <option>
+                    <value>1</value>
+                    <label lang="en">Days</label>
+                </option>
+                <option>
+                    <value>2</value>
+                    <label lang="en">Hours</label>
+                </option>
+                <option>
+                    <value>3</value>
+                    <label lang="en">Seconds</label>
+                </option>
+            </store>
+        </element>
+
+        <element required="false" type="text" scope="shop">
+            <name>msp_quote_prefix</name>
+            <label lang="en">Quote number prefix</label>
+            <description lang="en">Prepend quote number with entered text</description>
+        </element>
+
+        <element required="false" type="text" scope="shop">
+            <name>msp_quote_suffix</name>
+            <label lang="en">Quote number suffix</label>
+            <description lang="en">Append quote number with entered text</description>
+        </element>
+      </elements>
+</config>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<plugin xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/shopware/shopware/5.3/engine/Shopware/Components/Plugin/schema/plugin.xsd">
+
+    <label lang="en">MultiSafepay</label>
+
+    <version>2.0.0</version>
+    <copyright>(c) MultiSafepay 2018</copyright>
+    <author>MultiSafepay</author>
+    <link>https://www.multisafepay.com</link>
+
+    <compatibility minVersion="5.2.13"/>
+</plugin>
