@@ -50,6 +50,8 @@ class Quotenumber
     {
         $quoteNumber = $this->numberRangeIncrementer->increment('msp_quote_number');
         $pluginConfig = $this->container->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment');
-        return sprintf(self::DEFAULT_PATTERN, $pluginConfig['msp_quote_prefix'], $quoteNumber, $pluginConfig['msp_quote_suffix']);
+        $quoteNumber = sprintf(self::DEFAULT_PATTERN, $pluginConfig['msp_quote_prefix'], $quoteNumber, $pluginConfig['msp_quote_suffix']);
+        $quoteNumber = preg_replace('/\s+/', '', $quoteNumber);
+        return $quoteNumber;
     }
 }
