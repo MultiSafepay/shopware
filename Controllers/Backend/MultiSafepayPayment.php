@@ -44,7 +44,8 @@ class Shopware_Controllers_Backend_MultiSafepayPayment extends Shopware_Controll
         $orderNumber = $request->getParam('orderNumber');
         $transactionId = $request->getParam('transactionId');
 
-        $pluginConfig = $this->container->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment');
+        $shop = $this->container->get('shop');
+        $pluginConfig = $this->container->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment', $shop);
         $msp = new MspClient();
         $msp->setApiKey($pluginConfig['msp_api_key']);
         if (!$pluginConfig['msp_environment']) {
@@ -82,7 +83,8 @@ class Shopware_Controllers_Backend_MultiSafepayPayment extends Shopware_Controll
         $orderNumber = $request->getParam('orderNumber');
         $transactionId = $request->getParam('transactionId');
 
-        $pluginConfig = $this->container->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment');
+        $shop = $this->container->get('shop');
+        $pluginConfig = $this->container->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment', $shop);
         $msp = new MspClient();
         $msp->setApiKey($pluginConfig['msp_api_key']);
         if (!$pluginConfig['msp_environment']) {

@@ -56,7 +56,8 @@ class Ideal implements SubscriberInterface
     {
         if ($args->getRequest()->getActionName() === 'shippingPayment') {
             $msp = new MspClient();
-            $pluginConfig = $this->container->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment');
+            $shop = $this->container->get('shop');
+            $pluginConfig = $this->container->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment', $shop);
             $msp->setApiKey($pluginConfig['msp_api_key']);
             if (!$pluginConfig['msp_environment']) {
                 $msp->setApiUrl('https://testapi.multisafepay.com/v1/json/');
