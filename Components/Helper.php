@@ -37,14 +37,35 @@ class Helper
         return array($street, $apartment);
     }
 
+    private static function validateIP($ip)
+    {
+        $ipList = explode(',', $ip);
+        $ip = trim(reset($ipList));
+
+        $isValid = filter_var($ip, FILTER_VALIDATE_IP);
+        if ($isValid) {
+            return $isValid;
+        } else {
+            return null;
+        }
+    }
+
     public static function getRemoteIP()
     {
-        return isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
+        if (isset($_SERVER['REMOTE_ADDR'])) {
+            return self::validateIP($_SERVER['REMOTE_ADDR']);
+        } else {
+            return '';
+        }
     }
 
     public static function getForwardedIP()
     {
-        return isset($_SERVER['HTTP_X_FORWARDED_FOR']) ? $_SERVER['HTTP_X_FORWARDED_FOR'] : '';
+        if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            return self::validateIP($_SERVER['HTTP_X_FORWARDED_FOR']);
+        } else {
+            return '';
+        }
     }
 
     public static function getPluginVersion()

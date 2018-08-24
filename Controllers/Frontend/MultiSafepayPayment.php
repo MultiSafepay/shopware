@@ -35,7 +35,8 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
 
     public function preDispatch()
     {
-        $this->pluginConfig = $this->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment');
+        $shop = $this->get('shop');
+        $this->pluginConfig = $this->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment', $shop);
         $this->quoteNumber = $this->get('multi_safepay_payment.components.quotenumber');
     }
 
@@ -176,7 +177,8 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
     {
         $transactionid = $this->Request()->getParam('transactionid');
 
-        $this->restoreSession($this->Request()->getParam('session-1'));
+        $shop = $this->Request()->getParam('__shop');
+        $this->restoreSession($this->Request()->getParam('session-' . $shop));
 
         $msp = new MspClient();
         $msp->setApiKey($this->pluginConfig['msp_api_key']);
@@ -243,7 +245,8 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
      */
     public function returnAction()
     {
-        $this->restoreSession($this->Request()->getParam('session-1'));
+        $shop = $this->Request()->getParam('__shop');
+        $this->restoreSession($this->Request()->getParam('session-' . $shop));
         $this->saveOrder($this->Request()->transactionid, $this->Request()->transactionid, null, true);
         $this->redirect(['controller' => 'checkout', 'action' => 'finish', 'sUniqueID' => $this->Request()->transactionid]);
     }
