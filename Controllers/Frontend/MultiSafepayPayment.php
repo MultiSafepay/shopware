@@ -294,10 +294,13 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         //Add shipping line item
         $shipping_rate = $basket['sShippingcostsTax'] + 0;
         $rates[$shipping_rate] = $shipping_rate;
+        $shipping_info = $this->get('session')->sOrderVariables->sDispatch;
+        $shipping_name = !empty($shipping_info['name']) ? $shipping_info['name'] : 'Shipping';
+        $shipping_descr = !empty($shipping_info['description']) ? $shipping_info['description'] : 'Shipping';
 
         $shoppingCart['shopping_cart']['items'][] = array(
-            "name" => "Shipping",
-            "description" => "Shipping",
+            "name" => $shipping_name,
+            "description" => $shipping_descr,
             "unit_price" => $basket['sShippingcostsNet'],
             "quantity" => "1",
             "merchant_item_id" => "msp-shipping",
