@@ -19,7 +19,7 @@ Paymentmethods:
 12. Giropay
 13. iDEAL
 14. iDEALQR
-15. ING HomePay
+15. ING Home'Pay
 16. KBC
 17. Klarna
 18. Maestro
