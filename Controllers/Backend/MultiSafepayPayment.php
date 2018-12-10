@@ -44,8 +44,9 @@ class Shopware_Controllers_Backend_MultiSafepayPayment extends Shopware_Controll
         $orderNumber = $request->getParam('orderNumber');
         $transactionId = $request->getParam('transactionId');
 
-        $shop = $this->container->get('shop');
-        $pluginConfig = $this->container->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment', $shop);
+        $order = Shopware()->Models()->getRepository('Shopware\Models\Order\Order')->findOneBy(['number' => $orderNumber]);
+
+        $pluginConfig = $this->container->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment', $order->getShop());
         $msp = new MspClient();
         $msp->setApiKey($pluginConfig['msp_api_key']);
         if (!$pluginConfig['msp_environment']) {
@@ -64,7 +65,7 @@ class Shopware_Controllers_Backend_MultiSafepayPayment extends Shopware_Controll
                     ), $endpoint);
 
         // Set order status to shipped within Shopware                   
-        $order = Shopware()->Models()->getRepository('Shopware\Models\Order\Order')->findOneBy(['number' => $orderNumber]);
+
         $em = $this->container->get('models');
         $orderStatusShipped = $em->getReference(Status::class, Status::ORDER_STATE_READY_FOR_DELIVERY);
         $order->setOrderStatus($orderStatusShipped);
@@ -83,8 +84,9 @@ class Shopware_Controllers_Backend_MultiSafepayPayment extends Shopware_Controll
         $orderNumber = $request->getParam('orderNumber');
         $transactionId = $request->getParam('transactionId');
 
-        $shop = $this->container->get('shop');
-        $pluginConfig = $this->container->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment', $shop);
+        $order = Shopware()->Models()->getRepository('Shopware\Models\Order\Order')->findOneBy(['number' => $orderNumber]);
+
+        $pluginConfig = $this->container->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment', $order->getShop());
         $msp = new MspClient();
         $msp->setApiKey($pluginConfig['msp_api_key']);
         if (!$pluginConfig['msp_environment']) {
@@ -92,8 +94,6 @@ class Shopware_Controllers_Backend_MultiSafepayPayment extends Shopware_Controll
         } else {
             $msp->setApiUrl('https://api.multisafepay.com/v1/json/');
         }
-
-        $order = Shopware()->Models()->getRepository('Shopware\Models\Order\Order')->findOneBy(['number' => $orderNumber]);
 
         $endpoint = 'orders/' . $transactionId . '/refunds';
         $refundData = array(
