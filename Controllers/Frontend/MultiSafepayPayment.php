@@ -46,7 +46,11 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
     public function getWhitelistedCSRFActions()
     {
         return [
+            'index',
+            'gateway',
             'notify',
+            'return',
+            'cancel',
         ];
     }
 
