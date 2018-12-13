@@ -197,6 +197,8 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         $msporder = $msp->orders->get($endpoint = 'orders', $transactionid);
         $status = $msporder->status;
 
+        $order = Shopware()->Models()->getRepository('Shopware\Models\Order\Order')->findOneBy(['transactionId' => $transactionid]);
+
         switch ($status) {
             case "initialized":
                 $create_order = false;
@@ -208,8 +210,16 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
                 $payment_status = Status::PAYMENT_STATE_THE_PROCESS_HAS_BEEN_CANCELLED;
                 break;                
             case "completed":
-                $create_order = true;
-                $update_order = true;
+                if (is_null($order)) {
+                    $create_order = true;
+                    $update_order = false;
+                } elseif (Helper::orderHasClearedDate($order)) {
+                    $create_order = false;
+                    $update_order = false;
+                } else {
+                    $create_order = false;
+                    $update_order = true;
+                }
                 $payment_status = Status::PAYMENT_STATE_COMPLETELY_PAID;
                 break;
             case "uncleared":
@@ -236,11 +246,13 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         if ($create_order) {
             $this->saveOrder($transactionid, $transactionid, $payment_status, true);
         }
+
         if ($update_order) {
             $this->savePaymentStatus($transactionid, $transactionid, $payment_status, true);
-            if ($payment_status == Status::PAYMENT_STATE_COMPLETELY_PAID) {
-                $this->setClearedDate($transactionid);
-            }
+        }
+
+        if (!Helper::orderHasClearedDate($order) && $payment_status == Status::PAYMENT_STATE_COMPLETELY_PAID) {
+            $this->setClearedDate($transactionid);
         }
 
         exit("OK");
