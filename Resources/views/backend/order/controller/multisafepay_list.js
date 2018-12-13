@@ -79,7 +79,13 @@ Ext.define('Shopware.apps.Order.controller.MultiSafepayList', {
                 },
                 success: function(response) {
                     var result = Ext.decode(response.responseText);
-                    Shopware.Notification.createGrowlMessage('Success', result.message);
+
+                    if(!result.success){
+                        Shopware.Notification.createGrowlMessage('Error', result.message);
+
+                    }else{
+                        Shopware.Notification.createGrowlMessage('Success', result.message);
+                    }
 
                     /* refresh order page */
                     var orderStore = me.subApplication.getStore('Order');

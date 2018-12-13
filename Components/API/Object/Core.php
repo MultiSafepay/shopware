@@ -69,11 +69,7 @@ class Core
         if (!($object = @json_decode($body))) {
             throw new \Exception("'{$body}'.");
         }
-
-        if (!empty($object->error_code)) {
-            $exception = new \Exception("{$object->error_code}: {$object->error_info}.");
-            throw $exception;
-        }
+        
         return $object;
     }
 }
