@@ -334,7 +334,11 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
     private function setClearedDate($transactionid)
     {
         $order = Shopware()->Models()->getRepository('Shopware\Models\Order\Order')->findOneBy(['transactionId' => $transactionid]);
-        $order->setClearedDate(new \DateTime());
-        $this->container->get('models')->flush($order);
-    }    
+
+        //Check if date has not been set yet
+        if(!Helper::orderHasClearedDate($order)){
+            $order->setClearedDate(new \DateTime());
+            $this->container->get('models')->flush($order);
+        }
+    }
 }
