@@ -69,7 +69,7 @@ class Core
         if (!($object = @json_decode($body))) {
             throw new \Exception("'{$body}'.");
         }
-        
+
         return $object;
     }
 }

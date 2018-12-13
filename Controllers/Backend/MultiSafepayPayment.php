@@ -64,7 +64,15 @@ class Shopware_Controllers_Backend_MultiSafepayPayment extends Shopware_Controll
                 "reason" => 'Shipped'
                     ), $endpoint);
 
-        // Set order status to shipped within Shopware                   
+        //Check for errors
+        if(!empty($msp->orders->result->error_code)){
+            return $this->view->assign([
+                'success' => false,
+                'message' => "{$msp->orders->result->error_code} - {$msp->orders->result->error_info}",
+            ]);
+        }
+
+        // Set order status to shipped within Shopware
 
         $em = $this->container->get('models');
         $orderStatusShipped = $em->getReference(Status::class, Status::ORDER_STATE_READY_FOR_DELIVERY);
@@ -72,8 +80,10 @@ class Shopware_Controllers_Backend_MultiSafepayPayment extends Shopware_Controll
         $em->persist($order);
         $em->flush($order);
 
-        $this->view->assign([
-            'success', true,
+
+
+        return $this->view->assign([
+            'success' => true,
             'message' => "Order has been set to shipped at MultiSafepay",
         ]);
     }
