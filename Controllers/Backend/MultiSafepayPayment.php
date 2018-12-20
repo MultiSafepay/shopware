@@ -58,7 +58,7 @@ class Shopware_Controllers_Backend_MultiSafepayPayment extends Shopware_Controll
         $endpoint = 'orders/' . $transactionId;
         $msporder = $msp->orders->patch(
             array(
-                "tracktrace_code" => "",
+                "tracktrace_code" => $order->getTrackingCode(),
                 "carrier" => "",
                 "ship_date" => date('Y-m-d H:i:s'),
                 "reason" => 'Shipped'
