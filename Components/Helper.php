@@ -89,5 +89,13 @@ class Helper
                 break;
         }
         return $seconds_active;
-    }    
+    }
+
+    public static function orderHasClearedDate($order)
+    {
+        if($order instanceof \Shopware\Models\Order\Order && !is_null($order->getClearedDate())) {
+            return true;
+        }
+        return false;
+    }
 }
