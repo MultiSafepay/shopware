@@ -30,12 +30,14 @@ use Shopware\Components\CSRFWhitelistAware;
 
 class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Controllers_Frontend_Payment implements CSRFWhitelistAware
 {
+    private $shopwareConfig;
     private $pluginConfig;
     private $quoteNumber;
 
     public function preDispatch()
     {
         $shop = $this->get('shop');
+        $this->shopwareConfig = $this->get('config');
         $this->pluginConfig = $this->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment', $shop);
         $this->quoteNumber = $this->get('multi_safepay_payment.components.quotenumber');
     }
@@ -152,8 +154,8 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
             "customer" => $billing_data,
             "delivery" => $delivery_data,
             "plugin" => array(
-                "shop" => "Shopware" . ' ' . Shopware::VERSION,
-                "shop_version" => Shopware::VERSION,
+                "shop" => "Shopware" . ' ' . $this->shopwareConfig->get('version'),
+                "shop_version" => $this->shopwareConfig->get('version'),
                 "plugin_version" => ' - Plugin ' . Helper::getPluginVersion(),
                 "partner" => "MultiSafepay",
             ),
