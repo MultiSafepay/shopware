@@ -22,11 +22,10 @@
  */
 
 use MltisafeMultiSafepayPayment\Components\API\MspClient;
-use MltisafeMultiSafepayPayment\Components\Helper;
 use MltisafeMultiSafepayPayment\Components\Gateways;
-use MltisafeMultiSafepayPayment\Components\Quotenumber;
-use Shopware\Models\Order\Status;
+use MltisafeMultiSafepayPayment\Components\Helper;
 use Shopware\Components\CSRFWhitelistAware;
+use Shopware\Models\Order\Status;
 
 class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Controllers_Frontend_Payment implements CSRFWhitelistAware
 {
@@ -234,8 +233,14 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
                 break;
             case "refunded":
                 $create_order = false;
-                $update_order = true;
-                $payment_status = Status::PAYMENT_STATE_RE_CREDITING;
+                if ($this->pluginConfig['msp_update_refund_active']
+                    && !empty($this->pluginConfig['msp_update_refund'])
+                ) {
+                    $update_order = true;
+                    $payment_status = $this->pluginConfig['msp_update_refund'];
+                }else{
+                    $update_order = false;
+                }
                 break;
             default:
                 $create_order = false;

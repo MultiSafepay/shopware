@@ -22,11 +22,12 @@
  */
 
 use MltisafeMultiSafepayPayment\Components\API\MspClient;
-use Shopware\Models\Order\Status;
 use Shopware\Components\CSRFWhitelistAware;
+use Shopware\Models\Order\Status;
 
 class Shopware_Controllers_Backend_MultiSafepayPayment extends Shopware_Controllers_Backend_ExtJs implements CSRFWhitelistAware
 {
+
     /**
      * {@inheritdoc}
      */
@@ -75,8 +76,10 @@ class Shopware_Controllers_Backend_MultiSafepayPayment extends Shopware_Controll
         // Set order status to shipped within Shopware
 
         $em = $this->container->get('models');
-        $orderStatusShipped = $em->getReference(Status::class, Status::ORDER_STATE_READY_FOR_DELIVERY);
-        $order->setOrderStatus($orderStatusShipped);
+        if ($pluginConfig['msp_update_shipped_active'] && !empty($pluginConfig['msp_update_shipped'])) {
+            $orderStatusShipped = $em->getReference(Status::class, $pluginConfig['msp_update_shipped']);
+            $order->setOrderStatus($orderStatusShipped);
+        }
         $em->persist($order);
         $em->flush($order);
 
