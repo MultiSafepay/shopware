@@ -71,6 +71,7 @@ class Gateways
         'PODIUM' => array('code' => 'PODIUM', 'name' => 'Podium', 'type' => 'redirect'),
         'SPORTENFIT' => array('code' => 'SPORTENFIT', 'name' => 'Sportenfit', 'type' => 'redirect'),
         'VVVGIFTCRD' => array('code' => 'VVVGIFTCRD', 'name' => 'VVV giftcard', 'type' => 'redirect'),
+        'WEBSHOPGIFTCARD' => array('code' => 'WEBSHOPGIFTCARD', 'name' => 'Webshop Giftcard', 'type' => 'redirect'),
         'WELLNESSGIFTCARD' => array('code' => 'WELLNESSGIFTCARD', 'name' => 'Wellnessgiftcard', 'type' => 'redirect'),
         'WIJNCADEAU' => array('code' => 'WIJNCADEAU', 'name' => 'Wijncadeau', 'type' => 'redirect'),
         'WINKELCHEQUE' => array('code' => 'WINKELCHEQUE', 'name' => 'Winkelcheque', 'type' => 'redirect'),
