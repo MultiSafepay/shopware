@@ -27,6 +27,7 @@ use MltisafeMultiSafepayPayment\Components\Gateways;
 use MltisafeMultiSafepayPayment\Components\Quotenumber;
 use Shopware\Models\Order\Status;
 use Shopware\Components\CSRFWhitelistAware;
+use Shopware\Components\OptinServiceInterface;
 
 class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Controllers_Frontend_Payment implements CSRFWhitelistAware
 {
@@ -129,6 +130,30 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         }
         $items .= "</ul>\n";
 
+        if($this->container->has('shopware.components.optin_service')){
+            /** Since Shopware 5.5.7 removed append sessions. We use optinService*/
+            $optinService = $this->container->get('shopware.components.optin_service');
+            $hash = $optinService->add(
+                OptinServiceInterface::TYPE_CUSTOMER_LOGIN_FROM_BACKEND,
+                Helper::getSecondsActive($this->pluginConfig["msp_time_label"], $this->pluginConfig["msp_time_active"]),
+                ["sessionId" => Shopware()->Session()->get("sessionId")]
+            );
+            $paymentOptions = [
+                "notification_url" => $router->assemble(['action' => 'notify', 'forceSecure' => true, 'hash' => $hash]),
+                "redirect_url" => $router->assemble(['action' => 'return', 'forceSecure' => true, 'hash' => $hash]),
+                "cancel_url" => $router->assemble(['action' => 'cancel', 'forceSecure' => true, 'hash' => $hash]),
+                "close_window" => "true",
+            ];
+        }else{
+            $paymentOptions = [
+                "notification_url" => $router->assemble(['action' => 'notify', 'forceSecure' => true, 'appendSession' => true]) . '&type=initial',
+                "redirect_url" => $router->assemble(['action' => 'return', 'forceSecure' => true, 'appendSession' => true]),
+                "cancel_url" => $router->assemble(['action' => 'cancel', 'forceSecure' => true, 'appendSession' => true]),
+                "close_window" => "true",
+                ];
+        }
+
+
         $order_data = array(
             "type" => Gateways::getGatewayType($this->Request()->payment),
             "order_id" => $order_id,
@@ -139,12 +164,7 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
             "manual" => "false",
             "gateway" => Gateways::getGatewayCode($this->Request()->payment),
             "seconds_active" => Helper::getSecondsActive($this->pluginConfig["msp_time_label"], $this->pluginConfig["msp_time_active"]),
-            "payment_options" => array(
-                "notification_url" => $router->assemble(['action' => 'notify', 'forceSecure' => true, 'appendSession' => true]) . '&type=initial',
-                "redirect_url" => $router->assemble(['action' => 'return', 'forceSecure' => true, 'appendSession' => true]),
-                "cancel_url" => $router->assemble(['action' => 'cancel', 'forceSecure' => true, 'appendSession' => true]),
-                "close_window" => "true",
-            ),
+            "payment_options" => $paymentOptions,
             "customer" => $billing_data,
             "delivery" => $delivery_data,
             "plugin" => array(
@@ -177,8 +197,9 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
     {
         $transactionid = $this->Request()->getParam('transactionid');
 
-        $shop = $this->Request()->getParam('__shop');
-        $this->restoreSession($this->Request()->getParam('session-' . $shop));
+        $sessionId = $this->getSessionId();
+
+        $this->restoreSession($sessionId);
 
         $msp = new MspClient();
         $msp->setApiKey($this->pluginConfig['msp_api_key']);
@@ -245,8 +266,9 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
      */
     public function returnAction()
     {
-        $shop = $this->Request()->getParam('__shop');
-        $this->restoreSession($this->Request()->getParam('session-' . $shop));
+        $sessionId = $this->getSessionId();
+
+        $this->restoreSession($sessionId);
         $this->saveOrder($this->Request()->transactionid, $this->Request()->transactionid, null, true);
         $this->redirect(['controller' => 'checkout', 'action' => 'finish', 'sUniqueID' => $this->Request()->transactionid]);
     }
@@ -329,5 +351,23 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         $order = Shopware()->Models()->getRepository('Shopware\Models\Order\Order')->findOneBy(['transactionId' => $transactionid]);
         $order->setClearedDate(new \DateTime());
         $this->container->get('models')->flush($order);
-    }    
+    }
+
+    private function getSessionId()
+    {
+        if($this->container->has('shopware.components.optin_service') &&
+            !empty($this->Request()->getParam('hash'))
+        ) {
+            $optinService = $this->container->get('shopware.components.optin_service');
+            $hashArray = $optinService->get(
+                OptinServiceInterface::TYPE_CUSTOMER_LOGIN_FROM_BACKEND,
+                $this->Request()->getParam('hash')
+            );
+            return $hashArray['sessionId'];
+        }
+
+        $shop = $this->Request()->getParam('__shop');
+        return $this->Request()->getParam('session-' . $shop);
+
+    }
 }
