@@ -51,5 +51,31 @@
             <label lang="en">Quote number suffix</label>
             <description lang="en">Append quote number with entered text</description>
         </element>
+
+        <element required="false" type="boolean" scope="shop">
+            <name>msp_update_shipped_active</name>
+            <label lang="en">Update order status when shipped</label>
+            <value>true</value>
+            <description lang="en">Update the order status automatically when order has been set to shipped</description>
+        </element>
+        <element required="false" type="combo" scope="shop">
+            <name>msp_update_shipped</name>
+            <label lang="en"/>
+            <value>5</value><!-- Status::ORDER_STATE_READY_FOR_DELIVERY -->
+            <store>Shopware.apps.Base.store.OrderStatus</store>
+        </element>
+
+        <element required="false" type="boolean" scope="shop">
+            <name>msp_update_refund_active</name>
+            <label lang="en">Update payment status when order is refunded</label>
+            <value>true</value>
+            <description lang="en">Update the payment status automatically when order has been refunded</description>
+        </element>
+        <element required="false" type="combo" scope="shop">
+            <name>msp_update_refund</name>
+            <label lang="en"/>
+            <value>32</value> <!-- Status::PAYMENT_STATE_THE_CREDIT_HAS_BEEN_ACCEPTED -->
+            <store>Shopware.apps.Base.store.PaymentStatus</store>
+        </element>
       </elements>
 </config>

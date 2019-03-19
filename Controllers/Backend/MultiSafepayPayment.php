@@ -22,11 +22,12 @@
  */
 
 use MltisafeMultiSafepayPayment\Components\API\MspClient;
-use Shopware\Models\Order\Status;
 use Shopware\Components\CSRFWhitelistAware;
+use Shopware\Models\Order\Status;
 
 class Shopware_Controllers_Backend_MultiSafepayPayment extends Shopware_Controllers_Backend_ExtJs implements CSRFWhitelistAware
 {
+
     /**
      * {@inheritdoc}
      */
@@ -44,8 +45,9 @@ class Shopware_Controllers_Backend_MultiSafepayPayment extends Shopware_Controll
         $orderNumber = $request->getParam('orderNumber');
         $transactionId = $request->getParam('transactionId');
 
-        $shop = $this->container->get('shop');
-        $pluginConfig = $this->container->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment', $shop);
+        $order = Shopware()->Models()->getRepository('Shopware\Models\Order\Order')->findOneBy(['number' => $orderNumber]);
+
+        $pluginConfig = $this->container->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment', $order->getShop());
         $msp = new MspClient();
         $msp->setApiKey($pluginConfig['msp_api_key']);
         if (!$pluginConfig['msp_environment']) {
@@ -57,22 +59,34 @@ class Shopware_Controllers_Backend_MultiSafepayPayment extends Shopware_Controll
         $endpoint = 'orders/' . $transactionId;
         $msporder = $msp->orders->patch(
             array(
-                "tracktrace_code" => "",
+                "tracktrace_code" => $order->getTrackingCode(),
                 "carrier" => "",
                 "ship_date" => date('Y-m-d H:i:s'),
                 "reason" => 'Shipped'
                     ), $endpoint);
 
-        // Set order status to shipped within Shopware                   
-        $order = Shopware()->Models()->getRepository('Shopware\Models\Order\Order')->findOneBy(['number' => $orderNumber]);
+        //Check for errors
+        if(!empty($msp->orders->result->error_code)){
+            return $this->view->assign([
+                'success' => false,
+                'message' => "{$msp->orders->result->error_code} - {$msp->orders->result->error_info}",
+            ]);
+        }
+
+        // Set order status to shipped within Shopware
+
         $em = $this->container->get('models');
-        $orderStatusShipped = $em->getReference(Status::class, Status::ORDER_STATE_READY_FOR_DELIVERY);
-        $order->setOrderStatus($orderStatusShipped);
+        if ($pluginConfig['msp_update_shipped_active'] && !empty($pluginConfig['msp_update_shipped'])) {
+            $orderStatusShipped = $em->getReference(Status::class, $pluginConfig['msp_update_shipped']);
+            $order->setOrderStatus($orderStatusShipped);
+        }
         $em->persist($order);
         $em->flush($order);
 
-        $this->view->assign([
-            'success', true,
+
+
+        return $this->view->assign([
+            'success' => true,
             'message' => "Order has been set to shipped at MultiSafepay",
         ]);
     }
@@ -83,8 +97,9 @@ class Shopware_Controllers_Backend_MultiSafepayPayment extends Shopware_Controll
         $orderNumber = $request->getParam('orderNumber');
         $transactionId = $request->getParam('transactionId');
 
-        $shop = $this->container->get('shop');
-        $pluginConfig = $this->container->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment', $shop);
+        $order = Shopware()->Models()->getRepository('Shopware\Models\Order\Order')->findOneBy(['number' => $orderNumber]);
+
+        $pluginConfig = $this->container->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment', $order->getShop());
         $msp = new MspClient();
         $msp->setApiKey($pluginConfig['msp_api_key']);
         if (!$pluginConfig['msp_environment']) {
@@ -93,18 +108,23 @@ class Shopware_Controllers_Backend_MultiSafepayPayment extends Shopware_Controll
             $msp->setApiUrl('https://api.multisafepay.com/v1/json/');
         }
 
-        $order = Shopware()->Models()->getRepository('Shopware\Models\Order\Order')->findOneBy(['number' => $orderNumber]);
-
         $endpoint = 'orders/' . $transactionId . '/refunds';
         $refundData = array(
             "amount" => $order->getInvoiceAmount() * 100,
             "currency" => $order->getCurrency(),
             "description" => "Refund: " . $transactionId,
         );
-        $msporder = $msp->orders->post($refundData, $endpoint);        
+        $msporder = $msp->orders->post($refundData, $endpoint);
 
-        $this->view->assign([
-            'success', true,
+        if(!empty($msp->orders->result->error_code)){
+            return $this->view->assign([
+                'success' =>  false,
+                'message' => "{$msp->orders->result->error_code} - {$msp->orders->result->error_info}",
+            ]);
+        }
+
+        return $this->view->assign([
+            'success' => true,
             'message' => "Order has been fully refunded at MultiSafepay",
         ]);
     }    
