@@ -49,6 +49,7 @@ class Ideal implements SubscriberInterface
     {
         return [
             'Enlight_Controller_Action_PostDispatchSecure_Frontend_Checkout' => 'onPostDispatchCheckout',
+            'Shopware_Modules_Admin_UpdatePayment_FilterSql' => 'onUpdatePaymentPaymentPage',
         ];
     }
 
@@ -67,6 +68,7 @@ class Ideal implements SubscriberInterface
             $issuers = $msp->issuers->get();
 
             $view = $args->getSubject()->View();
+            $view->assign('currentIssuer', $this->container->get('session')->get('ideal_issuer'));
             $view->assign('idealIssuers', $issuers);
         }
         if ($args->getRequest()->getActionName() === 'saveShippingPayment') {
@@ -75,4 +77,16 @@ class Ideal implements SubscriberInterface
             $session->offsetSet('ideal_issuer', $ideal_issuer);
         }
     }
+
+    public function onUpdatePaymentPaymentPage(\Enlight_Event_EventArgs $args)
+    {
+        // get issuer
+        $idealIssuer = Shopware()->Front()->Request()->getPost('ideal_issuers');
+
+        $session = $this->container->get('session');
+        $session->offsetSet('ideal_issuer', $idealIssuer);
+
+        return $args->getReturn();
+    }
+
 }
