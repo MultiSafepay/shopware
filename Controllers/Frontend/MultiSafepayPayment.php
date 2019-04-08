@@ -22,21 +22,22 @@
  */
 
 use MltisafeMultiSafepayPayment\Components\API\MspClient;
-use MltisafeMultiSafepayPayment\Components\Helper;
 use MltisafeMultiSafepayPayment\Components\Gateways;
-use MltisafeMultiSafepayPayment\Components\Quotenumber;
-use Shopware\Models\Order\Status;
+use MltisafeMultiSafepayPayment\Components\Helper;
 use Shopware\Components\CSRFWhitelistAware;
 use Shopware\Components\OptinServiceInterface;
+use Shopware\Models\Order\Status;
 
 class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Controllers_Frontend_Payment implements CSRFWhitelistAware
 {
+    private $shopwareConfig;
     private $pluginConfig;
     private $quoteNumber;
 
     public function preDispatch()
     {
         $shop = $this->get('shop');
+        $this->shopwareConfig = $this->get('config');
         $this->pluginConfig = $this->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment', $shop);
         $this->quoteNumber = $this->get('multi_safepay_payment.components.quotenumber');
     }
@@ -47,7 +48,11 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
     public function getWhitelistedCSRFActions()
     {
         return [
+            'index',
+            'gateway',
             'notify',
+            'return',
+            'cancel',
         ];
     }
 
@@ -168,8 +173,8 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
             "customer" => $billing_data,
             "delivery" => $delivery_data,
             "plugin" => array(
-                "shop" => "Shopware" . ' ' . Shopware::VERSION,
-                "shop_version" => Shopware::VERSION,
+                "shop" => "Shopware" . ' ' . $this->shopwareConfig->get('version'),
+                "shop_version" => $this->shopwareConfig->get('version'),
                 "plugin_version" => ' - Plugin ' . Helper::getPluginVersion(),
                 "partner" => "MultiSafepay",
             ),
@@ -212,6 +217,8 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         $msporder = $msp->orders->get($endpoint = 'orders', $transactionid);
         $status = $msporder->status;
 
+        $order = Shopware()->Models()->getRepository('Shopware\Models\Order\Order')->findOneBy(['transactionId' => $transactionid]);
+
         switch ($status) {
             case "initialized":
                 $create_order = false;
@@ -223,8 +230,16 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
                 $payment_status = Status::PAYMENT_STATE_THE_PROCESS_HAS_BEEN_CANCELLED;
                 break;                
             case "completed":
-                $create_order = true;
-                $update_order = true;
+                if (is_null($order)) {
+                    $create_order = true;
+                    $update_order = false;
+                } elseif (Helper::orderHasClearedDate($order)) {
+                    $create_order = false;
+                    $update_order = false;
+                } else {
+                    $create_order = false;
+                    $update_order = true;
+                }
                 $payment_status = Status::PAYMENT_STATE_COMPLETELY_PAID;
                 break;
             case "uncleared":
@@ -239,8 +254,14 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
                 break;
             case "refunded":
                 $create_order = false;
-                $update_order = true;
-                $payment_status = Status::PAYMENT_STATE_RE_CREDITING;
+                if ($this->pluginConfig['msp_update_refund_active']
+                    && !empty($this->pluginConfig['msp_update_refund'])
+                ) {
+                    $update_order = true;
+                    $payment_status = $this->pluginConfig['msp_update_refund'];
+                }else{
+                    $update_order = false;
+                }
                 break;
             default:
                 $create_order = false;
@@ -251,11 +272,13 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         if ($create_order) {
             $this->saveOrder($transactionid, $transactionid, $payment_status, true);
         }
+
         if ($update_order) {
             $this->savePaymentStatus($transactionid, $transactionid, $payment_status, true);
-            if ($payment_status == Status::PAYMENT_STATE_COMPLETELY_PAID) {
-                $this->setClearedDate($transactionid);
-            }
+        }
+
+        if (!Helper::orderHasClearedDate($order) && $payment_status == Status::PAYMENT_STATE_COMPLETELY_PAID) {
+            $this->setClearedDate($transactionid);
         }
 
         exit("OK");
@@ -316,10 +339,13 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         //Add shipping line item
         $shipping_rate = $basket['sShippingcostsTax'] + 0;
         $rates[$shipping_rate] = $shipping_rate;
+        $shipping_info = $this->get('session')->sOrderVariables->sDispatch;
+        $shipping_name = !empty($shipping_info['name']) ? $shipping_info['name'] : 'Shipping';
+        $shipping_descr = !empty($shipping_info['description']) ? $shipping_info['description'] : 'Shipping';
 
         $shoppingCart['shopping_cart']['items'][] = array(
-            "name" => "Shipping",
-            "description" => "Shipping",
+            "name" => $shipping_name,
+            "description" => $shipping_descr,
             "unit_price" => $basket['sShippingcostsNet'],
             "quantity" => "1",
             "merchant_item_id" => "msp-shipping",
@@ -349,8 +375,12 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
     private function setClearedDate($transactionid)
     {
         $order = Shopware()->Models()->getRepository('Shopware\Models\Order\Order')->findOneBy(['transactionId' => $transactionid]);
-        $order->setClearedDate(new \DateTime());
-        $this->container->get('models')->flush($order);
+
+        //Check if date has not been set yet
+        if(!Helper::orderHasClearedDate($order)){
+            $order->setClearedDate(new \DateTime());
+            $this->container->get('models')->flush($order);
+        }
     }
 
     private function getSessionId()
