@@ -1,10 +1,10 @@
 # MultiSafepay extension for Shopware
 
-The MultiSafepay extension for Shopware allows you to integrate add all paymentmethods and giftcards offered by MultiSafepay into your Shopware webshop.
+The MultiSafepay extension for Shopware allows you to integrate add all payment methods and giftcards offered by MultiSafepay into your Shopware webshop.
 
 The MultiSafepay extension for Shopware has support for:
 
-Paymentmethods:
+Payment methods:
 1. AfterPay
 2. Alipay
 3. American Express
@@ -18,7 +18,7 @@ Paymentmethods:
 11. Ferbuy
 12. Giropay
 13. iDEAL
-14. iDEALQR
+14. iDEAL QR
 15. ING Home'Pay
 16. KBC
 17. Klarna
