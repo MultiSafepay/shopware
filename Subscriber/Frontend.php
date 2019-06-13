@@ -67,11 +67,13 @@ class Frontend implements SubscriberInterface
     public function onPostDispatchCheckout(\Enlight_Controller_ActionEventArgs $args)
     {
         $errorMessage = $args->getRequest()->getParam('multisafepay_error_message');
-        if ($errorMessage){
+        if ($errorMessage) {
             $view = $args->getSubject()->View();
-            $view->assign('sErrorMessages', (array) $errorMessage);
+
+            $errorMessage = explode("<br />", urldecode($errorMessage));
+            $view->assign('sErrorMessages', $errorMessage);
         }
-    }    
+    }
 
     /**
      * @param \Enlight_Event_EventArgs $args

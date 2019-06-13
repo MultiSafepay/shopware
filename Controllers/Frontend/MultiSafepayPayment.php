@@ -195,6 +195,20 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
             $this->redirect(['controller' => 'checkout', 'action' => 'shippingPayment', 'multisafepay_error_message' => $e->getMessage()]);
             return;
         }
+
+        $result = $msp->orders->getResult();
+
+        if (!$result->success) {
+            $message = "There was an error processing your transaction request, please try again with another payment method.<br />";
+            $message .= "Error: " . "{$result->error_code} : {$result->error_info}";
+            $this->redirect([
+                'controller' => 'checkout',
+                'action' => 'shippingPayment',
+                'multisafepay_error_message' => urlencode($message)
+            ]);
+            return;
+        }
+
         $this->redirect($msp->orders->getPaymentLink());
     }
 
