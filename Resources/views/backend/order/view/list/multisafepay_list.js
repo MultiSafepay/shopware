@@ -19,14 +19,10 @@ Ext.define('Shopware.apps.Order.view.list.MultiSafepayList', {
                 me.fireEvent('shipOrder', record);
             },
             getClass: function(value, metadata, record) {
-                if(record.raw.payment 
-                    && record.raw.payment.name !== "multisafepay_AFTERPAY" 
-                    && record.raw.payment.name !== "multisafepay_EINVOICE" 
-                    && record.raw.payment.name !== "multisafepay_KLARNA" 
-                    && record.raw.payment.name !== "multisafepay_PAYAFTER"                     
-                    && record.raw.payment.name !== "multisafepay_SANTANDER" ){
+                var pm = record.raw.payment.name;
+                if(record.raw.payment && pm === pm.slice(0, 12)){
                     return 'x-hidden';
-                }                
+                }
             }
         });
 
