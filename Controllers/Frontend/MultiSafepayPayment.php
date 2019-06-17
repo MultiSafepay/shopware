@@ -254,13 +254,14 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
                 break;
             case "refunded":
                 $create_order = false;
-                if ($this->pluginConfig['msp_update_refund_active']
-                    && !empty($this->pluginConfig['msp_update_refund'])
+                $update_order = false;
+
+                if ($this->pluginConfig['msp_update_refund_active'] &&
+                    is_int($this->pluginConfig['msp_update_refund']) &&
+                    $this->pluginConfig['msp_update_refund'] > 0
                 ) {
-                    $update_order = true;
                     $payment_status = $this->pluginConfig['msp_update_refund'];
-                }else{
-                    $update_order = false;
+                    $update_order = true;
                 }
                 break;
             default:
