@@ -18,11 +18,12 @@ Ext.define('Shopware.apps.Order.view.list.MultiSafepayList', {
 
                 me.fireEvent('shipOrder', record);
             },
-            getClass: function(value, metadata, record) {
+            getClass: function (value, metadata, record) {
                 var pm = record.raw.payment.name;
-                if(record.raw.payment && pm === pm.slice(0, 12)){
+                if (record.raw.payment && pm === pm.slice(0, 12)) {
                     return 'x-hidden';
                 }
+                return '';
             }
         });
 
@@ -36,17 +37,18 @@ Ext.define('Shopware.apps.Order.view.list.MultiSafepayList', {
 
                 me.fireEvent('refundOrder', record);
             },
-            getClass: function(value, metadata, record) {
-                if(record.raw.payment
-                    && (record.raw.payment.name.substring(0,13) !== "multisafepay_"
-                    || record.raw.paymentStatus.id !== 12 
-                    || record.raw.payment.name === "multisafepay_AFTERPAY" 
-                    || record.raw.payment.name === "multisafepay_EINVOICE" 
-                    || record.raw.payment.name === "multisafepay_KLARNA" 
-                    || record.raw.payment.name === "multisafepay_PAYAFTER" 
-                    || record.raw.payment.name === "multisafepay_SANTANDER" )){
-                        return 'x-hidden';
+            getClass: function (value, metadata, record) {
+                if (record.raw.payment
+                    && (record.raw.payment.name.substring(0, 13) !== "multisafepay_"
+                        || record.raw.paymentStatus.id !== 12
+                        || record.raw.payment.name === "multisafepay_AFTERPAY"
+                        || record.raw.payment.name === "multisafepay_EINVOICE"
+                        || record.raw.payment.name === "multisafepay_KLARNA"
+                        || record.raw.payment.name === "multisafepay_PAYAFTER"
+                        || record.raw.payment.name === "multisafepay_SANTANDER")) {
+                    return 'x-hidden';
                 }
+                return '';
             }
         });        
 
