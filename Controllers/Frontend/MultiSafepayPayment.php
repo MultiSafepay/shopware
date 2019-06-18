@@ -214,6 +214,7 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
 
     public function notifyAction()
     {
+        $this->Front()->Plugins()->ViewRenderer()->setNoRender(true);
         $transactionid = $this->Request()->getParam('transactionid');
 
         $sessionId = $this->getSessionId();
@@ -242,7 +243,7 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
                 $create_order = false;
                 $update_order = true;
                 $payment_status = Status::PAYMENT_STATE_THE_PROCESS_HAS_BEEN_CANCELLED;
-                break;                
+                break;
             case "completed":
                 if (is_null($order)) {
                     $create_order = true;
@@ -296,7 +297,9 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
             $this->setClearedDate($transactionid);
         }
 
-        exit("OK");
+        $this->Response()
+            ->setBody('OK')
+            ->setHttpResponseCode(200);
     }
 
     /**
