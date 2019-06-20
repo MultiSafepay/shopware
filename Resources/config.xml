@@ -77,5 +77,48 @@
             <value>32</value> <!-- Status::PAYMENT_STATE_THE_CREDIT_HAS_BEEN_ACCEPTED -->
             <store>Shopware.apps.Base.store.PaymentStatus</store>
         </element>
-      </elements>
+
+        <element required="false" type="combo" scope="shop">
+            <name>msp_update_completed</name>
+            <label lang="en">Status completed</label>
+            <value>12</value> <!-- Status::PAYMENT_STATE_COMPLETELY_PAID -->
+            <store>Shopware.apps.Base.store.PaymentStatus</store>
+        </element>
+
+        <element required="false" type="combo" scope="shop">
+            <name>msp_update_declined</name>
+            <label lang="en">Status declined</label>
+            <value>35</value> <!-- Status::PAYMENT_STATE_THE_PROCESS_HAS_BEEN_CANCELLED -->
+            <store>Shopware.apps.Base.store.PaymentStatus</store>
+        </element>
+
+        <element required="false" type="combo" scope="shop">
+            <name>msp_update_cancelled</name>
+            <label lang="en">Status cancelled</label>
+            <value>35</value> <!-- Status::PAYMENT_STATE_THE_PROCESS_HAS_BEEN_CANCELLED -->
+            <store>Shopware.apps.Base.store.PaymentStatus</store>
+        </element>
+
+        <element required="false" type="combo" scope="shop">
+            <name>msp_update_expired</name>
+            <label lang="en">Status expired</label>
+            <value>35</value> <!-- Status::PAYMENT_STATE_THE_PROCESS_HAS_BEEN_CANCELLED -->
+            <store>Shopware.apps.Base.store.PaymentStatus</store>
+        </element>
+
+        <element required="false" type="combo" scope="shop">
+            <name>msp_update_uncleared</name>
+            <label lang="en">Status uncleared</label>
+            <value>18</value> <!-- Status::PAYMENT_STATE_RESERVED -->
+            <store>Shopware.apps.Base.store.PaymentStatus</store>
+        </element>
+
+        <element required="false" type="combo" scope="shop">
+            <name>msp_update_chargedback</name>
+            <label lang="en">Status chargedback</label>
+            <value>35</value> <!-- Status::PAYMENT_STATE_THE_PROCESS_HAS_BEEN_CANCELLED -->
+            <store>Shopware.apps.Base.store.PaymentStatus</store>
+        </element>
+
+    </elements>
 </config>

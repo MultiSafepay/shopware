@@ -11,7 +11,7 @@
  * @category    MultiSafepay
  * @package     Connect
  * @author      MultiSafepay <techsupport@multisafepay.com>
- * @copyright   Copyright (c) 2018 MultiSafepay, Inc. (http://www.multisafepay.com)
+ * @copyright   Copyright (c) 2019 MultiSafepay, Inc. (https://www.multisafepay.com)
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
@@ -22,6 +22,9 @@
  */
 
 namespace MltisafeMultiSafepayPayment\Components;
+
+use Shopware\Models\Order\Status;
+use Shopware\Models\Order\Order;
 
 class Helper
 {
@@ -142,6 +145,78 @@ class Helper
         if ($order instanceof \Shopware\Models\Order\Order && !is_null($order->getClearedDate())) {
             return true;
         }
+        return false;
+    }
+
+    /**
+     * @param $status
+     * @param null $shop
+     * @return int
+     */
+    public function getPaymentStatus($status, $shop = null)
+    {
+        $config = $this->getMultiSafepaySettings($shop);
+
+        if ($this->isValidPaymentStatus($config['msp_update_' . $status . ''])) {
+            return $config['msp_update_' . $status . ''];
+        }
+
+        switch ($status) {
+            case 'expired':
+            case 'cancelled':
+            case 'void':
+            case 'chargedback':
+            case 'declined':
+                $payment_status = Status::PAYMENT_STATE_THE_PROCESS_HAS_BEEN_CANCELLED;
+                break;
+            case 'completed':
+                $payment_status = Status::PAYMENT_STATE_COMPLETELY_PAID;
+                break;
+            case 'uncleared':
+                $payment_status = Status::PAYMENT_STATE_RESERVED;
+                break;
+            case 'refund':
+                $payment_status = Status::PAYMENT_STATE_THE_CREDIT_HAS_BEEN_ACCEPTED;
+                break;
+            default:
+                $payment_status = Status::PAYMENT_STATE_OPEN;
+                break;
+        }
+
+        return $payment_status;
+    }
+
+    /**
+     * @param $shop
+     * @return mixed
+     */
+    public function getMultiSafepaySettings($shop = null)
+    {
+        $config = Shopware()->Container()
+            ->get('shopware.plugin.cached_config_reader')
+            ->getByPluginName('MltisafeMultiSafepayPayment', $shop);
+        return $config;
+    }
+
+    /**
+     * @param $status
+     * @return bool
+     */
+    public function isValidPaymentStatus($status)
+    {
+        if ($status && !is_int($status)) {
+            return false;
+        }
+
+        $orderRepository = Shopware()->Models()->getRepository(Order::class);
+        $allPaymentStatuses = $orderRepository->getPaymentStatusQuery()->getArrayResult();
+
+        foreach ($allPaymentStatuses as $paymentStatus) {
+            if ($paymentStatus['id'] === $status) {
+                return true;
+            }
+        }
+
         return false;
     }
 }
