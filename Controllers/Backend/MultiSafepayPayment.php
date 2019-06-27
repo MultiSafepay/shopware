@@ -114,18 +114,30 @@ class Shopware_Controllers_Backend_MultiSafepayPayment extends Shopware_Controll
             "currency" => $order->getCurrency(),
             "description" => "Refund: " . $transactionId,
         );
-        $msporder = $msp->orders->post($refundData, $endpoint);
+        $msp->orders->post($refundData, $endpoint);
 
-        if(!empty($msp->orders->result->error_code)){
+        if (!empty($msp->orders->result->error_code)) {
             return $this->view->assign([
                 'success' =>  false,
                 'message' => "{$msp->orders->result->error_code} - {$msp->orders->result->error_info}",
             ]);
         }
 
+        //Update status
+        $em = Shopware()->Models();
+        if ($pluginConfig['msp_update_refund_active'] &&
+            is_int($pluginConfig['msp_update_refund']) &&
+            $pluginConfig['msp_update_refund'] > 0
+        ) {
+            $orderStatusRefund = $em->getReference(Status::class, $pluginConfig['msp_update_refund']);
+            $order->setPaymentStatus($orderStatusRefund);
+        }
+        $em->persist($order);
+        $em->flush($order);
+
         return $this->view->assign([
             'success' => true,
             'message' => "Order has been fully refunded at MultiSafepay",
         ]);
-    }    
+    }
 }
