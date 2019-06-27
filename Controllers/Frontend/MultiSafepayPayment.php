@@ -12,12 +12,12 @@
  * @package     Connect
  * @author      MultiSafepay <techsupport@multisafepay.com>
  * @copyright   Copyright (c) 2018 MultiSafepay, Inc. (http://www.multisafepay.com)
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
- * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
- * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN 
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION 
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
@@ -91,7 +91,7 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
 
         $checkoutData = $this->getCheckoutData($basket);
         $shoppingCart = $checkoutData["shopping_cart"];
-        $checkoutData = $checkoutData["checkout_options"];        
+        $checkoutData = $checkoutData["checkout_options"];
 
         list($street, $housenumber) = Helper::parseAddress($userinfo["billingaddress"]["street"], $userinfo["billingaddress"]["additionalAddressLine1"]);
         list($shipping_street, $shipping_housenumber) = Helper::parseAddress($userinfo["shippingaddress"]["street"], $userinfo["shippingaddress"]["additionalAddressLine1"]);
@@ -135,7 +135,7 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         }
         $items .= "</ul>\n";
 
-        if($this->container->has('shopware.components.optin_service')){
+        if ($this->container->has('shopware.components.optin_service')) {
             /** Since Shopware 5.5.7 removed append sessions. We use optinService*/
             $optinService = $this->container->get('shopware.components.optin_service');
             $hash = $optinService->add(
@@ -149,7 +149,7 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
                 "cancel_url" => $router->assemble(['action' => 'cancel', 'forceSecure' => true, 'hash' => $hash]),
                 "close_window" => "true",
             ];
-        }else{
+        } else {
             $paymentOptions = [
                 "notification_url" => $router->assemble(['action' => 'notify', 'forceSecure' => true, 'appendSession' => true]) . '&type=initial',
                 "redirect_url" => $router->assemble(['action' => 'return', 'forceSecure' => true, 'appendSession' => true]),
@@ -375,7 +375,7 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         );
 
         //Add alternate tax rates
-        foreach ($rates as $index => $rate){
+        foreach ($rates as $index => $rate) {
             $alternateTaxRates['tax_tables']['alternate'][] = array(
                  "standalone" => "true",
                  "name" => (string) number_format($rate, 2),
@@ -383,7 +383,7 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
                      array("rate" => $rate / 100)
                  ),
              );
-         }        
+        }
 
         $checkoutData["shopping_cart"] = $shoppingCart['shopping_cart'];
         $checkoutData["checkout_options"] = $alternateTaxRates;
@@ -395,7 +395,7 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         $order = Shopware()->Models()->getRepository('Shopware\Models\Order\Order')->findOneBy(['transactionId' => $transactionid]);
 
         //Check if date has not been set yet
-        if(!Helper::orderHasClearedDate($order)){
+        if (!Helper::orderHasClearedDate($order)) {
             $order->setClearedDate(new \DateTime());
             $this->container->get('models')->flush($order);
         }
@@ -403,7 +403,7 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
 
     private function getSessionId()
     {
-        if($this->container->has('shopware.components.optin_service') &&
+        if ($this->container->has('shopware.components.optin_service') &&
             !empty($this->Request()->getParam('hash'))
         ) {
             $optinService = $this->container->get('shopware.components.optin_service');
@@ -416,6 +416,5 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
 
         $shop = $this->Request()->getParam('__shop');
         return $this->Request()->getParam('session-' . $shop);
-
     }
 }
