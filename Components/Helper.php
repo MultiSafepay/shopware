@@ -12,12 +12,12 @@
  * @package     Connect
  * @author      MultiSafepay <techsupport@multisafepay.com>
  * @copyright   Copyright (c) 2018 MultiSafepay, Inc. (http://www.multisafepay.com)
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
- * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
- * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN 
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION 
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
@@ -79,10 +79,10 @@ class Helper
         $seconds_active = 2592000;
         switch ($time_label) {
             case 1: //Days
-                $seconds_active = $time_active*24*60*60;
+                $seconds_active = $time_active * 24 * 60 * 60;
                 break;
             case 2: //Hours
-                $seconds_active = $time_active*60*60;
+                $seconds_active = $time_active * 60 * 60;
                 break;
             case 3: //Seconds
                 $seconds_active = $time_active;
@@ -93,7 +93,7 @@ class Helper
 
     public static function orderHasClearedDate($order)
     {
-        if($order instanceof \Shopware\Models\Order\Order && !is_null($order->getClearedDate())) {
+        if ($order instanceof \Shopware\Models\Order\Order && !is_null($order->getClearedDate())) {
             return true;
         }
         return false;

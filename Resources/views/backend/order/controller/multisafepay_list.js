@@ -6,7 +6,7 @@ Ext.define('Shopware.apps.Order.controller.MultiSafepayList', {
     /**
      * Override init to add additional event for button to ship an order
      */
-    init: function() {
+    init: function () {
         var me = this;
 
         me.callParent(arguments);
@@ -25,13 +25,13 @@ Ext.define('Shopware.apps.Order.controller.MultiSafepayList', {
      * @param record
      * @return void
      */
-    onShipOrder: function(record) {
+    onShipOrder: function (record) {
         var me = this,
             store = me.subApplication.getStore('Order'),
             message = ('Are you sure you want to ship order') + ' ' + record.get('number'),
             title = 'Ship order';
 
-        Ext.MessageBox.confirm(title, message, function(response) {
+        Ext.MessageBox.confirm(title, message, function (response) {
             if (response !== 'yes') {
                 return;
             }
@@ -42,12 +42,11 @@ Ext.define('Shopware.apps.Order.controller.MultiSafepayList', {
                     orderNumber: record.get('number'),
                     transactionId: record.get('transactionId'),
                 },
-                success: function(response) {
+                success: function (response) {
                     var result = Ext.decode(response.responseText);
-                    if(!result.success){
+                    if (!result.success) {
                         Shopware.Notification.createGrowlMessage('Error', result.message);
-
-                    }else{
+                    } else {
                         Shopware.Notification.createGrowlMessage('Success', result.message);
                     }
                     /* refresh order page */
@@ -64,13 +63,13 @@ Ext.define('Shopware.apps.Order.controller.MultiSafepayList', {
      * @param record
      * @return void
      */
-    onRefundOrder: function(record) {
+    onRefundOrder: function (record) {
         var me = this,
             store = me.subApplication.getStore('Order'),
             message = ('Are you sure you want to fully refund order') + ' ' + record.get('number'),
             title = 'Refund order';
 
-        Ext.MessageBox.confirm(title, message, function(response) {
+        Ext.MessageBox.confirm(title, message, function (response) {
             if (response !== 'yes') {
                 return;
             }
@@ -81,13 +80,12 @@ Ext.define('Shopware.apps.Order.controller.MultiSafepayList', {
                     orderNumber: record.get('number'),
                     transactionId: record.get('transactionId'),
                 },
-                success: function(response) {
+                success: function (response) {
                     var result = Ext.decode(response.responseText);
 
-                    if(!result.success){
+                    if (!result.success) {
                         Shopware.Notification.createGrowlMessage('Error', result.message);
-
-                    }else{
+                    } else {
                         Shopware.Notification.createGrowlMessage('Success', result.message);
                     }
 
@@ -97,6 +95,6 @@ Ext.define('Shopware.apps.Order.controller.MultiSafepayList', {
                 }
             });
         });
-    }    
+    }
 });
 //{/block}

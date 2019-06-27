@@ -10,7 +10,7 @@ Ext.define('Shopware.apps.Order.view.list.MultiSafepayList', {
 
         items.push({
             iconCls: 'sprite-paper-plane',
-            action: 'shipOrder',            
+            action: 'shipOrder',
             tooltip: 'Mark order as shipped at MultiSafepay',
             handler:function (view, rowIndex, colIndex, item) {
                 var store = view.getStore(),
@@ -29,7 +29,7 @@ Ext.define('Shopware.apps.Order.view.list.MultiSafepayList', {
 
         items.push({
             iconCls: 'sprite-money--minus',
-            action: 'refundOrder',            
+            action: 'refundOrder',
             tooltip: 'Fully refund order at MultiSafepay',
             handler:function (view, rowIndex, colIndex, item) {
                 var store = view.getStore(),
@@ -50,9 +50,10 @@ Ext.define('Shopware.apps.Order.view.list.MultiSafepayList', {
                 }
                 return '';
             }
-        });        
+        });
 
-        var column = Ext.create('Ext.grid.column.Action',
+        var column = Ext.create(
+            'Ext.grid.column.Action',
             {
                 width: (30 * items.length),
                 items: items

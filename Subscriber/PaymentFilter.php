@@ -12,12 +12,12 @@
  * @package     Connect
  * @author      MultiSafepay <techsupport@multisafepay.com>
  * @copyright   Copyright (c) 2018 MultiSafepay, Inc. (http://www.multisafepay.com)
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
- * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
- * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN 
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION 
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
@@ -58,11 +58,11 @@ class PaymentFilter implements SubscriberInterface
         $paymentMeans = $args->getReturn();
 
         foreach ($paymentMeans as $index => $paymentMean) {
-            if (substr($paymentMean['name'], 0, 13 ) === "multisafepay_") {
+            if (substr($paymentMean['name'], 0, 13) === "multisafepay_") {
                 $customerLocale = Shopware()->Container()->get('shop')->getLocale()->getLocale();
                 $logo_path = __DIR__
-                    . '/../Resources/views/frontend/_public/src/img/' 
-                    . $customerLocale 
+                    . '/../Resources/views/frontend/_public/src/img/'
+                    . $customerLocale
                     . '/'
                     . strtolower($paymentMeans[$index]['name'])
                     . '.png';
@@ -79,7 +79,7 @@ class PaymentFilter implements SubscriberInterface
                 $max_amount = $attributes['msp_max_amount'];
                 if ((!empty($min_amount) && $amount < $min_amount) || (!empty($max_amount) && $amount > $max_amount)) {
                     unset($paymentMeans[$index]);
-                }                
+                }
             }
         }
         $args->setReturn($paymentMeans);
