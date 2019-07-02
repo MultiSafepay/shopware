@@ -12,12 +12,12 @@
  * @package     Connect
  * @author      MultiSafepay <techsupport@multisafepay.com>
  * @copyright   Copyright (c) 2018 MultiSafepay, Inc. (http://www.multisafepay.com)
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
- * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
- * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN 
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION 
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
@@ -54,7 +54,7 @@ class MltisafeMultiSafepayPayment extends Plugin
             $view->extendsTemplate('backend/order/view/list/multisafepay_list.js');
             $view->extendsTemplate('backend/order/controller/multisafepay_list.js');
         }
-    }    
+    }
 
     /**
      * @param InstallContext $context
@@ -123,7 +123,7 @@ class MltisafeMultiSafepayPayment extends Plugin
            (0, 'msp_quote_number', 'MultiSafepay Quote Number');
        ";
         $db->executeUpdate($sql);
-    }    
+    }
 
     /**
      * @param UninstallContext $context

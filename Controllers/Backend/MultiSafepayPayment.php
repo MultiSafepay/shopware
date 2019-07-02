@@ -12,12 +12,12 @@
  * @package     Connect
  * @author      MultiSafepay <techsupport@multisafepay.com>
  * @copyright   Copyright (c) 2018 MultiSafepay, Inc. (http://www.multisafepay.com)
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
- * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
- * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN 
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION 
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
@@ -63,10 +63,12 @@ class Shopware_Controllers_Backend_MultiSafepayPayment extends Shopware_Controll
                 "carrier" => "",
                 "ship_date" => date('Y-m-d H:i:s'),
                 "reason" => 'Shipped'
-                    ), $endpoint);
+            ),
+            $endpoint
+        );
 
         //Check for errors
-        if(!empty($msp->orders->result->error_code)){
+        if (!empty($msp->orders->result->error_code)) {
             return $this->view->assign([
                 'success' => false,
                 'message' => "{$msp->orders->result->error_code} - {$msp->orders->result->error_info}",
@@ -114,18 +116,30 @@ class Shopware_Controllers_Backend_MultiSafepayPayment extends Shopware_Controll
             "currency" => $order->getCurrency(),
             "description" => "Refund: " . $transactionId,
         );
-        $msporder = $msp->orders->post($refundData, $endpoint);
+        $msp->orders->post($refundData, $endpoint);
 
-        if(!empty($msp->orders->result->error_code)){
+        if (!empty($msp->orders->result->error_code)) {
             return $this->view->assign([
                 'success' =>  false,
                 'message' => "{$msp->orders->result->error_code} - {$msp->orders->result->error_info}",
             ]);
         }
 
+        //Update status
+        $em = Shopware()->Models();
+        if ($pluginConfig['msp_update_refund_active'] &&
+            is_int($pluginConfig['msp_update_refund']) &&
+            $pluginConfig['msp_update_refund'] > 0
+        ) {
+            $orderStatusRefund = $em->getReference(Status::class, $pluginConfig['msp_update_refund']);
+            $order->setPaymentStatus($orderStatusRefund);
+        }
+        $em->persist($order);
+        $em->flush($order);
+
         return $this->view->assign([
             'success' => true,
             'message' => "Order has been fully refunded at MultiSafepay",
         ]);
-    }    
+    }
 }
