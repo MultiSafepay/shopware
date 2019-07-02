@@ -1,4 +1,4 @@
-# Release Notes - Shopware MultiSafepay plug-in 2.1.0(Apr 8th, 2019)
+# Release Notes - Shopware MultiSafepay plug-in 2.1.0(July 2nd, 2019)
 
 ## Added
 + PLGSHPS-97: Add Webshop Giftcard as a giftcard
