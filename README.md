@@ -1,33 +1,33 @@
-# MultiSafepay extension for Shopware
+# MultiSafepay plugin for Shopware
 
-The MultiSafepay extension for Shopware allows you to integrate add all paymentmethods and giftcards offered by MultiSafepay into your Shopware webshop.
+The MultiSafepay plugin for Shopware allows you to integrate add all payment methods and gift cards offered by MultiSafepay into your Shopware webshop.
 
-The MultiSafepay extension for Shopware has support for:
+The MultiSafepay plugin for Shopware has support for:
 
-Paymentmethods:
+Payment methods:
 1. AfterPay
 2. Alipay
 3. American Express
 4. Bancontact
-5. Banktransfer
+5. Bank transfer
 6. Belfius
-7. Direct Debit
-8. Dotpay
-9. E-Invoice
-10. EPS
-11. Ferbuy
-12. Giropay
-13. iDEAL
-14. iDEALQR
-15. ING HomePay
-16. KBC
-17. Klarna
-18. Maestro
-19. MasterCard
-20. Pay After Delivery
-21. PayPal
-22. PaySafeCard
-23. Santander Betaalplan
+7. Betaalplan
+8. Direct Debit
+9. Dotpay
+10. E-Invoicing
+11. EPS
+12. Ferbuy
+13. Giropay
+14. iDEAL
+15. iDEAL QR
+16. ING Home'Pay
+17. KBC
+18. Klarna
+19. Maestro
+20. MasterCard
+21. Pay After Delivery
+22. PayPal
+23. Paysafecard
 24. SOFORT Banking
 25. Trustly
 26. Trustpay
@@ -56,8 +56,8 @@ The following giftcards are supported:
 20. Yourgift
 
 Next to the above it has support for
-1. Full refund from within Shopware (except for AfterPay, E-Invoice, Klarna, Pay After Delivery, Santander Betaalplan, will be added in upcoming version).
-2. Update transaction to Shipped for AfterPay, E-Invoice, Klarna, Pay After Delivery, Santander Betaalplan.
+1. Full refund from within Shopware (except for AfterPay, E-Invoice, Klarna, Pay After Delivery, Betaalplan, will be added in upcoming version).
+2. Update transaction to Shipped for AfterPay, E-Invoice, Klarna, Pay After Delivery, Betaalplan.
 3. Customizable transaction number with prefix and suffix support.
 4. Hide MultiSafepay payment methods within the checkout using a minimum and maximum order amount.
 5. iDEAL issuer selection within Shopware

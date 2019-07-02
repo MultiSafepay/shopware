@@ -49,8 +49,20 @@ class Frontend implements SubscriberInterface
         return [
             'Theme_Inheritance_Template_Directories_Collected' => 'onCollectTemplateDir',
             'Enlight_Controller_Action_PostDispatchSecure_Frontend_Checkout' => 'onPostDispatchCheckout',
+            'Enlight_Controller_Dispatcher_ControllerPath_Frontend_MultiSafepayPayment' => 'onGetControllerPathFrontend',
+            'Enlight_Controller_Dispatcher_ControllerPath_Backend_MultiSafepayPayment' => 'onGetControllerPathBackend',
         ];
     }
+
+    public function onGetControllerPathFrontend()
+    {
+        return $this->pluginDir . '/Controllers/Frontend/MultiSafepayPayment.php';
+    }
+
+    public function onGetControllerPathBackend()
+    {
+        return $this->pluginDir . '/Controllers/Backend/MultiSafepayPayment.php';
+    }    
 
     public function onPostDispatchCheckout(\Enlight_Controller_ActionEventArgs $args)
     {
