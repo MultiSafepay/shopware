@@ -10,13 +10,13 @@ Ext.define('Shopware.apps.Order.view.list.MultiSafepayList', {
 
         items.push({
             iconCls: 'sprite-paper-plane',
-            action: 'shipOrder',
+            action: 'shipOrderMsp',
             tooltip: 'Mark order as shipped at MultiSafepay',
             handler:function (view, rowIndex, colIndex, item) {
                 var store = view.getStore(),
                         record = store.getAt(rowIndex);
 
-                me.fireEvent('shipOrder', record);
+                me.fireEvent('shipOrderMsp', record);
             },
             getClass: function (value, metadata, record) {
                 var pm = record.raw.payment.name;

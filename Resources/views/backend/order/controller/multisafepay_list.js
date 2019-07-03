@@ -13,7 +13,7 @@ Ext.define('Shopware.apps.Order.controller.MultiSafepayList', {
 
         me.control({
             'order-list-main-window order-list': {
-                shipOrder: me.onShipOrder,
+                shipOrderMsp: me.onShipOrderMsp,
                 refundOrder: me.onRefundOrder,
             }
         });
@@ -25,7 +25,7 @@ Ext.define('Shopware.apps.Order.controller.MultiSafepayList', {
      * @param record
      * @return void
      */
-    onShipOrder: function (record) {
+    onShipOrderMsp: function (record) {
         var me = this,
             store = me.subApplication.getStore('Order'),
             message = ('Are you sure you want to ship order') + ' ' + record.get('number'),
@@ -37,7 +37,7 @@ Ext.define('Shopware.apps.Order.controller.MultiSafepayList', {
             }
 
             Ext.Ajax.request({
-                url: '{url controller=MultiSafepayPayment action=shipOrder}',
+                url: '{url controller=MultiSafepayPayment action=shipOrderMsp}',
                 params: {
                     orderNumber: record.get('number'),
                     transactionId: record.get('transactionId'),
