@@ -34,12 +34,12 @@ class Shopware_Controllers_Backend_MultiSafepayPayment extends Shopware_Controll
     public function getWhitelistedCSRFActions()
     {
         return [
-            'shipOrder',
+            'shipOrderMsp',
             'refundOrder',
         ];
     }
 
-    public function shipOrderAction()
+    public function shipOrderMspAction()
     {
         $request = $this->Request();
         $orderNumber = $request->getParam('orderNumber');
