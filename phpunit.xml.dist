@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit backupGlobals="false" backupStaticAttributes="false" bootstrap="./Tests/Bootstrap.php">
+    <testsuite name="MultiSafepay Test Suite">
+        <directory>./Tests</directory>
+    </testsuite>
+
+    <filter>
+        <whitelist processUncoveredFilesFromWhitelist="true">
+            <exclude>
+                <directory suffix=".php">./Tests</directory>
+            </exclude>
+        </whitelist>
+    </filter>
+</phpunit>

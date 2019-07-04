@@ -25,16 +25,40 @@ namespace MltisafeMultiSafepayPayment\Components;
 
 class Helper
 {
+    /**
+     * Split the address into street and house number with extension.
+     *
+     * @param string $address1
+     * @param string $address2
+     * @return array
+     */
     public static function parseAddress($address1, $address2 = '')
     {
-        $address = trim($address1 . ' ' . $address2);
-        $aMatch = array();
-        $pattern        = '#^([\w[:punct:] ]+) ([0-9]{1,5})\s*(.*)$#';
-        $matchResult    = preg_match($pattern, $address, $aMatch);
-        $street         = (isset($aMatch[1])) ? $aMatch[1] : '';
-        $apartment      = (isset($aMatch[2])) ? $aMatch[2] : '' ;
-        $apartment     .= (isset($aMatch[3])) ? $aMatch[3] : '';
-        return array($street, $apartment);
+        // Trim the addresses
+        $address1 = trim($address1);
+        $address2 = trim($address2);
+        $fullAddress = trim("{$address1} {$address2}");
+        $fullAddress = preg_replace("/[[:blank:]]+/", ' ', $fullAddress);
+
+        // Make array of all regex matches
+        $matches = [];
+
+        /**
+         * Regex part one: Add all before number.
+         * If number contains whitespace, Add it also to street.
+         * All after that will be added to apartment
+         */
+        $pattern = '/(.+?)\s?([\d]+[\S]*)(\s?[A-z]*?)$/';
+        preg_match($pattern, $fullAddress, $matches);
+
+        //Save the street and apartment and trim the result
+        $street = isset($matches[1]) ? $matches[1] : '';
+        $apartment = isset($matches[2]) ? $matches[2] : '';
+        $extension = isset($matches[3]) ? $matches[3] : '';
+        $street = trim($street);
+        $apartment = trim($apartment . $extension);
+
+        return [$street, $apartment];
     }
 
     private static function validateIP($ip)
