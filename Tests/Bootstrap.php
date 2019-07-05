@@ -46,6 +46,9 @@ class TestKernel extends \Shopware\Kernel
         $_SERVER['HTTP_HOST'] = $shop->getHost();
     }
 
+    /**
+     * @return string
+     */
     protected function getConfigPath()
     {
         return __DIR__ . '/config.php';

@@ -28,6 +28,14 @@ class Issuers extends Core
     public $success;
     public $data;
 
+    /**
+     * @param string $endpoint
+     * @param string $type
+     * @param array $body
+     * @param bool $query_string
+     * @return mixed
+     * @throws \Exception
+     */
     public function get($endpoint = 'issuers', $type = 'ideal', $body = array(), $query_string = false)
     {
         $result = parent::get($endpoint, $type, $body, $query_string);

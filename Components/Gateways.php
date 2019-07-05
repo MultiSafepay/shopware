@@ -78,16 +78,28 @@ class Gateways
         'YOURGIFT' => array('code' => 'YOURGIFT', 'name' => 'Yourgift', 'type' => 'redirect'),
     );
 
+    /**
+     * @param $code
+     * @return mixed|string
+     */
     public static function getGatewayCode($code)
     {
         return $code == 'WALLET' ? '' : self::GATEWAYS[$code]['code'];
     }
 
+    /**
+     * @param $code
+     * @return mixed
+     */
     public static function getGatewayType($code)
     {
         return self::GATEWAYS[$code]['type'];
     }
 
+    /**
+     * @param $code
+     * @return mixed|string
+     */
     public static function getGatewayTemplate($code)
     {
         return !empty(self::GATEWAYS[$code]['template']) ? self::GATEWAYS[$code]['template'] : '';

@@ -34,6 +34,9 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
     private $pluginConfig;
     private $quoteNumber;
 
+    /**
+     * {@inheritdoc}
+     */
     public function preDispatch()
     {
         $shop = $this->get('shop');
@@ -60,6 +63,8 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
      * Index action method.
      *
      * Forwards to the correct action.
+     *
+     * @return void
      */
     public function indexAction()
     {
@@ -74,6 +79,8 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
      * Gateway action method.
      *
      * Collects the payment information and transmit it to MultiSafepay.
+     *
+     * @return void
      */
     public function gatewayAction()
     {
@@ -212,6 +219,9 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         $this->redirect($msp->orders->getPaymentLink());
     }
 
+    /**
+     * @throws Exception
+     */
     public function notifyAction()
     {
         $this->Front()->Plugins()->ViewRenderer()->setNoRender(true);
@@ -322,6 +332,9 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         $this->redirect(['controller' => 'checkout']);
     }
 
+    /**
+     * @param $sessionId
+     */
     private function restoreSession($sessionId)
     {
         \Enlight_Components_Session::writeClose();
@@ -329,6 +342,10 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         \Enlight_Components_Session::start();
     }
 
+    /**
+     * @param $basket
+     * @return mixed
+     */
     private function getCheckoutData($basket)
     {
         $alternateTaxRates = array();
@@ -390,6 +407,10 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         return $checkoutData;
     }
 
+    /**
+     * @param $transactionid
+     * @throws Exception
+     */
     private function setClearedDate($transactionid)
     {
         $order = Shopware()->Models()->getRepository('Shopware\Models\Order\Order')->findOneBy(['transactionId' => $transactionid]);
@@ -401,6 +422,9 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         }
     }
 
+    /**
+     * @return mixed
+     */
     private function getSessionId()
     {
         if ($this->container->has('shopware.components.optin_service') &&

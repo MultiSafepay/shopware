@@ -38,6 +38,9 @@ class HelperTest extends TestCase
         $this->assertEquals($expected_apartment, $result[1]);
     }
 
+    /**
+     * @return array
+     */
     public function addressProvider()
     {
         return [

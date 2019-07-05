@@ -33,11 +33,10 @@ class Frontend implements SubscriberInterface
     private $pluginDir;
 
     /**
-     * @param string                   $pluginDir
+     * @param string $pluginDir
      */
-    public function __construct(
-        $pluginDir
-    ) {
+    public function __construct($pluginDir)
+    {
         $this->pluginDir = $pluginDir;
     }
 
@@ -54,16 +53,25 @@ class Frontend implements SubscriberInterface
         ];
     }
 
+    /**
+     * @return string
+     */
     public function onGetControllerPathFrontend()
     {
         return $this->pluginDir . '/Controllers/Frontend/MultiSafepayPayment.php';
     }
 
+    /**
+     * @return string
+     */
     public function onGetControllerPathBackend()
     {
         return $this->pluginDir . '/Controllers/Backend/MultiSafepayPayment.php';
     }
 
+    /**
+     * @param \Enlight_Controller_ActionEventArgs $args
+     */
     public function onPostDispatchCheckout(\Enlight_Controller_ActionEventArgs $args)
     {
         $errorMessage = $args->getRequest()->getParam('multisafepay_error_message');

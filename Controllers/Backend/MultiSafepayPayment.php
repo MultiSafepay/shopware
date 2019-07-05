@@ -39,6 +39,10 @@ class Shopware_Controllers_Backend_MultiSafepayPayment extends Shopware_Controll
         ];
     }
 
+    /**
+     * @return mixed
+     * @throws Exception
+     */
     public function shipOrderMspAction()
     {
         $request = $this->Request();
@@ -93,6 +97,10 @@ class Shopware_Controllers_Backend_MultiSafepayPayment extends Shopware_Controll
         ]);
     }
 
+    /**
+     * @return mixed
+     * @throws Exception
+     */
     public function refundOrderAction()
     {
         $request = $this->Request();
