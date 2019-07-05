@@ -46,6 +46,9 @@ class Quotenumber
         $this->container = $container;
     }
 
+    /**
+     * @return string|string[]|null
+     */
     public function getNextQuotenumber()
     {
         $quoteNumber = $this->numberRangeIncrementer->increment('msp_quote_number');

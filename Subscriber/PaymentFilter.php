@@ -53,6 +53,9 @@ class PaymentFilter implements SubscriberInterface
         ];
     }
 
+    /**
+     * @param \Enlight_Event_EventArgs $args
+     */
     public function onFilterPaymentMeans(\Enlight_Event_EventArgs $args)
     {
         $paymentMeans = $args->getReturn();

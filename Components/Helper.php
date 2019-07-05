@@ -61,6 +61,10 @@ class Helper
         return [$street, $apartment];
     }
 
+    /**
+     * @param $ip
+     * @return mixed|null
+     */
     private static function validateIP($ip)
     {
         $ipList = explode(',', $ip);
@@ -74,6 +78,9 @@ class Helper
         }
     }
 
+    /**
+     * @return mixed|string|null
+     */
     public static function getRemoteIP()
     {
         if (isset($_SERVER['REMOTE_ADDR'])) {
@@ -83,6 +90,9 @@ class Helper
         }
     }
 
+    /**
+     * @return mixed|string|null
+     */
     public static function getForwardedIP()
     {
         if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
@@ -92,12 +102,20 @@ class Helper
         }
     }
 
+    /**
+     * @return string
+     */
     public static function getPluginVersion()
     {
         $xml = simplexml_load_file(__DIR__ . '/../plugin.xml');
         return (string) $xml->version;
     }
-    
+
+    /**
+     * @param $time_label
+     * @param $time_active
+     * @return float|int
+     */
     public static function getSecondsActive($time_label, $time_active)
     {
         $seconds_active = 2592000;
@@ -115,6 +133,10 @@ class Helper
         return $seconds_active;
     }
 
+    /**
+     * @param $order
+     * @return bool
+     */
     public static function orderHasClearedDate($order)
     {
         if ($order instanceof \Shopware\Models\Order\Order && !is_null($order->getClearedDate())) {

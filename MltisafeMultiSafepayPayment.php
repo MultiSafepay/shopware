@@ -35,6 +35,9 @@ use MltisafeMultiSafepayPayment\Components\Gateways;
 class MltisafeMultiSafepayPayment extends Plugin
 {
 
+    /**
+     * @return array
+     */
     public static function getSubscribedEvents()
     {
         return [
@@ -42,6 +45,9 @@ class MltisafeMultiSafepayPayment extends Plugin
         ];
     }
 
+    /**
+     * @param \Enlight_Event_EventArgs $args
+     */
     public function onOrderPostDispatch(\Enlight_Event_EventArgs $args)
     {
         /** @var \Enlight_Controller_Action $controller */
@@ -66,6 +72,9 @@ class MltisafeMultiSafepayPayment extends Plugin
         $this->installMultiSafepayQuoteNumber();
     }
 
+    /**
+     * @param InstallContext $context
+     */
     private function installGateways(InstallContext $context)
     {
         $installer = $this->container->get('shopware.plugin_payment_installer');
@@ -84,6 +93,9 @@ class MltisafeMultiSafepayPayment extends Plugin
         }
     }
 
+    /**
+     * @return void
+     */
     private function installAttributes()
     {
         $attributeCrudService = $this->container->get('shopware_attribute.crud_service');
@@ -115,6 +127,9 @@ class MltisafeMultiSafepayPayment extends Plugin
         );
     }
 
+    /**
+     * @return void
+     */
     private function installMultiSafepayQuoteNumber()
     {
         $db = $this->container->get('dbal_connection');

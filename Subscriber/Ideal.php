@@ -53,6 +53,10 @@ class Ideal implements SubscriberInterface
         ];
     }
 
+    /**
+     * @param \Enlight_Controller_ActionEventArgs $args
+     * @throws \Exception
+     */
     public function onPostDispatchCheckout(\Enlight_Controller_ActionEventArgs $args)
     {
         if ($args->getRequest()->getActionName() === 'shippingPayment') {
@@ -78,6 +82,10 @@ class Ideal implements SubscriberInterface
         }
     }
 
+    /**
+     * @param \Enlight_Event_EventArgs $args
+     * @return mixed
+     */
     public function onUpdatePaymentPaymentPage(\Enlight_Event_EventArgs $args)
     {
         // get issuer

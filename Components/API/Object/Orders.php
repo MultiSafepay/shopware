@@ -28,6 +28,12 @@ class Orders extends Core
     public $success;
     public $data;
 
+    /**
+     * @param array $body
+     * @param string $endpoint
+     * @return mixed
+     * @throws \Exception
+     */
     public function patch($body, $endpoint = '')
     {
         $result = parent::patch(json_encode($body), $endpoint);
@@ -36,6 +42,14 @@ class Orders extends Core
         return $result;
     }
 
+    /**
+     * @param $type
+     * @param $id
+     * @param array $body
+     * @param bool $query_string
+     * @return mixed
+     * @throws \Exception
+     */
     public function get($type, $id, $body = array(), $query_string = false)
     {
         $result = parent::get($type, $id, $body, $query_string);
@@ -44,6 +58,12 @@ class Orders extends Core
         return $this->data;
     }
 
+    /**
+     * @param $body
+     * @param string $endpoint
+     * @return mixed
+     * @throws \Exception
+     */
     public function post($body, $endpoint = 'orders')
     {
         $result = parent::post(json_encode($body), $endpoint);
@@ -52,6 +72,9 @@ class Orders extends Core
         return $this->data;
     }
 
+    /**
+     * @return mixed
+     */
     public function getPaymentLink()
     {
         return $this->data->payment_url;
