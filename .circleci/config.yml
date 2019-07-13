@@ -88,21 +88,31 @@ jobs:
             ./vendor/bin/phpunit --configuration ./custom/plugins/$PLUGIN_NAME/phpunit.xml.dist ./custom/plugins/$PLUGIN_NAME/
   codesniffer:
     docker:
-      # Specify the version you desire here
       - image: circleci/php:7.1-node-browsers
     steps:
       - checkout
-
-      - run: sudo apt update
-
-      # Install codesniffer
-      - run: composer global require "squizlabs/php_codesniffer=*"
-
-      # Run codesniffer
-      - run: ~/.composer/vendor/bin/phpcs -n --standard=phpcs.ruleset.xml .
+      - run:
+          name: Move project
+          command: mv * /var/www/html
+      - restore_cache:
+          key: -v1-{{ checksum "/var/www/html/composer.json"}}
+      - run:
+          name: Composer install
+          command: |
+            cd /var/www/html
+            composer install --prefer-dist
+      - save_cache:
+          key: -v1-{{ checksum "/var/www/html/composer.json"}}
+          paths:
+            - /var/www/html/vendor
+      - run:
+          name: Run Code Sniffer
+          command: |
+            cd /var/www/html
+            vendor/bin/phpcs --ignore=*/vendor/* --standard=phpcs.ruleset.xml -n /var/www/html
 workflows:
   version: 2
-  sniff_and_unit:
+  default_check:
     jobs:
       - codesniffer
       - phpunit

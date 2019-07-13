@@ -39,6 +39,54 @@ class HelperTest extends TestCase
     }
 
     /**
+     * @dataProvider secondsActiveProvider
+     * @param $timeLabel
+     * @param $timeActive
+     * @param $expected
+     */
+    public function testGetSecondsActive($timeLabel, $timeActive, $expected)
+    {
+        $result = Helper::getSecondsActive($timeLabel, $timeActive);
+        $this->assertEquals($expected, $result);
+    }
+
+    /**
+     * The data provider for testGetSecondsActive.
+     *
+     * @return array
+     */
+    public function secondsActiveProvider()
+    {
+        /**
+         * 1 == days
+         * 2 == hours
+         * 3 == seconds
+         */
+        return [
+            [
+                'timeLabel' => 1,
+                'timeActive' => 15,
+                'expected' => 1296000
+            ],
+            [
+                'timeLabel' => 2,
+                'timeActive' => 24,
+                'expected' => 86400
+            ],
+            [
+                'timeLabel' => 3,
+                'timeActive' => 900,
+                'expected' => 900
+            ],
+            [
+                'timeLabel' => null,
+                'timeActive' => null,
+                'expected' => 2592000
+            ]
+        ];
+    }
+
+    /**
      * @return array
      */
     public function addressProvider()
