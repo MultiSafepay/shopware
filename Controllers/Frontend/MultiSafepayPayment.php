@@ -11,7 +11,7 @@
  * @category    MultiSafepay
  * @package     Connect
  * @author      MultiSafepay <techsupport@multisafepay.com>
- * @copyright   Copyright (c) 2018 MultiSafepay, Inc. (http://www.multisafepay.com)
+ * @copyright   Copyright (c) 2019 MultiSafepay, Inc. (https://www.multisafepay.com)
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
@@ -33,15 +33,16 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
     private $shopwareConfig;
     private $pluginConfig;
     private $quoteNumber;
+    private $shop;
 
     /**
      * {@inheritdoc}
      */
     public function preDispatch()
     {
-        $shop = $this->get('shop');
+        $this->shop = $this->get('shop');
         $this->shopwareConfig = $this->get('config');
-        $this->pluginConfig = $this->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment', $shop);
+        $this->pluginConfig = $this->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment', $this->shop);
         $this->quoteNumber = $this->get('multi_safepay_payment.components.quotenumber');
     }
 
@@ -231,6 +232,7 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
 
         $this->restoreSession($sessionId);
 
+        $helper = new Helper();
         $msp = new MspClient();
         $msp->setApiKey($this->pluginConfig['msp_api_key']);
         if (!$this->pluginConfig['msp_environment']) {
@@ -244,6 +246,8 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
 
         $order = Shopware()->Models()->getRepository('Shopware\Models\Order\Order')->findOneBy(['transactionId' => $transactionid]);
 
+        $create_order = false;
+        $update_order = false;
         switch ($status) {
             case "initialized":
                 $create_order = false;
@@ -252,46 +256,44 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
             case "expired":
                 $create_order = false;
                 $update_order = true;
-                $payment_status = Status::PAYMENT_STATE_THE_PROCESS_HAS_BEEN_CANCELLED;
+                $payment_status = $helper->getPaymentStatus('expired', $this->shop);
+                break;
+            case "cancelled":
+            case "void":
+                $create_order = false;
+                $update_order = true;
+                $payment_status = $helper->getPaymentStatus('cancelled', $this->shop);
+                break;
+            case "chargedback":
+                $update_order = true;
+                $payment_status = $helper->getPaymentStatus('chargedback', $this->shop);
                 break;
             case "completed":
                 if (is_null($order)) {
                     $create_order = true;
-                    $update_order = false;
-                } elseif (Helper::orderHasClearedDate($order)) {
-                    $create_order = false;
-                    $update_order = false;
-                } else {
-                    $create_order = false;
+                } elseif (Helper::orderHasClearedDate($order) === false) {
                     $update_order = true;
                 }
-                $payment_status = Status::PAYMENT_STATE_COMPLETELY_PAID;
+                $payment_status = $helper->getPaymentStatus('completed', $this->shop);
                 break;
             case "uncleared":
                 $create_order = true;
                 $update_order = false;
-                $payment_status = Status::PAYMENT_STATE_REVIEW_NECESSARY;
+                $payment_status = $helper->getPaymentStatus('uncleared', $this->shop);
                 break;
             case "declined":
                 $create_order = false;
                 $update_order = true;
-                $payment_status = Status::PAYMENT_STATE_NO_CREDIT_APPROVED;
+                $payment_status = $helper->getPaymentStatus('declined', $this->shop);
                 break;
             case "refunded":
-                $create_order = false;
-                $update_order = false;
-
                 if ($this->pluginConfig['msp_update_refund_active'] &&
                     is_int($this->pluginConfig['msp_update_refund']) &&
                     $this->pluginConfig['msp_update_refund'] > 0
                 ) {
-                    $payment_status = $this->pluginConfig['msp_update_refund'];
+                    $payment_status = $helper->getPaymentStatus('refund', $this->shop);
                     $update_order = true;
                 }
-                break;
-            default:
-                $create_order = false;
-                $update_order = false;
                 break;
         }
 
@@ -303,7 +305,7 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
             $this->savePaymentStatus($transactionid, $transactionid, $payment_status, true);
         }
 
-        if (!Helper::orderHasClearedDate($order) && $payment_status == Status::PAYMENT_STATE_COMPLETELY_PAID) {
+        if ($status === 'completed' && !Helper::orderHasClearedDate($order)) {
             $this->setClearedDate($transactionid);
         }
 
