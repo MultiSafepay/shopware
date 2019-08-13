@@ -111,7 +111,7 @@ class Helper
     public static function getPluginVersion()
     {
         $xml = simplexml_load_file(__DIR__ . '/../plugin.xml');
-        return (string) $xml->version;
+        return (string)$xml->version;
     }
 
     /**
@@ -142,10 +142,29 @@ class Helper
      */
     public static function orderHasClearedDate($order)
     {
-        if ($order instanceof \Shopware\Models\Order\Order && !is_null($order->getClearedDate())) {
-            return true;
+        return self::isValidOrder($order) && $order->getClearedDate() !== null;
+    }
+
+    /**
+     * @param $order
+     * @return bool
+     */
+    public static function isValidOrder($order)
+    {
+        return $order instanceof \Shopware\Models\Order\Order;
+    }
+
+    /**
+     * @param $order
+     * @return bool
+     */
+    public static function isOrderAllowedToChangePaymentStatus($order)
+    {
+        if (!self::isValidOrder($order)) {
+            return false;
         }
-        return false;
+
+        return $order->getPaymentStatus()->getId() !== Status::PAYMENT_STATE_REVIEW_NECESSARY;
     }
 
     /**

@@ -175,6 +175,7 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
             "description" => "Order #" . $order_id,
             "items" => $items,
             "manual" => "false",
+            "var1" => $this->getSignature(),
             "gateway" => Gateways::getGatewayCode($this->Request()->payment),
             "seconds_active" => Helper::getSecondsActive($this->pluginConfig["msp_time_label"], $this->pluginConfig["msp_time_active"]),
             "payment_options" => $paymentOptions,
@@ -227,9 +228,7 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
     {
         $this->Front()->Plugins()->ViewRenderer()->setNoRender(true);
         $transactionid = $this->Request()->getParam('transactionid');
-
         $sessionId = $this->getSessionId();
-
         $this->restoreSession($sessionId);
 
         $helper = new Helper();
@@ -243,6 +242,8 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
 
         $msporder = $msp->orders->get($endpoint = 'orders', $transactionid);
         $status = $msporder->status;
+        $signature = $msporder->var1;
+        $amount = $msporder->amount;
 
         $order = Shopware()->Models()->getRepository('Shopware\Models\Order\Order')->findOneBy(['transactionId' => $transactionid]);
 
@@ -297,11 +298,15 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
                 break;
         }
 
-        if ($create_order) {
+        $basket = $this->getBasketBasedOnSignature($signature);
+
+        if ($create_order && $basket && $this->checkAmount($basket->sAmount, $amount)) {
             $this->saveOrder($transactionid, $transactionid, $payment_status, true);
+        } elseif ($create_order && !Helper::isValidOrder($order)) {
+            $this->saveOrder($transactionid, $transactionid, Status::PAYMENT_STATE_REVIEW_NECESSARY, true);
         }
 
-        if ($update_order) {
+        if ($update_order && Helper::isOrderAllowedToChangePaymentStatus($order)) {
             $this->savePaymentStatus($transactionid, $transactionid, $payment_status, true);
         }
 
@@ -319,10 +324,36 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
      */
     public function returnAction()
     {
-        $sessionId = $this->getSessionId();
+        $request = $this->Request();
+        $transactionId = $request->getParam('transactionid');
 
+        $sessionId = $this->getSessionId();
         $this->restoreSession($sessionId);
-        $this->saveOrder($this->Request()->transactionid, $this->Request()->transactionid, null, true);
+
+        // Setup the request
+        $msp = new MspClient();
+        $msp->setApiKey($this->pluginConfig['msp_api_key']);
+        if (!$this->pluginConfig['msp_environment']) {
+            $msp->setApiUrl('https://testapi.multisafepay.com/v1/json/');
+        } else {
+            $msp->setApiUrl('https://api.multisafepay.com/v1/json/');
+        }
+
+        $mspOrder = $msp->orders->get($endpoint = 'orders', $transactionId);
+
+        $signature = $mspOrder->var1;
+        $amount = $mspOrder->amount;
+
+        $order = Shopware()->Models()
+            ->getRepository('Shopware\Models\Order\Order')
+            ->findOneBy(['transactionId' => $transactionId]);
+        $basket = $this->getBasketBasedOnSignature($signature);
+
+        if ($basket && $this->checkAmount($basket->sAmount, $amount)) {
+            $this->saveOrder($transactionId, $transactionId, null, true);
+        } elseif (!Helper::isValidOrder($order)) {
+            $this->saveOrder($transactionId, $transactionId, Status::PAYMENT_STATE_REVIEW_NECESSARY, true);
+        }
         $this->redirect(['controller' => 'checkout', 'action' => 'finish', 'sUniqueID' => $this->Request()->transactionid]);
     }
 
@@ -442,5 +473,38 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
 
         $shop = $this->Request()->getParam('__shop');
         return $this->Request()->getParam('session-' . $shop);
+    }
+
+    /**
+     * @return mixed
+     */
+    private function getSignature()
+    {
+        return $this->persistBasket();
+    }
+
+    /**
+     * @param $signature
+     * @return bool
+     */
+    private function getBasketBasedOnSignature($signature)
+    {
+        try {
+            $basket = $this->loadBasketFromSignature($signature);
+            $this->verifyBasketSignature($signature, $basket);
+        } catch (RuntimeException $e) {
+            return false;
+        }
+        return $basket;
+    }
+
+    /**
+     * @param float|int $basketAmount
+     * @param int $multiSafepayAmount
+     * @return bool
+     */
+    private function checkAmount($basketAmount, $multiSafepayAmount)
+    {
+        return (int)($basketAmount * 100) === $multiSafepayAmount;
     }
 }
