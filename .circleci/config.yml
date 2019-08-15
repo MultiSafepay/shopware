@@ -6,7 +6,7 @@ version: 2
 jobs:
   phpunit:
     docker:
-      - image: circleci/php:7.0-apache-node-browsers
+      - image: circleci/php:7.2-apache-node-browsers
       - image: circleci/mysql:5.7
         environment:
           MYSQL_PASSWORD: shopware
@@ -14,7 +14,7 @@ jobs:
           MYSQL_DATABASE: shopware
           MYSQL_ROOT_PASSWORD: shopware
     environment:
-      SHOPWARE_VERSION: "5.5"
+      SHOPWARE_VERSION: "5.6"
       PLUGIN_NAME: "MltisafeMultiSafepayPayment"
     steps:
       - checkout
@@ -88,7 +88,7 @@ jobs:
             ./vendor/bin/phpunit --configuration ./custom/plugins/$PLUGIN_NAME/phpunit.xml.dist ./custom/plugins/$PLUGIN_NAME/
   codesniffer:
     docker:
-      - image: circleci/php:7.1-node-browsers
+      - image: circleci/php:7.2-node-browsers
     working_directory: /var/www/html
     steps:
       - checkout
