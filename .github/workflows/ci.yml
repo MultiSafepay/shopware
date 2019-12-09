@@ -13,7 +13,7 @@ jobs:
       - name: Download dependencies
         run: composer install --prefer-dist
       - name: Run code sniffer
-        run: vendor/bin/phpcs --standard=phpcs.ruleset.xml -n .
+        run: vendor/bin/phpcs --standard=phpcs.ruleset.xml -n -v .
   integration_tests:
     services:
       mysql:
