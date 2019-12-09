@@ -4,6 +4,16 @@ on:
     - cron: '0 2 * * 0' # Weekly on Sundays at 02:00
   push:
 jobs:
+  code_sniffer:
+    name: Code sniffer
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v1
+      - name: Download dependencies
+        run: composer install --prefer-dist
+      - name: Run code sniffer
+        run: vendor/bin/phpcs --standard=phpcs.ruleset.xml -n .
   integration_tests:
     services:
       mysql:
