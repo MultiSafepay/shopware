@@ -228,7 +228,6 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         $msporder = $msp->orders->get($endpoint = 'orders', $transactionid);
         $status = $msporder->status;
         $signature = $msporder->var1;
-        $amount = $msporder->amount;
 
         $order = Shopware()->Models()->getRepository('Shopware\Models\Order\Order')->findOneBy(['transactionId' => $transactionid]);
 
@@ -285,7 +284,7 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
 
         $basket = $this->getBasketBasedOnSignature($signature);
 
-        if ($create_order && $basket && $this->checkAmount($basket->sAmount, $amount)) {
+        if ($create_order && $basket) {
             $this->saveOrder($transactionid, $transactionid, $payment_status, true);
         } elseif ($create_order && !Helper::isValidOrder($order)) {
             $this->saveOrder($transactionid, $transactionid, Status::PAYMENT_STATE_REVIEW_NECESSARY, true);
@@ -327,14 +326,13 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         $mspOrder = $msp->orders->get($endpoint = 'orders', $transactionId);
 
         $signature = $mspOrder->var1;
-        $amount = $mspOrder->amount;
 
         $order = Shopware()->Models()
             ->getRepository('Shopware\Models\Order\Order')
             ->findOneBy(['transactionId' => $transactionId]);
         $basket = $this->getBasketBasedOnSignature($signature);
 
-        if ($basket && $this->checkAmount($basket->sAmount, $amount)) {
+        if ($basket) {
             $this->saveOrder($transactionId, $transactionId, null, true);
         } elseif (!Helper::isValidOrder($order)) {
             $this->saveOrder($transactionId, $transactionId, Status::PAYMENT_STATE_REVIEW_NECESSARY, true);
@@ -481,16 +479,6 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
             return false;
         }
         return $basket;
-    }
-
-    /**
-     * @param float|int $basketAmount
-     * @param int $multiSafepayAmount
-     * @return bool
-     */
-    private function checkAmount($basketAmount, $multiSafepayAmount)
-    {
-        return (int)($basketAmount * 100) === $multiSafepayAmount;
     }
 
     /**
