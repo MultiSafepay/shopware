@@ -88,6 +88,7 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         $router = $this->Front()->Router();
         $userinfo = $this->getUser();
         $basket = $this->getBasket();
+        $hash = $this->createHashFromSession();
 
         $msp = new MspClient();
         $msp->setApiKey($this->pluginConfig['msp_api_key']);
@@ -143,28 +144,12 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         }
         $items .= "</ul>\n";
 
-        if ($this->container->has('shopware.components.optin_service')) {
-            /** Since Shopware 5.5.7 removed append sessions. We use optinService*/
-            $optinService = $this->container->get('shopware.components.optin_service');
-            $hash = $optinService->add(
-                OptinServiceInterface::TYPE_CUSTOMER_LOGIN_FROM_BACKEND,
-                Helper::getSecondsActive($this->pluginConfig["msp_time_label"], $this->pluginConfig["msp_time_active"]),
-                ["sessionId" => Shopware()->Session()->get("sessionId")]
-            );
-            $paymentOptions = [
-                "notification_url" => $router->assemble(['action' => 'notify', 'forceSecure' => true, 'hash' => $hash]),
-                "redirect_url" => $router->assemble(['action' => 'return', 'forceSecure' => true, 'hash' => $hash]),
-                "cancel_url" => $router->assemble(['action' => 'cancel', 'forceSecure' => true, 'hash' => $hash]),
-                "close_window" => "true",
-            ];
-        } else {
-            $paymentOptions = [
-                "notification_url" => $router->assemble(['action' => 'notify', 'forceSecure' => true, 'appendSession' => true]) . '&type=initial',
-                "redirect_url" => $router->assemble(['action' => 'return', 'forceSecure' => true, 'appendSession' => true]),
-                "cancel_url" => $router->assemble(['action' => 'cancel', 'forceSecure' => true, 'appendSession' => true]),
-                "close_window" => "true",
-                ];
-        }
+        $paymentOptions = [
+            "notification_url" => $router->assemble(['action' => 'notify', 'forceSecure' => true, 'hash' => $hash]),
+            "redirect_url" => $router->assemble(['action' => 'return', 'forceSecure' => true, 'hash' => $hash]),
+            "cancel_url" => $router->assemble(['action' => 'cancel', 'forceSecure' => true, 'hash' => $hash]),
+            "close_window" => "true",
+        ];
 
 
         $order_data = array(
@@ -228,8 +213,8 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
     {
         $this->Front()->Plugins()->ViewRenderer()->setNoRender(true);
         $transactionid = $this->Request()->getParam('transactionid');
-        $sessionId = $this->getSessionId();
-        $this->restoreSession($sessionId);
+        $hash = $this->Request()->getParam('hash');
+        $this->fillMissingSessionData($hash);
 
         $helper = new Helper();
         $msp = new MspClient();
@@ -327,8 +312,8 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         $request = $this->Request();
         $transactionId = $request->getParam('transactionid');
 
-        $sessionId = $this->getSessionId();
-        $this->restoreSession($sessionId);
+        $hash = $request->getParam('hash');
+        $this->fillMissingSessionData($hash);
 
         // Setup the request
         $msp = new MspClient();
@@ -506,5 +491,57 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
     private function checkAmount($basketAmount, $multiSafepayAmount)
     {
         return (int)($basketAmount * 100) === $multiSafepayAmount;
+    }
+
+    /**
+     * @return string
+     * @throws Exception
+     */
+    private function createHashFromSession()
+    {
+        if (!$this->container->has('shopware.components.optin_service')) {
+            throw new \Exception('MultiSafepay requires optin service to work');
+        }
+
+        /** @var  $optinService \Shopware\Components\OptinService */
+        $optinService = $this->container->get('shopware.components.optin_service');
+
+        return $optinService->add(
+            OptinServiceInterface::TYPE_CUSTOMER_LOGIN_FROM_BACKEND,
+            Helper::getSecondsActive($this->pluginConfig["msp_time_label"], $this->pluginConfig["msp_time_active"]),
+            [
+                'sessionId' => Shopware()->Session()->get('sessionId'),
+                'sessionData' => json_encode($_SESSION['Shopware'])
+            ]
+        );
+    }
+
+    /**
+     * @param $hash
+     * @return string
+     */
+    private function fillMissingSessionData($hash)
+    {
+        $optinService = $this->container->get('shopware.components.optin_service');
+        $data = $optinService->get(
+            OptinServiceInterface::TYPE_CUSTOMER_LOGIN_FROM_BACKEND,
+            $hash
+        );
+
+        $this->restoreSession($data['sessionId']);
+
+        if (!isset($data['sessionData'])) {
+            return $data['sessionId'];
+        }
+
+        $sessionData = json_decode($data['sessionData'], true);
+
+        foreach ($sessionData as $key => $sessionDatum) {
+            if (!Shopware()->Session()->get($key)) {
+                Shopware()->Session()->offsetSet($key, $sessionDatum);
+            }
+        }
+
+        return $data['sessionId'];
     }
 }
