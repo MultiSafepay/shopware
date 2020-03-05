@@ -11,13 +11,13 @@
  * @category    MultiSafepay
  * @package     Connect
  * @author      MultiSafepay <techsupport@multisafepay.com>
- * @copyright   Copyright (c) 2018 MultiSafepay, Inc. (http://www.multisafepay.com)
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
- * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
- * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN 
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION 
+ * @copyright   Copyright (c) 2019 MultiSafepay, Inc. (https://www.multisafepay.com)
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
@@ -33,12 +33,16 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
     private $shopwareConfig;
     private $pluginConfig;
     private $quoteNumber;
+    private $shop;
 
+    /**
+     * {@inheritdoc}
+     */
     public function preDispatch()
     {
-        $shop = $this->get('shop');
+        $this->shop = $this->get('shop');
         $this->shopwareConfig = $this->get('config');
-        $this->pluginConfig = $this->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment', $shop);
+        $this->pluginConfig = $this->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment', $this->shop);
         $this->quoteNumber = $this->get('multi_safepay_payment.components.quotenumber');
     }
 
@@ -60,6 +64,8 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
      * Index action method.
      *
      * Forwards to the correct action.
+     *
+     * @return void
      */
     public function indexAction()
     {
@@ -74,12 +80,15 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
      * Gateway action method.
      *
      * Collects the payment information and transmit it to MultiSafepay.
+     *
+     * @return void
      */
     public function gatewayAction()
     {
         $router = $this->Front()->Router();
         $userinfo = $this->getUser();
         $basket = $this->getBasket();
+        $hash = $this->createHashFromSession();
 
         $msp = new MspClient();
         $msp->setApiKey($this->pluginConfig['msp_api_key']);
@@ -91,7 +100,7 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
 
         $checkoutData = $this->getCheckoutData($basket);
         $shoppingCart = $checkoutData["shopping_cart"];
-        $checkoutData = $checkoutData["checkout_options"];        
+        $checkoutData = $checkoutData["checkout_options"];
 
         list($street, $housenumber) = Helper::parseAddress($userinfo["billingaddress"]["street"], $userinfo["billingaddress"]["additionalAddressLine1"]);
         list($shipping_street, $shipping_housenumber) = Helper::parseAddress($userinfo["shippingaddress"]["street"], $userinfo["shippingaddress"]["additionalAddressLine1"]);
@@ -135,28 +144,12 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         }
         $items .= "</ul>\n";
 
-        if($this->container->has('shopware.components.optin_service')){
-            /** Since Shopware 5.5.7 removed append sessions. We use optinService*/
-            $optinService = $this->container->get('shopware.components.optin_service');
-            $hash = $optinService->add(
-                OptinServiceInterface::TYPE_CUSTOMER_LOGIN_FROM_BACKEND,
-                Helper::getSecondsActive($this->pluginConfig["msp_time_label"], $this->pluginConfig["msp_time_active"]),
-                ["sessionId" => Shopware()->Session()->get("sessionId")]
-            );
-            $paymentOptions = [
-                "notification_url" => $router->assemble(['action' => 'notify', 'forceSecure' => true, 'hash' => $hash]),
-                "redirect_url" => $router->assemble(['action' => 'return', 'forceSecure' => true, 'hash' => $hash]),
-                "cancel_url" => $router->assemble(['action' => 'cancel', 'forceSecure' => true, 'hash' => $hash]),
-                "close_window" => "true",
-            ];
-        }else{
-            $paymentOptions = [
-                "notification_url" => $router->assemble(['action' => 'notify', 'forceSecure' => true, 'appendSession' => true]) . '&type=initial',
-                "redirect_url" => $router->assemble(['action' => 'return', 'forceSecure' => true, 'appendSession' => true]),
-                "cancel_url" => $router->assemble(['action' => 'cancel', 'forceSecure' => true, 'appendSession' => true]),
-                "close_window" => "true",
-                ];
-        }
+        $paymentOptions = [
+            "notification_url" => $router->assemble(['action' => 'notify', 'forceSecure' => true, 'hash' => $hash]),
+            "redirect_url" => $router->assemble(['action' => 'return', 'forceSecure' => true, 'hash' => $hash]),
+            "cancel_url" => $router->assemble(['action' => 'cancel', 'forceSecure' => true, 'hash' => $hash]),
+            "close_window" => "true",
+        ];
 
 
         $order_data = array(
@@ -167,6 +160,7 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
             "description" => "Order #" . $order_id,
             "items" => $items,
             "manual" => "false",
+            "var1" => $this->getSignature(),
             "gateway" => Gateways::getGatewayCode($this->Request()->payment),
             "seconds_active" => Helper::getSecondsActive($this->pluginConfig["msp_time_label"], $this->pluginConfig["msp_time_active"]),
             "payment_options" => $paymentOptions,
@@ -195,17 +189,34 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
             $this->redirect(['controller' => 'checkout', 'action' => 'shippingPayment', 'multisafepay_error_message' => $e->getMessage()]);
             return;
         }
+
+        $result = $msp->orders->getResult();
+
+        if (!$result->success) {
+            $message = "There was an error processing your transaction request, please try again with another payment method.<br />";
+            $message .= "Error: " . "{$result->error_code} : {$result->error_info}";
+            $this->redirect([
+                'controller' => 'checkout',
+                'action' => 'shippingPayment',
+                'multisafepay_error_message' => urlencode($message)
+            ]);
+            return;
+        }
+
         $this->redirect($msp->orders->getPaymentLink());
     }
 
+    /**
+     * @throws Exception
+     */
     public function notifyAction()
     {
+        $this->Front()->Plugins()->ViewRenderer()->setNoRender(true);
         $transactionid = $this->Request()->getParam('transactionid');
+        $hash = $this->Request()->getParam('hash');
+        $this->fillMissingSessionData($hash);
 
-        $sessionId = $this->getSessionId();
-
-        $this->restoreSession($sessionId);
-
+        $helper = new Helper();
         $msp = new MspClient();
         $msp->setApiKey($this->pluginConfig['msp_api_key']);
         if (!$this->pluginConfig['msp_environment']) {
@@ -216,9 +227,12 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
 
         $msporder = $msp->orders->get($endpoint = 'orders', $transactionid);
         $status = $msporder->status;
+        $signature = $msporder->var1;
 
         $order = Shopware()->Models()->getRepository('Shopware\Models\Order\Order')->findOneBy(['transactionId' => $transactionid]);
 
+        $create_order = false;
+        $update_order = false;
         switch ($status) {
             case "initialized":
                 $create_order = false;
@@ -227,61 +241,66 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
             case "expired":
                 $create_order = false;
                 $update_order = true;
-                $payment_status = Status::PAYMENT_STATE_THE_PROCESS_HAS_BEEN_CANCELLED;
-                break;                
+                $payment_status = $helper->getPaymentStatus('expired', $this->shop);
+                break;
+            case "cancelled":
+            case "void":
+                $create_order = false;
+                $update_order = true;
+                $payment_status = $helper->getPaymentStatus('cancelled', $this->shop);
+                break;
+            case "chargedback":
+                $update_order = true;
+                $payment_status = $helper->getPaymentStatus('chargedback', $this->shop);
+                break;
             case "completed":
                 if (is_null($order)) {
                     $create_order = true;
-                    $update_order = false;
-                } elseif (Helper::orderHasClearedDate($order)) {
-                    $create_order = false;
-                    $update_order = false;
-                } else {
-                    $create_order = false;
+                } elseif (Helper::orderHasClearedDate($order) === false) {
                     $update_order = true;
                 }
-                $payment_status = Status::PAYMENT_STATE_COMPLETELY_PAID;
+                $payment_status = $helper->getPaymentStatus('completed', $this->shop);
                 break;
             case "uncleared":
                 $create_order = true;
                 $update_order = false;
-                $payment_status = Status::PAYMENT_STATE_REVIEW_NECESSARY;
+                $payment_status = $helper->getPaymentStatus('uncleared', $this->shop);
                 break;
             case "declined":
                 $create_order = false;
                 $update_order = true;
-                $payment_status = Status::PAYMENT_STATE_NO_CREDIT_APPROVED;
+                $payment_status = $helper->getPaymentStatus('declined', $this->shop);
                 break;
             case "refunded":
-                $create_order = false;
-                if ($this->pluginConfig['msp_update_refund_active']
-                    && !empty($this->pluginConfig['msp_update_refund'])
+                if ($this->pluginConfig['msp_update_refund_active'] &&
+                    is_int($this->pluginConfig['msp_update_refund']) &&
+                    $this->pluginConfig['msp_update_refund'] > 0
                 ) {
+                    $payment_status = $helper->getPaymentStatus('refund', $this->shop);
                     $update_order = true;
-                    $payment_status = $this->pluginConfig['msp_update_refund'];
-                }else{
-                    $update_order = false;
                 }
                 break;
-            default:
-                $create_order = false;
-                $update_order = false;
-                break;
         }
 
-        if ($create_order) {
+        $basket = $this->getBasketBasedOnSignature($signature);
+
+        if ($create_order && $basket) {
             $this->saveOrder($transactionid, $transactionid, $payment_status, true);
+        } elseif ($create_order && !Helper::isValidOrder($order)) {
+            $this->saveOrder($transactionid, $transactionid, Status::PAYMENT_STATE_REVIEW_NECESSARY, true);
         }
 
-        if ($update_order) {
+        if ($update_order && Helper::isOrderAllowedToChangePaymentStatus($order)) {
             $this->savePaymentStatus($transactionid, $transactionid, $payment_status, true);
         }
 
-        if (!Helper::orderHasClearedDate($order) && $payment_status == Status::PAYMENT_STATE_COMPLETELY_PAID) {
+        if ($status === 'completed' && !Helper::orderHasClearedDate($order)) {
             $this->setClearedDate($transactionid);
         }
 
-        exit("OK");
+        $this->Response()
+            ->setBody('OK')
+            ->setHttpResponseCode(200);
     }
 
     /**
@@ -289,10 +308,35 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
      */
     public function returnAction()
     {
-        $sessionId = $this->getSessionId();
+        $request = $this->Request();
+        $transactionId = $request->getParam('transactionid');
 
-        $this->restoreSession($sessionId);
-        $this->saveOrder($this->Request()->transactionid, $this->Request()->transactionid, null, true);
+        $hash = $request->getParam('hash');
+        $this->fillMissingSessionData($hash);
+
+        // Setup the request
+        $msp = new MspClient();
+        $msp->setApiKey($this->pluginConfig['msp_api_key']);
+        if (!$this->pluginConfig['msp_environment']) {
+            $msp->setApiUrl('https://testapi.multisafepay.com/v1/json/');
+        } else {
+            $msp->setApiUrl('https://api.multisafepay.com/v1/json/');
+        }
+
+        $mspOrder = $msp->orders->get($endpoint = 'orders', $transactionId);
+
+        $signature = $mspOrder->var1;
+
+        $order = Shopware()->Models()
+            ->getRepository('Shopware\Models\Order\Order')
+            ->findOneBy(['transactionId' => $transactionId]);
+        $basket = $this->getBasketBasedOnSignature($signature);
+
+        if ($basket) {
+            $this->saveOrder($transactionId, $transactionId, null, true);
+        } elseif (!Helper::isValidOrder($order)) {
+            $this->saveOrder($transactionId, $transactionId, Status::PAYMENT_STATE_REVIEW_NECESSARY, true);
+        }
         $this->redirect(['controller' => 'checkout', 'action' => 'finish', 'sUniqueID' => $this->Request()->transactionid]);
     }
 
@@ -304,6 +348,9 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         $this->redirect(['controller' => 'checkout']);
     }
 
+    /**
+     * @param $sessionId
+     */
     private function restoreSession($sessionId)
     {
         \Enlight_Components_Session::writeClose();
@@ -311,6 +358,10 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         \Enlight_Components_Session::start();
     }
 
+    /**
+     * @param $basket
+     * @return mixed
+     */
     private function getCheckoutData($basket)
     {
         $alternateTaxRates = array();
@@ -357,7 +408,7 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         );
 
         //Add alternate tax rates
-        foreach ($rates as $index => $rate){
+        foreach ($rates as $index => $rate) {
             $alternateTaxRates['tax_tables']['alternate'][] = array(
                  "standalone" => "true",
                  "name" => (string) number_format($rate, 2),
@@ -365,27 +416,34 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
                      array("rate" => $rate / 100)
                  ),
              );
-         }        
+        }
 
         $checkoutData["shopping_cart"] = $shoppingCart['shopping_cart'];
         $checkoutData["checkout_options"] = $alternateTaxRates;
         return $checkoutData;
     }
 
+    /**
+     * @param $transactionid
+     * @throws Exception
+     */
     private function setClearedDate($transactionid)
     {
         $order = Shopware()->Models()->getRepository('Shopware\Models\Order\Order')->findOneBy(['transactionId' => $transactionid]);
 
         //Check if date has not been set yet
-        if(!Helper::orderHasClearedDate($order)){
+        if (!Helper::orderHasClearedDate($order)) {
             $order->setClearedDate(new \DateTime());
             $this->container->get('models')->flush($order);
         }
     }
 
+    /**
+     * @return mixed
+     */
     private function getSessionId()
     {
-        if($this->container->has('shopware.components.optin_service') &&
+        if ($this->container->has('shopware.components.optin_service') &&
             !empty($this->Request()->getParam('hash'))
         ) {
             $optinService = $this->container->get('shopware.components.optin_service');
@@ -398,6 +456,80 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
 
         $shop = $this->Request()->getParam('__shop');
         return $this->Request()->getParam('session-' . $shop);
+    }
 
+    /**
+     * @return mixed
+     */
+    private function getSignature()
+    {
+        return $this->persistBasket();
+    }
+
+    /**
+     * @param $signature
+     * @return bool
+     */
+    private function getBasketBasedOnSignature($signature)
+    {
+        try {
+            $basket = $this->loadBasketFromSignature($signature);
+            $this->verifyBasketSignature($signature, $basket);
+        } catch (RuntimeException $e) {
+            return false;
+        }
+        return $basket;
+    }
+
+    /**
+     * @return string
+     * @throws Exception
+     */
+    private function createHashFromSession()
+    {
+        if (!$this->container->has('shopware.components.optin_service')) {
+            throw new \Exception('MultiSafepay requires optin service to work');
+        }
+
+        /** @var  $optinService \Shopware\Components\OptinService */
+        $optinService = $this->container->get('shopware.components.optin_service');
+
+        return $optinService->add(
+            OptinServiceInterface::TYPE_CUSTOMER_LOGIN_FROM_BACKEND,
+            Helper::getSecondsActive($this->pluginConfig["msp_time_label"], $this->pluginConfig["msp_time_active"]),
+            [
+                'sessionId' => Shopware()->Session()->get('sessionId'),
+                'sessionData' => json_encode($_SESSION['Shopware'])
+            ]
+        );
+    }
+
+    /**
+     * @param $hash
+     * @return string
+     */
+    private function fillMissingSessionData($hash)
+    {
+        $optinService = $this->container->get('shopware.components.optin_service');
+        $data = $optinService->get(
+            OptinServiceInterface::TYPE_CUSTOMER_LOGIN_FROM_BACKEND,
+            $hash
+        );
+
+        $this->restoreSession($data['sessionId']);
+
+        if (!isset($data['sessionData'])) {
+            return $data['sessionId'];
+        }
+
+        $sessionData = json_decode($data['sessionData'], true);
+
+        foreach ($sessionData as $key => $sessionDatum) {
+            if (!Shopware()->Session()->get($key)) {
+                Shopware()->Session()->offsetSet($key, $sessionDatum);
+            }
+        }
+
+        return $data['sessionId'];
     }
 }

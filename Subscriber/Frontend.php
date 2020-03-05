@@ -12,12 +12,12 @@
  * @package     Connect
  * @author      MultiSafepay <techsupport@multisafepay.com>
  * @copyright   Copyright (c) 2018 MultiSafepay, Inc. (http://www.multisafepay.com)
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
- * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
- * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN 
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION 
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
@@ -33,11 +33,10 @@ class Frontend implements SubscriberInterface
     private $pluginDir;
 
     /**
-     * @param string                   $pluginDir
+     * @param string $pluginDir
      */
-    public function __construct(
-        $pluginDir
-    ) {
+    public function __construct($pluginDir)
+    {
         $this->pluginDir = $pluginDir;
     }
 
@@ -54,24 +53,35 @@ class Frontend implements SubscriberInterface
         ];
     }
 
+    /**
+     * @return string
+     */
     public function onGetControllerPathFrontend()
     {
         return $this->pluginDir . '/Controllers/Frontend/MultiSafepayPayment.php';
     }
 
+    /**
+     * @return string
+     */
     public function onGetControllerPathBackend()
     {
         return $this->pluginDir . '/Controllers/Backend/MultiSafepayPayment.php';
-    }    
+    }
 
+    /**
+     * @param \Enlight_Controller_ActionEventArgs $args
+     */
     public function onPostDispatchCheckout(\Enlight_Controller_ActionEventArgs $args)
     {
         $errorMessage = $args->getRequest()->getParam('multisafepay_error_message');
-        if ($errorMessage){
+        if ($errorMessage) {
             $view = $args->getSubject()->View();
-            $view->assign('sErrorMessages', (array) $errorMessage);
+
+            $errorMessage = explode("<br />", urldecode($errorMessage));
+            $view->assign('sErrorMessages', $errorMessage);
         }
-    }    
+    }
 
     /**
      * @param \Enlight_Event_EventArgs $args

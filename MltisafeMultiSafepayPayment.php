@@ -12,12 +12,12 @@
  * @package     Connect
  * @author      MultiSafepay <techsupport@multisafepay.com>
  * @copyright   Copyright (c) 2018 MultiSafepay, Inc. (http://www.multisafepay.com)
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
- * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
- * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN 
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION 
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
@@ -35,6 +35,9 @@ use MltisafeMultiSafepayPayment\Components\Gateways;
 class MltisafeMultiSafepayPayment extends Plugin
 {
 
+    /**
+     * @return array
+     */
     public static function getSubscribedEvents()
     {
         return [
@@ -42,6 +45,9 @@ class MltisafeMultiSafepayPayment extends Plugin
         ];
     }
 
+    /**
+     * @param \Enlight_Event_EventArgs $args
+     */
     public function onOrderPostDispatch(\Enlight_Event_EventArgs $args)
     {
         /** @var \Enlight_Controller_Action $controller */
@@ -54,7 +60,7 @@ class MltisafeMultiSafepayPayment extends Plugin
             $view->extendsTemplate('backend/order/view/list/multisafepay_list.js');
             $view->extendsTemplate('backend/order/controller/multisafepay_list.js');
         }
-    }    
+    }
 
     /**
      * @param InstallContext $context
@@ -66,6 +72,9 @@ class MltisafeMultiSafepayPayment extends Plugin
         $this->installMultiSafepayQuoteNumber();
     }
 
+    /**
+     * @param InstallContext $context
+     */
     private function installGateways(InstallContext $context)
     {
         $installer = $this->container->get('shopware.plugin_payment_installer');
@@ -84,6 +93,9 @@ class MltisafeMultiSafepayPayment extends Plugin
         }
     }
 
+    /**
+     * @return void
+     */
     private function installAttributes()
     {
         $attributeCrudService = $this->container->get('shopware_attribute.crud_service');
@@ -115,6 +127,9 @@ class MltisafeMultiSafepayPayment extends Plugin
         );
     }
 
+    /**
+     * @return void
+     */
     private function installMultiSafepayQuoteNumber()
     {
         $db = $this->container->get('dbal_connection');
@@ -123,7 +138,7 @@ class MltisafeMultiSafepayPayment extends Plugin
            (0, 'msp_quote_number', 'MultiSafepay Quote Number');
        ";
         $db->executeUpdate($sql);
-    }    
+    }
 
     /**
      * @param UninstallContext $context

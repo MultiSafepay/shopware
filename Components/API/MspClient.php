@@ -12,12 +12,12 @@
  * @package     Connect
  * @author      MultiSafepay <techsupport@multisafepay.com>
  * @copyright   Copyright (c) 2018 MultiSafepay, Inc. (http://www.multisafepay.com)
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
- * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
- * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN 
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION 
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
@@ -39,37 +39,62 @@ class MspClient
     public $response;
     public $debug;
 
+    /**
+     * MspClient constructor.
+     */
     public function __construct()
     {
         $this->orders = new Orders($this);
         $this->issuers = new Issuers($this);
     }
 
+    /**
+     * @return mixed
+     */
     public function getRequest()
     {
         return $this->request;
     }
 
+    /**
+     * @return mixed
+     */
     public function getResponse()
     {
         return $this->response;
     }
 
+    /**
+     * @param $url
+     */
     public function setApiUrl($url)
     {
         $this->api_url = trim($url);
     }
 
+    /**
+     * @param $debug
+     */
     public function setDebug($debug)
     {
         $this->debug = trim($debug);
     }
 
+    /**
+     * @param $api_key
+     */
     public function setApiKey($api_key)
     {
         $this->api_key = trim($api_key);
     }
 
+    /**
+     * @param $http_method
+     * @param $api_method
+     * @param null $http_body
+     * @return bool|string
+     * @throws \Exception
+     */
     public function processAPIRequest($http_method, $api_method, $http_body = null)
     {
         if (empty($this->api_key)) {

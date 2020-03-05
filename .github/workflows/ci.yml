@@ -1,0 +1,69 @@
+name: Build
+on:
+  schedule:
+    - cron: '0 2 * * 0' # Weekly on Sundays at 02:00
+  push:
+jobs:
+  code_sniffer:
+    name: Code sniffer
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v1
+      - name: Download dependencies
+        run: composer install --prefer-dist
+      - name: Run code sniffer
+        run: vendor/bin/phpcs --standard=phpcs.ruleset.xml -n -v .
+  integration_tests:
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: false
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: shopware
+        ports:
+          - 3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php_version: ['7.2', '7.3']
+        shopware_version: ['5.5', '5.6']
+    name: Integration test - Php version ${{ matrix.php_version }} with Shopware ${{ matrix.shopware_version }}
+    steps:
+      - name: Install php
+        uses: shivammathur/setup-php@master
+        with:
+          php-version: ${{ matrix.php_version }}
+      - name: Checkout code
+        uses: actions/checkout@v1
+      - name: Download Shopware
+        run: git clone -b ${{ matrix.shopware_version }} --depth=1 https://github.com/shopware/shopware.git /tmp/shopware
+      - name: Download shopware dependencies
+        working-directory: /tmp/shopware
+        run: composer install --prefer-dist
+      - name: Install Shopware
+        working-directory: /tmp/shopware/build
+        run: |
+          mv build.properties.dist build.properties
+          ant write-properties -Dapp.host=shopware.docker  -Ddb.name=shopware -Ddb.host=127.0.0.1 -Ddb.user=root -Ddb.password=password -Ddb.port=${{ job.services.mysql.ports['3306'] }}
+          ant build-unit
+      - name: Install MultiSafepay Plugin
+        run: |
+          mkdir -p /tmp/shopware/custom/plugins/MltisafeMultiSafepayPayment
+          mv * /tmp/shopware/custom/plugins/MltisafeMultiSafepayPayment
+          cd /tmp/shopware
+          bin/console sw:plugin:refresh
+          bin/console sw:plugin:install MltisafeMultiSafepayPayment
+          bin/console sw:plugin:activate MltisafeMultiSafepayPayment --clear-cache
+          bin/console sw:plugin:refresh
+          bin/console sw:generate:attributes
+          bin/console orm:generate:proxies
+      - name: Run PHPunit
+        working-directory: /tmp/shopware/custom/plugins/MltisafeMultiSafepayPayment
+        run: ../../../vendor/bin/phpunit --coverage-clover=coverage.xml -c phpunit.xml.dist
+      - name: Send clover to codecov
+        working-directory: /tmp/shopware/custom/plugins/MltisafeMultiSafepayPayment
+        run: bash <(curl -s https://codecov.io/bash) -t ${{ secrets.CODECOV_TOKEN }} -R .

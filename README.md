@@ -15,7 +15,7 @@ The supported Payment Methods & Giftcards for this plugin can be found over here
 
 ## Requirements
 - To use the plugin you need a MultiSafepay account. You can create a test account on https://testmerchant.multisafepay.com/signup
-- Shopware version 5.x
+- Shopware version 5.6.x or 5.5.7 and above.
 
 ## Installation
 
