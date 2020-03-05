@@ -1,5 +1,5 @@
-## 2.2.0-RC1
-Release date: Feb 12th, 2020
+## 2.2.0
+Release date: Mar 5th, 2020
 
 ## Added
 + PLGSHPS-128: Send shipped status for all payment methods after shipping
