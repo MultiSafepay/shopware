@@ -1,3 +1,11 @@
+## 2.2.1
+Release date: Mar 11th, 2020
+
+## Fixed
++ PLGSHPS-176: Fix payment status stuck on review necessary
+
+***
+
 ## 2.2.0
 Release date: Mar 5th, 2020
 

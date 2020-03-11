@@ -282,12 +282,13 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
                 break;
         }
 
-        $basket = $this->getBasketBasedOnSignature($signature);
-
-        if ($create_order && $basket) {
-            $this->saveOrder($transactionid, $transactionid, $payment_status, true);
-        } elseif ($create_order && !Helper::isValidOrder($order)) {
-            $this->saveOrder($transactionid, $transactionid, Status::PAYMENT_STATE_REVIEW_NECESSARY, true);
+        if ($create_order) {
+            $basket = $this->getBasketBasedOnSignature($signature);
+            if ($basket) {
+                $this->saveOrder($transactionid, $transactionid, $payment_status, true);
+            } elseif (!Helper::isValidOrder($order)) {
+                $this->saveOrder($transactionid, $transactionid, Status::PAYMENT_STATE_REVIEW_NECESSARY, true);
+            }
         }
 
         if ($update_order && Helper::isOrderAllowedToChangePaymentStatus($order)) {
