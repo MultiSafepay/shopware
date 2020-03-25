@@ -29,6 +29,7 @@ class Gateways
         'AFTERPAY' => array('code' => 'AFTERPAY', 'name' => 'AfterPay', 'type' => 'redirect'),
         'ALIPAY' => array('code' => 'ALIPAY', 'name' => 'Alipay', 'type' => 'direct'),
         'AMEX' => array('code' => 'AMEX', 'name' => 'American Express', 'type' => 'redirect'),
+        'APPLEPAY' => array('code' => 'APPLEPAY', 'name' => 'Apple Pay', 'type' => 'redirect', 'template' => 'multisafepay_applepay.tpl'),
         'MISTERCASH' => array('code' => 'MISTERCASH', 'name' => 'Bancontact', 'type' => 'redirect'),
         'BANKTRANS' => array('code' => 'BANKTRANS', 'name' => 'Bank transfer', 'type' => 'direct'),
         'BELFIUS' => array('code' => 'BELFIUS', 'name' => 'Belfius', 'type' => 'redirect'),
