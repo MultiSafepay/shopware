@@ -25,7 +25,7 @@ The supported Payment Methods & Giftcards for this plugin can be found over here
 4. Navigate to Management and select Installed
 5. Search for the installed MultiSafepay plugin and click on the pencil
 6. Scroll down and look for the field named API key
-7. Enter your API key. Information on how to find your API key, please refer to the API key page. The other fields can be filled according to your own wishes.
+7. Enter your API key. Information on how to find your API key, please refer to the [API key page](https://docs.multisafepay.com/tools/multisafepay-control/get-your-api-key/). The other fields can be filled according to your own wishes.
 
 For additional information or instructions please see our [installation & configuration manual](https://docs.multisafepay.com/plugins/shopware/manual/)
  
