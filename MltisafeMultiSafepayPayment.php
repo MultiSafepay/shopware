@@ -27,6 +27,7 @@ use Shopware\Components\Plugin;
 use Shopware\Components\Plugin\Context\ActivateContext;
 use Shopware\Components\Plugin\Context\DeactivateContext;
 use Shopware\Components\Plugin\Context\InstallContext;
+use Shopware\Components\Plugin\Context\UpdateContext;
 use Shopware\Components\Plugin\Context\UninstallContext;
 use Shopware\Models\Payment\Payment;
 use Shopware\Bundle\AttributeBundle\Service\TypeMapping;
@@ -138,6 +139,32 @@ class MltisafeMultiSafepayPayment extends Plugin
            (0, 'msp_quote_number', 'MultiSafepay Quote Number');
        ";
         $db->executeUpdate($sql);
+    }
+
+
+    /**
+     * @param UpdateContext $context
+     */
+    public function update(UpdateContext $context)
+    {
+        $this->updateGateways($context);
+        parent::update($context);
+    }
+
+    /**
+     * @param UpdateContext $context
+     */
+    private function updateGateways(UpdateContext $context)
+    {
+        $installer = $this->container->get('shopware.plugin_payment_installer');
+
+        foreach (Gateways::GATEWAYS as $gateway) {
+            $options = [
+                'name' => 'multisafepay_' . $gateway['code'],
+                'description' => $gateway['name'],
+            ];
+            $installer->createOrUpdate($context->getPlugin(), $options);
+        }
     }
 
     /**
