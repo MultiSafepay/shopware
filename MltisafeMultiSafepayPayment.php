@@ -81,16 +81,7 @@ class MltisafeMultiSafepayPayment extends Plugin
         $installer = $this->container->get('shopware.plugin_payment_installer');
 
         foreach (Gateways::GATEWAYS as $gateway) {
-            $options = [
-                'name' => 'multisafepay_' . $gateway['code'],
-                'description' => $gateway['name'],
-                'action' => 'MultiSafepayPayment',
-                'active' => 0,
-                'position' => 0,
-                'additionalDescription' => '',
-                'template' => Gateways::getGatewayTemplate($gateway['code']),
-            ];
-            $installer->createOrUpdate($context->getPlugin(), $options);
+            $installer->createOrUpdate($context->getPlugin(), $this->getGatewayOptions($gateway));
         }
     }
 
@@ -152,6 +143,33 @@ class MltisafeMultiSafepayPayment extends Plugin
     }
 
     /**
+     * @param $gateway
+     * @return array
+     */
+    private function getGatewayOptions($gateway)
+    {
+        return [
+            'name' => 'multisafepay_' . $gateway['code'],
+            'description' => $gateway['name'],
+            'action' => 'MultiSafepayPayment',
+            'active' => 0,
+            'position' => 0,
+            'additionalDescription' => '',
+            'template' => Gateways::getGatewayTemplate($gateway['code']),
+        ];
+    }
+
+    /**
+     * @param $gatewayName
+     * @return bool
+     */
+    private function isGatewayInstalled($gatewayName)
+    {
+        $payment = Shopware()->Models()->getRepository('Shopware\Models\Payment\Payment')->findOneBy(['name' => $gatewayName]);
+        return $payment ? true : false;
+    }
+
+    /**
      * @param UpdateContext $context
      */
     private function updateGateways(UpdateContext $context)
@@ -163,6 +181,9 @@ class MltisafeMultiSafepayPayment extends Plugin
                 'name' => 'multisafepay_' . $gateway['code'],
                 'description' => $gateway['name'],
             ];
+            if (!$this->isGatewayInstalled('multisafepay_' . $gateway['code'])) {
+                $options = $this->getGatewayOptions($gateway);
+            }
             $installer->createOrUpdate($context->getPlugin(), $options);
         }
     }
