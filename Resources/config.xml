@@ -120,5 +120,12 @@
             <store>Shopware.apps.Base.store.PaymentStatus</store>
         </element>
 
+        <element required="false" type="boolean" scope="shop">
+            <name>msp_send_status_mail_on_completed</name>
+            <label lang="en">Send status mail on paid</label>
+            <value>true</value>
+            <description lang="en">Send status mail when order has been paid</description>
+        </element>
+
     </elements>
 </config>
