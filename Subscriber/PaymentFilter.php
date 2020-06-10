@@ -75,7 +75,7 @@ class PaymentFilter implements SubscriberInterface
                     $paymentMeans[$index]['msp_logo_locale'] = 'en_GB';
                 }
 
-                $amount = (float) $this->session->get('sOrderVariables')['sAmount'];
+                $amount = $this->getOrderAmount();
                 $attributes = $this->container->get('shopware_attribute.data_loader')->load('s_core_paymentmeans_attributes', $paymentMean['id']);
 
                 $min_amount = $attributes['msp_min_amount'];
@@ -86,5 +86,19 @@ class PaymentFilter implements SubscriberInterface
             }
         }
         $args->setReturn($paymentMeans);
+    }
+
+    /**
+     * @return float
+     */
+    private function getOrderAmount()
+    {
+        $amount = $this->session->get('sOrderVariables')['sAmount'];
+
+        // Fallback when session does not have sAmount
+        if ($amount === null) {
+            $amount = $this->session->get('sBasketAmount');
+        }
+        return (float) $amount;
     }
 }
