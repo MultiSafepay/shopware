@@ -238,4 +238,21 @@ class Helper
 
         return false;
     }
+
+    /**
+     * Check if we should send a status email
+     *
+     * @param $status
+     * @param null $shop
+     * @return bool
+     */
+    public function isAllowedToSendStatusMail($status, $shop = null)
+    {
+        $config = $this->getMultiSafepaySettings($shop);
+        $sendStatusMailOnCompleted = $config['msp_send_status_mail_on_completed'];
+        if (!$sendStatusMailOnCompleted && $status === 'completed') {
+            return false;
+        }
+        return true;
+    }
 }

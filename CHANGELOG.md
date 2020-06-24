@@ -1,3 +1,20 @@
+## 2.4.0
+Release date: Jun 24th, 2020
+
+## Added
++ PLGSHPS-194: Make send status mail on paid order optional
++ PLGSHPS-193: Install new payment methods on update
+
+## Fixed
++ PLGSHPS-195: Fix payment method amount filter not working
++ Add null check when Optin service record is not found
+
+## Changed
++ Make the text "Choose your bank" translatable
++ DAVAMS-226: Update logo and name for Santander
+
+***
+
 ## 2.3.0
 Release date: Mar 26th, 2020
 

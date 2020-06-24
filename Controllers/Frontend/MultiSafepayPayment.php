@@ -285,14 +285,15 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         if ($create_order) {
             $basket = $this->getBasketBasedOnSignature($signature);
             if ($basket) {
-                $this->saveOrder($transactionid, $transactionid, $payment_status, true);
+                $this->saveOrder($transactionid, $transactionid, null, true);
+                $this->savePaymentStatus($transactionid, $transactionid, $payment_status, $helper->isAllowedToSendStatusMail($status, $this->shop));
             } elseif (!Helper::isValidOrder($order)) {
                 $this->saveOrder($transactionid, $transactionid, Status::PAYMENT_STATE_REVIEW_NECESSARY, true);
             }
         }
 
         if ($update_order && Helper::isOrderAllowedToChangePaymentStatus($order)) {
-            $this->savePaymentStatus($transactionid, $transactionid, $payment_status, true);
+            $this->savePaymentStatus($transactionid, $transactionid, $payment_status, $helper->isAllowedToSendStatusMail($status, $this->shop));
         }
 
         if ($status === 'completed' && !Helper::orderHasClearedDate($order)) {
@@ -507,15 +508,20 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
 
     /**
      * @param $hash
-     * @return string
+     * @return string|null
      */
     private function fillMissingSessionData($hash)
     {
+        /** @var \Shopware\Components\OptinService $optinService */
         $optinService = $this->container->get('shopware.components.optin_service');
         $data = $optinService->get(
             OptinServiceInterface::TYPE_CUSTOMER_LOGIN_FROM_BACKEND,
             $hash
         );
+
+        if (null === $data) {
+            return null;
+        }
 
         $this->restoreSession($data['sessionId']);
 

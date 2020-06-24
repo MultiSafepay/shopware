@@ -4,10 +4,10 @@
 
     <label lang="en">MultiSafepay</label>
 
-    <version>2.3.0</version>
-    <copyright>(c) MultiSafepay 2018</copyright>
+    <version>2.4.0</version>
+    <copyright>(c) MultiSafepay 2020</copyright>
     <author>MultiSafepay</author>
     <link>https://www.multisafepay.com</link>
 
-    <compatibility minVersion="5.2.13"/>
+    <compatibility minVersion="5.5.7"/>
 </plugin>
