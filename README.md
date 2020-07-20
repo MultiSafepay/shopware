@@ -32,5 +32,11 @@ For additional information or instructions please see our [installation & config
 ## Support
 You can create issues on our repository. If you need any additional help or support, please contact <a href="mailto:integration@multisafepay.com">integration@multisafepay.com</a>
 
+## A gift for your contribution
+We look forward to receiving your input. Have you seen an opportunity to change things for better? We would like to invite you to create a pull request on GitHub.
+Are you missing something and would like us to fix it? Suggest an improvement by sending us an [email](mailto:integration@multisafepay.com) or by creating an issue.
+
+What will you get in return? A brand new designed MultiSafepay t-shirt which will make you part of the team!
+
 ## Want to be part of the team?
 Are you a developer interested in working at MultiSafepay? [View](https://www.multisafepay.com/careers/#jobopenings) our job openings and feel free to get in touch with us.
