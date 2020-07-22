@@ -33,6 +33,7 @@ class Gateways
         'MISTERCASH' => array('code' => 'MISTERCASH', 'name' => 'Bancontact', 'type' => 'redirect'),
         'BANKTRANS' => array('code' => 'BANKTRANS', 'name' => 'Bank transfer', 'type' => 'direct'),
         'BELFIUS' => array('code' => 'BELFIUS', 'name' => 'Belfius', 'type' => 'redirect'),
+        'CBC' => array('code' => 'CBC', 'name' => 'CBC', 'type' => 'direct'),
         'DIRDEB' => array('code' => 'DIRDEB', 'name' => 'Direct Debit', 'type' => 'redirect'),
         'DBRTP' => array('code' => 'DBRTP', 'name' => 'Direct Bank Transfer', 'type' => 'redirect'),
         'DOTPAY' => array('code' => 'DOTPAY', 'name' => 'Dotpay', 'type' => 'redirect'),
