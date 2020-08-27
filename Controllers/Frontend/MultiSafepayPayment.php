@@ -400,7 +400,7 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         $shoppingCart['shopping_cart']['items'][] = array(
             "name" => $shipping_name,
             "description" => $shipping_descr,
-            "unit_price" => $basket['sShippingcostsNet'],
+            "unit_price" => $this->getShippingExclTax($basket, $taxIncluded),
             "quantity" => "1",
             "merchant_item_id" => "msp-shipping",
             "tax_table_selector" => $taxIncluded ? (string) number_format($shipping_rate, 2) : 'BTW0',
@@ -551,5 +551,20 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         }
 
         return $data['sessionId'];
+    }
+
+    /**
+     * @param $basket
+     * @param $taxIncluded
+     * @return float
+     */
+    private function getShippingExclTax($basket, $taxIncluded)
+    {
+        if (!$taxIncluded) {
+            return $basket['sShippingcostsNet'];
+        }
+
+        $shippingTaxRate = 1 + ($basket['sShippingcostsTax'] / 100);
+        return round($basket['sShippingcostsWithTax'] / $shippingTaxRate, 10);
     }
 }
