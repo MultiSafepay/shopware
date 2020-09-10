@@ -35,7 +35,7 @@ class Gateways
         'BELFIUS' => array('code' => 'BELFIUS', 'name' => 'Belfius', 'type' => 'redirect'),
         'CBC' => array('code' => 'CBC', 'name' => 'CBC', 'type' => 'direct'),
         'DIRDEB' => array('code' => 'DIRDEB', 'name' => 'Direct Debit', 'type' => 'redirect'),
-        'DBRTP' => array('code' => 'DBRTP', 'name' => 'Direct Bank Transfer', 'type' => 'redirect'),
+        'DBRTP' => array('code' => 'DBRTP', 'name' => 'Request to Pay', 'type' => 'redirect'),
         'DOTPAY' => array('code' => 'DOTPAY', 'name' => 'Dotpay', 'type' => 'redirect'),
         'EINVOICE' => array('code' => 'EINVOICE', 'name' => 'E-Invoice', 'type' => 'redirect'),
         'EPS' => array('code' => 'EPS', 'name' => 'EPS', 'type' => 'redirect'),
