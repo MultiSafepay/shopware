@@ -7,7 +7,7 @@
 
     <version>2.5.0</version>
     <copyright>(c) MultiSafepay</copyright>
-    <license>MIT</license>
+    <license>proprietary</license>
     <link>https://www.multisafepay.com</link>
     <author>MultiSafepay</author>
     <compatibility minVersion="5.5.7"/>
