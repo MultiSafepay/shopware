@@ -1,3 +1,18 @@
+## 2.5.0
+Release date: Sep 30th, 2020
+
+### Added
++ DAVAMS-274: Add CBC payment method
++ Add support for tax free products
+
+### Fixed
++ PLGSHPS-198: Fix shipping costs tax rounding issue
+
+### Changed
++ DAVAMS-301: Rebrand Direct Bank Transfer to Request to Pay
+
+***
+
 ## 2.4.0
 Release date: Jun 24th, 2020
 
