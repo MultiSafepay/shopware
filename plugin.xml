@@ -3,11 +3,41 @@
         xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/shopware/shopware/5.3/engine/Shopware/Components/Plugin/schema/plugin.xsd">
 
     <label lang="en">MultiSafepay</label>
+    <label lang="de">MultiSafepay</label>
 
     <version>2.5.0</version>
-    <copyright>(c) MultiSafepay 2020</copyright>
-    <author>MultiSafepay</author>
+    <copyright>(c) MultiSafepay</copyright>
+    <license>MIT</license>
     <link>https://www.multisafepay.com</link>
-
+    <author>MultiSafepay</author>
     <compatibility minVersion="5.5.7"/>
+
+    <description lang="en"><![CDATA[
+        <b>MultiSafepay</b>
+        <p>Easily integrate MultiSafepay payment solutions into your Shopware 5 webshop with the free and completely new MultiSafepay Shopware 5 plugin.</p>
+        <a href="https://docs.multisafepay.com/integrations/plugins/shopware5/">Plugin Documentation</a>
+        ]]>
+    </description>
+    <description lang="de"><![CDATA[
+        <b>MultiSafepay</b>
+        <p>Integrieren Sie mit dem kostenlosen und völlig neuen MultiSafepay Shopware 5 Plugin ganz einfach MultiSafepay Zahlungslösungen in Ihren Shopware 5 Webshop.</p>
+        <a href="https://docs.multisafepay.com/integrations/plugins/shopware5/">Plugin Dokumentation</a>
+        ]]>
+    </description>
+
+    <changelog version="2.5.0">
+        <changes lang="en"><![CDATA[
+            - DAVAMS-274: Add CBC payment method
+            - Add support for tax free products
+            - PLGSHPS-198: Fix shipping costs tax rounding issue
+            - DAVAMS-301: Rebrand Direct Bank Transfer to Request to Pay
+        ]]></changes>
+        <changes lang="de"><![CDATA[
+            - DAVAMS-274: Add CBC payment method
+            - Add support for tax free products
+            - PLGSHPS-198: Fix shipping costs tax rounding issue
+            - DAVAMS-301: Rebrand Direct Bank Transfer to Request to Pay
+        ]]></changes>
+    </changelog>
+
 </plugin>
