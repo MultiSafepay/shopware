@@ -3,17 +3,14 @@ on:
   schedule:
     - cron: '0 2 * * 0' # Weekly on Sundays at 02:00
   push:
+    branches:
+      - master
+      - develop
+  pull_request:
+    branches:
+      - master
+      - develop
 jobs:
-  code_sniffer:
-    name: Code sniffer
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v1
-      - name: Download dependencies
-        run: composer install --prefer-dist
-      - name: Run code sniffer
-        run: vendor/bin/phpcs --standard=phpcs.ruleset.xml -n -v .
   integration_tests:
     services:
       mysql:
@@ -24,7 +21,7 @@ jobs:
           MYSQL_DATABASE: shopware
         ports:
           - 3306
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+        options: --tmpfs /tmp:rw --tmpfs /var/lib/mysql:rw --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
