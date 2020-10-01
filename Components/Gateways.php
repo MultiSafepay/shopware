@@ -45,7 +45,7 @@ class Gateways
         'IDEALQR' => array('code' => 'IDEALQR', 'name' => 'iDEAL QR', 'type' => 'redirect'),
         'INGHOME' => array('code' => 'INGHOME', 'name' => 'ING Home\'Pay', 'type' => 'direct'),
         'KBC' => array('code' => 'KBC', 'name' => 'KBC', 'type' => 'direct'),
-        'KLARNA' => array('code' => 'KLARNA', 'name' => 'Klarna', 'type' => 'redirect'),
+        'KLARNA' => array('code' => 'KLARNA', 'name' => 'Klarna - Buy now, pay later', 'type' => 'redirect'),
         'MAESTRO' => array('code' => 'MAESTRO', 'name' => 'Maestro', 'type' => 'redirect'),
         'MASTERCARD' => array('code' => 'MASTERCARD', 'name' => 'MasterCard', 'type' => 'redirect'),
         'PAYAFTER' => array('code' => 'PAYAFTER', 'name' => 'Pay After Delivery', 'type' => 'redirect'),
