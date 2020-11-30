@@ -38,6 +38,7 @@ class Gateways
         'DBRTP' => array('code' => 'DBRTP', 'name' => 'Request to Pay', 'type' => 'redirect'),
         'DOTPAY' => array('code' => 'DOTPAY', 'name' => 'Dotpay', 'type' => 'redirect'),
         'EINVOICE' => array('code' => 'EINVOICE', 'name' => 'E-Invoice', 'type' => 'redirect'),
+        'GENERIC' => array('code' => 'GENERIC', 'name' => 'Generic gateway', 'type' => 'redirect'),
         'EPS' => array('code' => 'EPS', 'name' => 'EPS', 'type' => 'redirect'),
         'FERBUY' => array('code' => 'FERBUY', 'name' => 'Ferbuy', 'type' => 'redirect'),
         'GIROPAY' => array('code' => 'GIROPAY', 'name' => 'Giropay', 'type' => 'redirect'),
@@ -87,6 +88,10 @@ class Gateways
      */
     public static function getGatewayCode($code)
     {
+        if ($code === 'GENERIC') {
+            return Shopware()->Container()->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment')['msp_generic_gateway_code'];
+        }
+
         return $code == 'WALLET' ? '' : self::GATEWAYS[$code]['code'];
     }
 

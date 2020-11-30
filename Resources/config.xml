@@ -127,5 +127,17 @@
             <description lang="en">Send status mail when order has been paid</description>
         </element>
 
+        <element required="false" type="text" scope="shop">
+            <name>msp_generic_gateway_code</name>
+            <label lang="en">Generic gateway code</label>
+            <description lang="en">Set the gateway code for the 'Generic gateway'</description>
+        </element>
+        <element required="false" type="mediaselection" scope="shop">
+            <name>msp_generic_gateway_image</name>
+            <label lang="en">Generic gateway image</label>
+            <description lang="en">
+                <![CDATA[Set the gateway image for the 'Generic gateway'<br><br>Make sure to refresh your cache after selecting a logo.]]>
+            </description>
+        </element>
     </elements>
 </config>

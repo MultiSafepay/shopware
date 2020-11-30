@@ -75,6 +75,12 @@ class PaymentFilter implements SubscriberInterface
                     $paymentMeans[$index]['msp_logo_locale'] = 'en_GB';
                 }
 
+                $genericImage = Shopware()->Container()
+                    ->get('shopware.plugin.cached_config_reader')
+                    ->getByPluginName('MltisafeMultiSafepayPayment')['msp_generic_gateway_image'];
+
+                $paymentMeans[$index]['generic_image'] = $genericImage === null ? false : $genericImage;
+
                 $amount = $this->getOrderAmount();
                 $attributes = $this->container->get('shopware_attribute.data_loader')->load('s_core_paymentmeans_attributes', $paymentMean['id']);
 

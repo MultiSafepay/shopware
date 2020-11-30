@@ -29,6 +29,9 @@ The supported Payment Methods & Giftcards for this plugin can be found over here
 
 For additional information or instructions please see our [installation & configuration manual](https://docs.multisafepay.com/plugins/shopware/manual/)
  
+## Generic gateway
+We have created a gateway named 'Generic gateway'. You can use this gateway for example for branded gateways.
+In the MultiSafepay settings page in the Shopware backend you can fill in the gateway code that is provided by MultiSafepay. 
 ## Support
 You can create issues on our repository. If you need any additional help or support, please contact <a href="mailto:integration@multisafepay.com">integration@multisafepay.com</a>
 
