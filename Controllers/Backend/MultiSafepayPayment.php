@@ -33,68 +33,7 @@ class Shopware_Controllers_Backend_MultiSafepayPayment extends Shopware_Controll
      */
     public function getWhitelistedCSRFActions()
     {
-        return [
-            'shipOrderMsp',
-            'refundOrder',
-        ];
-    }
-
-    /**
-     * @return mixed
-     * @throws Exception
-     */
-    public function shipOrderMspAction()
-    {
-        $request = $this->Request();
-        $orderNumber = $request->getParam('orderNumber');
-        $transactionId = $request->getParam('transactionId');
-
-        $order = Shopware()->Models()->getRepository('Shopware\Models\Order\Order')->findOneBy(['number' => $orderNumber]);
-
-        $pluginConfig = $this->container->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment', $order->getShop());
-        $msp = new MspClient();
-        $msp->setApiKey($pluginConfig['msp_api_key']);
-        if (!$pluginConfig['msp_environment']) {
-            $msp->setApiUrl('https://testapi.multisafepay.com/v1/json/');
-        } else {
-            $msp->setApiUrl('https://api.multisafepay.com/v1/json/');
-        }
-
-        $endpoint = 'orders/' . $transactionId;
-        $msporder = $msp->orders->patch(
-            array(
-                "tracktrace_code" => $order->getTrackingCode(),
-                "carrier" => "",
-                "ship_date" => date('Y-m-d H:i:s'),
-                "reason" => 'Shipped'
-            ),
-            $endpoint
-        );
-
-        //Check for errors
-        if (!empty($msp->orders->result->error_code)) {
-            return $this->view->assign([
-                'success' => false,
-                'message' => "{$msp->orders->result->error_code} - {$msp->orders->result->error_info}",
-            ]);
-        }
-
-        // Set order status to shipped within Shopware
-
-        $em = $this->container->get('models');
-        if ($pluginConfig['msp_update_shipped_active'] && !empty($pluginConfig['msp_update_shipped'])) {
-            $orderStatusShipped = $em->getReference(Status::class, $pluginConfig['msp_update_shipped']);
-            $order->setOrderStatus($orderStatusShipped);
-        }
-        $em->persist($order);
-        $em->flush($order);
-
-
-
-        return $this->view->assign([
-            'success' => true,
-            'message' => "Order has been set to shipped at MultiSafepay",
-        ]);
+        return ['refundOrder'];
     }
 
     /**

@@ -9,25 +9,6 @@ Ext.define('Shopware.apps.Order.view.list.MultiSafepayList', {
             items = result.items;
 
         items.push({
-            iconCls: 'sprite-paper-plane',
-            action: 'shipOrderMsp',
-            tooltip: 'Mark order as shipped at MultiSafepay',
-            handler:function (view, rowIndex, colIndex, item) {
-                var store = view.getStore(),
-                        record = store.getAt(rowIndex);
-
-                me.fireEvent('shipOrderMsp', record);
-            },
-            getClass: function (value, metadata, record) {
-                var pm = record.raw.payment.name;
-                if (record.raw.payment && pm === pm.slice(0, 12)) {
-                    return 'x-hidden';
-                }
-                return '';
-            }
-        });
-
-        items.push({
             iconCls: 'sprite-money--minus',
             action: 'refundOrder',
             tooltip: 'Fully refund order at MultiSafepay',
