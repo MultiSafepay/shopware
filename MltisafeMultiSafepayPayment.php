@@ -183,6 +183,8 @@ class MltisafeMultiSafepayPayment extends Plugin
             ];
             if (!$this->isGatewayInstalled('multisafepay_' . $gateway['code'])) {
                 $options = $this->getGatewayOptions($gateway);
+            } elseif ($gateway['code'] === 'GENERIC') {
+                unset($options['description']);
             }
             $installer->createOrUpdate($context->getPlugin(), $options);
         }

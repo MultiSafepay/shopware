@@ -5,7 +5,7 @@
     <label lang="en">MultiSafepay</label>
     <label lang="de">MultiSafepay</label>
 
-    <version>2.5.0</version>
+    <version>2.6.0</version>
     <copyright>(c) MultiSafepay</copyright>
     <license>proprietary</license>
     <link>https://www.multisafepay.com</link>
@@ -24,6 +24,21 @@
         <a href="https://docs.multisafepay.com/integrations/plugins/shopware5/">Plugin Dokumentation</a>
         ]]>
     </description>
+
+    <changelog version="2.6.0">
+        <changes lang="en"><![CDATA[
+            - Add generic gateway which can be used for branded giftcards
+            - Remove 'Mark order as shipped' button in backend
+            - DAVAMS-318: Rebrand Klarna to Klarna - buy now, pay later
+            - Order is marked as shipped at MultiSafepay when order status is changed to Completely delivered
+        ]]></changes>
+        <changes lang="de"><![CDATA[
+            - Add generic gateway which can be used for branded giftcards
+            - Remove 'Mark order as shipped' button in backend
+            - DAVAMS-318: Rebrand Klarna to Klarna - buy now, pay later
+            - Order is marked as shipped at MultiSafepay when order status is changed to Completely delivered
+        ]]></changes>
+    </changelog>
 
     <changelog version="2.5.0">
         <changes lang="en"><![CDATA[
