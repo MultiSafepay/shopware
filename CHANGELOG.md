@@ -1,3 +1,18 @@
+## 2.6.0
+Release date: Dec 7th, 2020
+
+### Added
++ Add generic gateway which can be used for branded giftcards
+
+### Removed
++ Remove 'Mark order as shipped' button in backend
+
+### Changed
++ DAVAMS-318: Rebrand Klarna to Klarna - buy now, pay later
++ Order is marked as shipped at MultiSafepay when order status is changed to Completely delivered
+
+***
+
 ## 2.5.0
 Release date: Sep 30th, 2020
 
