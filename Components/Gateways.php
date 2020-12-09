@@ -68,6 +68,7 @@ class Gateways
         'FIETSENBON' => array('code' => 'FIETSENBON', 'name' => 'Fietsenbon', 'type' => 'redirect'),
         'GEZONDHEIDSBON' => array('code' => 'GEZONDHEIDSBON', 'name' => 'Gezondheidsbon', 'type' => 'redirect'),
         'GIVACARD' => array('code' => 'GIVACARD', 'name' => 'Givacard', 'type' => 'redirect'),
+        'GOOD4FUN' => array('code' => 'GOOD4FUN', 'name' => 'Good4fun Giftcard', 'type' => 'redirect'),
         'GOODCARD' => array('code' => 'GOODCARD', 'name' => 'Goodcard', 'type' => 'redirect'),
         'NATIONALETUINBON' => array('code' => 'NATIONALETUINBON', 'name' => 'Nationale tuinbon', 'type' => 'redirect'),
         'NATIONALEVERWENCADEAUBON' => array('code' => 'NATIONALEVERWENCADEAUBON', 'name' => 'Nationale verwencadeaubon', 'type' => 'redirect'),
