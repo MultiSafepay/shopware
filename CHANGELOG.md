@@ -1,3 +1,17 @@
+## 2.7.0
+Release date: Dec 16th, 2020
+
+### Added
++ SUPD-746: Add Good4fun Giftcard
+
+### Fixed
++ PLGSHPS-202: Resolve error when saving order in backend
+
+### Changed
++ DAVAMS-349: Update Trustly logo
+
+***
+
 ## 2.6.0
 Release date: Dec 7th, 2020
 
