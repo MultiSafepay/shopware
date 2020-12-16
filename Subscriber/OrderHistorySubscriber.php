@@ -22,7 +22,7 @@ class OrderHistorySubscriber implements EventSubscriber
     {
         $order = $eventArgs->getEntity();
 
-        if (!($order instanceof Order) && !$eventArgs->hasChangedField('orderStatus')) {
+        if (!($order instanceof Order) || !$eventArgs->hasChangedField('orderStatus')) {
             return;
         }
 
