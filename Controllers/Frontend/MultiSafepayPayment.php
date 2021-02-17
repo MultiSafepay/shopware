@@ -355,9 +355,24 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
      */
     private function restoreSession($sessionId)
     {
-        \Enlight_Components_Session::writeClose();
-        \Enlight_Components_Session::setId($sessionId);
-        \Enlight_Components_Session::start();
+        if (class_exists(\Enlight_Components_Session::class)) {
+            \Enlight_Components_Session::writeClose();
+            \Enlight_Components_Session::setId($sessionId);
+            \Enlight_Components_Session::start();
+            return;
+        }
+        $previousSessionData = Shopware()->Session()->all();
+        unset($previousSessionData['sessionId']);
+
+        Shopware()->Session()->__unset('sessionId');
+        Shopware()->Session()->save();
+        Shopware()->Session()->setId($sessionId);
+        foreach ($previousSessionData as $key => $data) {
+            if (!Shopware()->Session()->get($key)) {
+                Shopware()->Session()->set($key, $data);
+            }
+        }
+        Shopware()->Session()->start();
     }
 
     /**
