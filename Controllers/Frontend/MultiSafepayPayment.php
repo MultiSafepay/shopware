@@ -540,6 +540,10 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
      */
     private function fillMissingSessionData($hash)
     {
+        //Backend order
+        if ($hash === null) {
+            return null;
+        }
         /** @var \Shopware\Components\OptinService $optinService */
         $optinService = $this->container->get('shopware.components.optin_service');
         $data = $optinService->get(

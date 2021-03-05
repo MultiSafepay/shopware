@@ -117,6 +117,19 @@ class MltisafeMultiSafepayPayment extends Plugin
                 'displayInBackend' => true,
             ]
         );
+
+        $this->container
+            ->get('shopware_attribute.crud_service')
+            ->update(
+                's_order_attributes',
+                'multisafepay_payment_link',
+                TypeMapping::TYPE_STRING,
+                [
+                    'position' => -100,
+                    'label' => 'MultiSafepay Backend orders payment link',
+                    'displayInBackend' => true,
+                ]
+            );
     }
 
     /**
@@ -139,7 +152,27 @@ class MltisafeMultiSafepayPayment extends Plugin
     public function update(UpdateContext $context)
     {
         $this->updateGateways($context);
+        $this->updateAttributes($context);
         parent::update($context);
+    }
+
+    /**
+     * @param UpdateContext $context
+     */
+    public function updateAttributes(UpdateContext $context)
+    {
+        $this->container
+            ->get('shopware_attribute.crud_service')
+            ->update(
+            's_order_attributes',
+            'multisafepay_payment_link',
+            TypeMapping::TYPE_STRING,
+            [
+                'position' => -100,
+                'label' => 'MultiSafepay Backend orders payment link',
+                'displayInBackend' => true,
+            ]
+        );
     }
 
     /**

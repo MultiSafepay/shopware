@@ -37,5 +37,9 @@
                  class="MltisafeMultiSafepayPayment\Subscriber\OrderHistorySubscriber">
             <tag name="doctrine.event_subscriber"/>
         </service>
+        <service id="multi_safepay_payment.subscriber.order_backend_controller" class="MltisafeMultiSafepayPayment\Subscriber\OrderBackendController">
+            <argument type="service" id="service_container"/>
+            <tag name="shopware.event_subscriber"/>
+        </service>
     </services>
 </container>
