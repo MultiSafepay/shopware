@@ -164,15 +164,15 @@ class MltisafeMultiSafepayPayment extends Plugin
         $this->container
             ->get('shopware_attribute.crud_service')
             ->update(
-            's_order_attributes',
-            'multisafepay_payment_link',
-            TypeMapping::TYPE_STRING,
-            [
+                's_order_attributes',
+                'multisafepay_payment_link',
+                TypeMapping::TYPE_STRING,
+                [
                 'position' => -100,
                 'label' => 'MultiSafepay Backend orders payment link',
                 'displayInBackend' => true,
-            ]
-        );
+                ]
+            );
     }
 
     /**

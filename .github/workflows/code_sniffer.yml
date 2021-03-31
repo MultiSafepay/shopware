@@ -9,6 +9,10 @@ jobs:
     name: Code sniffer
     runs-on: ubuntu-latest
     steps:
+      - name: Install php
+        uses: shivammathur/setup-php@master
+        with:
+          php-version: '7.4'
       - name: Checkout code
         uses: actions/checkout@v1
       - name: Download dependencies

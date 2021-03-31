@@ -3,7 +3,6 @@
 
 namespace MltisafeMultiSafepayPayment\Subscriber;
 
-
 use Enlight\Event\SubscriberInterface;
 use MltisafeMultiSafepayPayment\Components\API\MspClient;
 use MltisafeMultiSafepayPayment\Components\Gateways;
@@ -18,12 +17,19 @@ class OrderBackendController implements SubscriberInterface
     public $container;
     public $shopwareConfig;
 
+    /**
+     * OrderBackendController constructor.
+     * @param ContainerInterface $container
+     */
     public function __construct(ContainerInterface $container)
     {
         $this->container = $container;
         $this->shopwareConfig = $this->container->get('config');
     }
 
+    /**
+     * @return string[]
+     */
     public static function getSubscribedEvents(): array
     {
         return [
@@ -31,6 +37,12 @@ class OrderBackendController implements SubscriberInterface
         ];
     }
 
+    /**
+     * Create a payment link when the order is a backend order and is a MultiSafepay payment method
+     *
+     * @param \Enlight_Event_EventArgs $args
+     * @throws \Zend_Db_Adapter_Exception
+     */
     public function onGetBackendController(\Enlight_Event_EventArgs $args)
     {
         /** @var Order $order */
@@ -138,13 +150,16 @@ class OrderBackendController implements SubscriberInterface
         $this->container->get('shopware_attribute.data_persister')->persist($attributes, 's_order_attributes', $order->getId());
     }
 
+    /**
+     * @param Order $order
+     * @return array
+     */
     protected function getProducts(Order $order)
     {
         $cart['items'] = [];
         $products = Shopware()->Models()->getRepository(Detail::class)->findBy(['order' => $order]);
         /** @var Detail $product */
         foreach ($products as $product) {
-
             $unitPrice = $product->getPrice() - ($product->getPrice() / (100 + $product->getTaxRate()) * $product->getTaxRate());
             $cart['items'][] = [
                 "name" => $product->getArticleName(),
@@ -166,12 +181,15 @@ class OrderBackendController implements SubscriberInterface
         return $cart;
     }
 
+    /**
+     * @param Order $order
+     * @return array
+     */
     protected function getTaxRates(Order $order)
     {
         $taxTables['tax_tables']['alternate'] = [];
         $taxRates = Shopware()->Models()->getRepository(Tax::class)->findAll();
         foreach ($taxRates as $taxRate) {
-
             $taxTables['tax_tables']['alternate'][] = [
                 'name' => $taxRate->getName(),
                 'rules' => [[
