@@ -44,6 +44,7 @@ class Gateways
         'GIROPAY' => array('code' => 'GIROPAY', 'name' => 'Giropay', 'type' => 'redirect'),
         'IDEAL' => array('code' => 'IDEAL', 'name' => 'iDEAL', 'type' => 'direct', 'template' => 'multisafepay_ideal.tpl'),
         'IDEALQR' => array('code' => 'IDEALQR', 'name' => 'iDEAL QR', 'type' => 'redirect'),
+        'IN3' => array('code' => 'IN3', 'name' => 'in3', 'type' => 'redirect', 'max' => 150, 'min' => 15),
         'INGHOME' => array('code' => 'INGHOME', 'name' => 'ING Home\'Pay', 'type' => 'direct'),
         'KBC' => array('code' => 'KBC', 'name' => 'KBC', 'type' => 'direct'),
         'KLARNA' => array('code' => 'KLARNA', 'name' => 'Klarna - Buy now, pay later', 'type' => 'redirect'),
