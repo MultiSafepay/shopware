@@ -30,7 +30,7 @@ class OrderBackendController implements SubscriberInterface
     /**
      * @return string[]
      */
-    public static function getSubscribedEvents(): array
+    public static function getSubscribedEvents()
     {
         return [
             'Shopware_Modules_Order_SaveOrder_OrderCreated' => 'onGetBackendController',
