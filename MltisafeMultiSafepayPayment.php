@@ -91,7 +91,7 @@ class MltisafeMultiSafepayPayment extends Plugin
      * @param $paymentMethodId
      * @param array $gateway
      */
-    private function setMinAndMaxAmounts($paymentMethodId, array $gateway): void
+    private function setMinAndMaxAmounts($paymentMethodId, array $gateway)
     {
         if (!empty($gateway['max']) || !empty($gateway['min'])) {
             $attributes = $this->container->get('shopware_attribute.data_loader')->load('s_core_paymentmeans_attributes', $paymentMethodId);
