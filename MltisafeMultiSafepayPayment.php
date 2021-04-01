@@ -23,15 +23,15 @@
 
 namespace MltisafeMultiSafepayPayment;
 
+use MltisafeMultiSafepayPayment\Components\Gateways;
+use Shopware\Bundle\AttributeBundle\Service\TypeMapping;
 use Shopware\Components\Plugin;
 use Shopware\Components\Plugin\Context\ActivateContext;
 use Shopware\Components\Plugin\Context\DeactivateContext;
 use Shopware\Components\Plugin\Context\InstallContext;
-use Shopware\Components\Plugin\Context\UpdateContext;
 use Shopware\Components\Plugin\Context\UninstallContext;
+use Shopware\Components\Plugin\Context\UpdateContext;
 use Shopware\Models\Payment\Payment;
-use Shopware\Bundle\AttributeBundle\Service\TypeMapping;
-use MltisafeMultiSafepayPayment\Components\Gateways;
 
 class MltisafeMultiSafepayPayment extends Plugin
 {
@@ -68,8 +68,8 @@ class MltisafeMultiSafepayPayment extends Plugin
      */
     public function install(InstallContext $context)
     {
-        $this->installGateways($context);
         $this->installAttributes();
+        $this->installGateways($context);
         $this->installMultiSafepayQuoteNumber();
     }
 
@@ -81,7 +81,25 @@ class MltisafeMultiSafepayPayment extends Plugin
         $installer = $this->container->get('shopware.plugin_payment_installer');
 
         foreach (Gateways::GATEWAYS as $gateway) {
-            $installer->createOrUpdate($context->getPlugin(), $this->getGatewayOptions($gateway));
+            /** @var Payment $payment */
+            $payment = $installer->createOrUpdate($context->getPlugin(), $this->getGatewayOptions($gateway));
+            $this->setMinAndMaxAmounts($payment->getId(), $gateway);
+        }
+    }
+
+    /**
+     * @param $paymentMethodId
+     * @param array $gateway
+     */
+    private function setMinAndMaxAmounts($paymentMethodId, array $gateway): void
+    {
+        if (!empty($gateway['max']) || !empty($gateway['min'])) {
+            $attributes = $this->container->get('shopware_attribute.data_loader')->load('s_core_paymentmeans_attributes', $paymentMethodId);
+            $attributes['msp_min_amount'] = $gateway['min'] ?: 0;
+            $attributes['msp_max_amount'] = $gateway['max'] ?: 0;
+            $this->container
+                ->get('shopware_attribute.data_persister')
+                ->persist($attributes, 's_core_paymentmeans_attributes', $paymentMethodId);
         }
     }
 
@@ -117,6 +135,19 @@ class MltisafeMultiSafepayPayment extends Plugin
                 'displayInBackend' => true,
             ]
         );
+
+        $this->container
+            ->get('shopware_attribute.crud_service')
+            ->update(
+                's_order_attributes',
+                'multisafepay_payment_link',
+                TypeMapping::TYPE_STRING,
+                [
+                    'position' => -100,
+                    'label' => 'MultiSafepay Backend orders payment link',
+                    'displayInBackend' => true,
+                ]
+            );
     }
 
     /**
@@ -138,8 +169,28 @@ class MltisafeMultiSafepayPayment extends Plugin
      */
     public function update(UpdateContext $context)
     {
+        $this->updateAttributes($context);
         $this->updateGateways($context);
         parent::update($context);
+    }
+
+    /**
+     * @param UpdateContext $context
+     */
+    public function updateAttributes(UpdateContext $context)
+    {
+        $this->container
+            ->get('shopware_attribute.crud_service')
+            ->update(
+                's_order_attributes',
+                'multisafepay_payment_link',
+                TypeMapping::TYPE_STRING,
+                [
+                'position' => -100,
+                'label' => 'MultiSafepay Backend orders payment link',
+                'displayInBackend' => true,
+                ]
+            );
     }
 
     /**
@@ -186,7 +237,8 @@ class MltisafeMultiSafepayPayment extends Plugin
             } elseif ($gateway['code'] === 'GENERIC') {
                 unset($options['description']);
             }
-            $installer->createOrUpdate($context->getPlugin(), $options);
+            $payment = $installer->createOrUpdate($context->getPlugin(), $options);
+            $this->setMinAndMaxAmounts($payment->getId(), $gateway);
         }
     }
 

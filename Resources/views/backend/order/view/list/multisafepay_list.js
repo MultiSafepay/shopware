@@ -24,6 +24,7 @@ Ext.define('Shopware.apps.Order.view.list.MultiSafepayList', {
                         || record.raw.paymentStatus.id !== 12
                         || record.raw.payment.name === "multisafepay_AFTERPAY"
                         || record.raw.payment.name === "multisafepay_EINVOICE"
+                        || record.raw.payment.name === "multisafepay_IN3"
                         || record.raw.payment.name === "multisafepay_KLARNA"
                         || record.raw.payment.name === "multisafepay_PAYAFTER"
                         || record.raw.payment.name === "multisafepay_SANTANDER")) {

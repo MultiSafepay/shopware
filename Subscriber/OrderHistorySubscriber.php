@@ -13,11 +13,20 @@ use Shopware\Models\Order\Status;
 class OrderHistorySubscriber implements EventSubscriber
 {
 
+    /**
+     * @return array
+     */
     public function getSubscribedEvents()
     {
         return [Events::preUpdate];
     }
 
+    /**
+     * If the order is getting updated. check if it is changed to Shipped. If so, update the status at MultiSafepay
+     *
+     * @param PreUpdateEventArgs $eventArgs
+     * @throws \Exception
+     */
     public function preUpdate(PreUpdateEventArgs $eventArgs)
     {
         $order = $eventArgs->getEntity();

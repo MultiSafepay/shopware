@@ -1,3 +1,12 @@
+## 2.8.0
+Release date: Apr 1st, 2021
+
+### Added
++ DAVAMS-240: Add in3 payment method
++ PLGSHPS-175: Add support for paymentlinks with backend orders
+
+***
+
 ## 2.7.0
 Release date: Dec 16th, 2020
 

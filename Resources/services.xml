@@ -6,31 +6,40 @@
     <services>
 
         <service id="multi_safepay_payment.components.quotenumber"
-                 class="MltisafeMultiSafepayPayment\Components\Quotenumber">
+                 class="MltisafeMultiSafepayPayment\Components\Quotenumber"
+                 public="true">
             <argument type="service" id="shopware.number_range_incrementer"/>
             <argument type="service" id="service_container"/>
         </service>
 
         <service id="multi_safepay_payment.subscriber.frontend"
-                 class="MltisafeMultiSafepayPayment\Subscriber\Frontend">
+                 class="MltisafeMultiSafepayPayment\Subscriber\Frontend"
+                 public="true">
             <argument>%mltisafe_multi_safepay_payment.plugin_dir%</argument>
             <tag name="shopware.event_subscriber"/>
         </service>
 
-        <service id="multi_safepay_payment.subscriber.ideal" class="MltisafeMultiSafepayPayment\Subscriber\Ideal">
+        <service id="multi_safepay_payment.subscriber.ideal" class="MltisafeMultiSafepayPayment\Subscriber\Ideal"
+                 public="true">
             <argument type="service" id="service_container"/>
             <tag name="shopware.event_subscriber"/>
         </service>
 
         <service id="multi_safepay_payment.subscriber.payment_filter"
-                 class="MltisafeMultiSafepayPayment\Subscriber\PaymentFilter">
+                 class="MltisafeMultiSafepayPayment\Subscriber\PaymentFilter"
+                 public="true">
             <argument type="service" id="service_container"/>
             <argument type="service" id="session"/>
             <tag name="shopware.event_subscriber"/>
         </service>
         <service id="multi_safepay_payment.subscriber.order_history_subscriber"
+                 public="true"
                  class="MltisafeMultiSafepayPayment\Subscriber\OrderHistorySubscriber">
             <tag name="doctrine.event_subscriber"/>
+        </service>
+        <service id="multi_safepay_payment.subscriber.order_backend_controller" class="MltisafeMultiSafepayPayment\Subscriber\OrderBackendController">
+            <argument type="service" id="service_container"/>
+            <tag name="shopware.event_subscriber"/>
         </service>
     </services>
 </container>
