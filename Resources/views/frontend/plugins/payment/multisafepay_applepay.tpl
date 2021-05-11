@@ -1,5 +1,5 @@
 {block name='frontend_plugins_payment_multisafepay_applepay'}
-    {if $sTargetAction == "shippingPayment"}
+    {if $Controller == "checkout"}
         <script>
             var applePayBlock = document.getElementsByClassName('payment_logo_multisafepay_APPLEPAY')[0].parentElement;
             applePayBlock.style.display = 'none';
