@@ -502,10 +502,16 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
      */
     private function getBasketBasedOnSignature($signature)
     {
+        /** @var \Shopware\Components\Logger $logger */
+        $logger = $this->container->get('pluginlogger');
+        $logger->info('MultiSafepay: Checking signatures');
+
         try {
             $basket = $this->loadBasketFromSignature($signature);
             $this->verifyBasketSignature($signature, $basket);
+            $logger->info('MultiSafepay: Signature successfully validated');
         } catch (RuntimeException $e) {
+            $logger->error('MultiSafepay: Signature could not be validated: ' . $e->getMessage(), ['basket' => $basket]);
             return false;
         }
         return $basket;
