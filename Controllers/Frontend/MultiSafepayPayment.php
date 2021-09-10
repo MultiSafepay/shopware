@@ -329,14 +329,29 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
 
         $signature = $mspOrder->var1;
 
-        $order = Shopware()->Models()
-            ->getRepository('Shopware\Models\Order\Order')
-            ->findOneBy(['transactionId' => $transactionId]);
+        for ($i = 0; $i <= 5; $i++) {
+            $orderExist = false;
+            $order = Shopware()->Models()
+                ->getRepository('Shopware\Models\Order\Order')
+                ->findOneBy(['transactionId' => $transactionId]);
+
+            if (Helper::isValidOrder($order)) {
+                $orderExist = true;
+                break;
+            }
+            sleep(1);
+        }
+
+        if ($orderExist) {
+            $this->redirect(['controller' => 'checkout', 'action' => 'finish', 'sUniqueID' => $this->Request()->transactionid]);
+            return;
+        }
+
         $basket = $this->getBasketBasedOnSignature($signature);
 
         if ($basket) {
             $this->saveOrder($transactionId, $transactionId, null, true);
-        } elseif (!Helper::isValidOrder($order)) {
+        } elseif (!$orderExist) {
             $this->saveOrder($transactionId, $transactionId, Status::PAYMENT_STATE_REVIEW_NECESSARY, true);
         }
         $this->redirect(['controller' => 'checkout', 'action' => 'finish', 'sUniqueID' => $this->Request()->transactionid]);
