@@ -1,3 +1,13 @@
+## 2.8.1
+Release date: Sep 10th, 2021
+
+### Fixed
++ PLGSHPS-212: Fix missing payment link for backend orders, when device type is set
++ PLGSHPS-213: Fix orders are not created when state is not available in customer request
++ PLGSHPS-216: Fix bug when double orders are being created 
+
+***
+
 ## 2.8.0
 Release date: Apr 1st, 2021
 

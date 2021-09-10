@@ -59,7 +59,7 @@ class Ideal implements SubscriberInterface
      */
     public function onPostDispatchCheckout(\Enlight_Controller_ActionEventArgs $args)
     {
-        if ($args->getRequest()->getActionName() === 'shippingPayment') {
+        if ($args->getRequest()->getControllerName() === 'checkout') {
             $msp = new MspClient();
             $shop = $this->container->get('shop');
             $pluginConfig = $this->container->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment', $shop);

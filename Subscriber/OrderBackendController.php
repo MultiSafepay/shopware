@@ -45,12 +45,22 @@ class OrderBackendController implements SubscriberInterface
      */
     public function onGetBackendController(\Enlight_Event_EventArgs $args)
     {
-        /** @var Order $order */
-        $order = Shopware()->Models()->getRepository('Shopware\Models\Order\Order')->find($args->get('orderId'));
-
-        if ($order->getDeviceType() !== 'Backend') {
+        if (!method_exists($args, 'getSubject')) {
             return;
         }
+
+        $request = $args->getSubject()->Request();
+
+        if ($request->get('controller') !== 'SwagBackendOrder') {
+            return;
+        }
+
+        if ($request->get('action') !== 'createOrder') {
+            return;
+        }
+
+        /** @var Order $order */
+        $order = Shopware()->Models()->getRepository('Shopware\Models\Order\Order')->find($args->get('orderId'));
 
         if (substr($order->getPayment()->getName(), 0, 13) !== "multisafepay_") {
             return;
@@ -92,7 +102,7 @@ class OrderBackendController implements SubscriberInterface
                 "house_number" => $housenumber,
                 "zip_code" => $order->getBilling()->getZipCode(),
                 "city" => $order->getBilling()->getCity(),
-                "state" => $order->getBilling()->getState()->getShortCode(),
+                "state" => $order->getBilling()->getState() ? $order->getBilling()->getState()->getShortCode() : null,
                 "country" => $order->getBilling()->getCountry()->getIso(),
                 "phone" => $order->getBilling()->getPhone(),
                 "email" => $order->getCustomer()->getEmail(),
@@ -105,7 +115,7 @@ class OrderBackendController implements SubscriberInterface
                 "house_number" => $sHousenumber,
                 "zip_code" => $order->getShipping()->getZipCode(),
                 "city" => $order->getShipping()->getCity(),
-                "state" => $order->getShipping()->getState()->getShortCode(),
+                "state" => $order->getShipping()->getState() ? $order->getShipping()->getState()->getShortCode() : null,
                 "country" => $order->getShipping()->getCountry()->getIso(),
                 "phone" => $order->getShipping()->getPhone(),
                 "email" => $order->getCustomer()->getEmail(),

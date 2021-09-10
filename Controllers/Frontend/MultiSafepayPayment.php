@@ -329,14 +329,29 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
 
         $signature = $mspOrder->var1;
 
-        $order = Shopware()->Models()
-            ->getRepository('Shopware\Models\Order\Order')
-            ->findOneBy(['transactionId' => $transactionId]);
+        for ($i = 0; $i <= 5; $i++) {
+            $orderExist = false;
+            $order = Shopware()->Models()
+                ->getRepository('Shopware\Models\Order\Order')
+                ->findOneBy(['transactionId' => $transactionId]);
+
+            if (Helper::isValidOrder($order)) {
+                $orderExist = true;
+                break;
+            }
+            sleep(1);
+        }
+
+        if ($orderExist) {
+            $this->redirect(['controller' => 'checkout', 'action' => 'finish', 'sUniqueID' => $this->Request()->transactionid]);
+            return;
+        }
+
         $basket = $this->getBasketBasedOnSignature($signature);
 
         if ($basket) {
             $this->saveOrder($transactionId, $transactionId, null, true);
-        } elseif (!Helper::isValidOrder($order)) {
+        } elseif (!$orderExist) {
             $this->saveOrder($transactionId, $transactionId, Status::PAYMENT_STATE_REVIEW_NECESSARY, true);
         }
         $this->redirect(['controller' => 'checkout', 'action' => 'finish', 'sUniqueID' => $this->Request()->transactionid]);
@@ -502,10 +517,16 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
      */
     private function getBasketBasedOnSignature($signature)
     {
+        /** @var \Shopware\Components\Logger $logger */
+        $logger = $this->container->get('pluginlogger');
+        $logger->info('MultiSafepay: Checking signatures');
+
         try {
             $basket = $this->loadBasketFromSignature($signature);
             $this->verifyBasketSignature($signature, $basket);
+            $logger->info('MultiSafepay: Signature successfully validated');
         } catch (RuntimeException $e) {
+            $logger->error('MultiSafepay: Signature could not be validated: ' . $e->getMessage(), ['basket' => $basket]);
             return false;
         }
         return $basket;
