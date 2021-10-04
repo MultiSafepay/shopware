@@ -376,17 +376,8 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
             \Enlight_Components_Session::start();
             return;
         }
-        $previousSessionData = Shopware()->Session()->all();
-        unset($previousSessionData['sessionId']);
-
-        Shopware()->Session()->__unset('sessionId');
         Shopware()->Session()->save();
         Shopware()->Session()->setId($sessionId);
-        foreach ($previousSessionData as $key => $data) {
-            if (!Shopware()->Session()->get($key)) {
-                Shopware()->Session()->set($key, $data);
-            }
-        }
         Shopware()->Session()->start();
     }
 
@@ -557,7 +548,7 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
 
     /**
      * @param $hash
-     * @return string|null
+     * @return null
      */
     private function fillMissingSessionData($hash)
     {
@@ -577,20 +568,6 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         }
 
         $this->restoreSession($data['sessionId']);
-
-        if (!isset($data['sessionData'])) {
-            return $data['sessionId'];
-        }
-
-        $sessionData = json_decode($data['sessionData'], true);
-
-        foreach ($sessionData as $key => $sessionDatum) {
-            if (!Shopware()->Session()->get($key)) {
-                Shopware()->Session()->offsetSet($key, $sessionDatum);
-            }
-        }
-
-        return $data['sessionId'];
     }
 
     /**
