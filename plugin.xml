@@ -5,7 +5,7 @@
     <label lang="en">MultiSafepay</label>
     <label lang="de">MultiSafepay</label>
 
-    <version>2.8.0</version>
+    <version>2.8.1</version>
     <copyright>(c) MultiSafepay</copyright>
     <license>proprietary</license>
     <link>https://www.multisafepay.com</link>
@@ -24,6 +24,19 @@
         <a href="https://docs.multisafepay.com/integrations/plugins/shopware5/">Plugin Dokumentation</a>
         ]]>
     </description>
+
+    <changelog version="2.8.1">
+        <changes lang="en"><![CDATA[
+            - PLGSHPS-212: Fix missing payment link for backend orders, when device type is set
+            - PLGSHPS-213: Fix orders are not created when state is not available in customer request
+            - PLGSHPS-216: Fix bug when double orders are being created
+        ]]></changes>
+        <changes lang="de"><![CDATA[
+            - PLGSHPS-212: Fix missing payment link for backend orders, when device type is set
+            - PLGSHPS-213: Fix orders are not created when state is not available in customer request
+            - PLGSHPS-216: Fix bug when double orders are being created
+        ]]></changes>
+    </changelog>
 
     <changelog version="2.8.0">
         <changes lang="en"><![CDATA[
