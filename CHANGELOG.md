@@ -1,3 +1,11 @@
+## 2.8.2
+Release date: Oct 4th, 2021
+
+### Fixed
++ PLGSHPS-217: Fix fatal error getArrayCopy on success page
+
+***
+
 ## 2.8.1
 Release date: Sep 10th, 2021
 
