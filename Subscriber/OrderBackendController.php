@@ -45,17 +45,8 @@ class OrderBackendController implements SubscriberInterface
      */
     public function onGetBackendController(\Enlight_Event_EventArgs $args)
     {
-        if (!method_exists($args, 'getSubject')) {
-            return;
-        }
-
-        $request = $args->getSubject()->Request();
-
-        if ($request->get('controller') !== 'SwagBackendOrder') {
-            return;
-        }
-
-        if ($request->get('action') !== 'createOrder') {
+        // Only when event is triggered from SwagBackendOrder
+        if (!$args->getSubject() instanceof \Shopware_Controllers_Backend_SwagBackendOrder) {
             return;
         }
 
