@@ -26,6 +26,8 @@ use MltisafeMultiSafepayPayment\Components\Gateways;
 use MltisafeMultiSafepayPayment\Components\Helper;
 use Shopware\Components\CSRFWhitelistAware;
 use Shopware\Components\OptinServiceInterface;
+use Shopware\Models\Payment\Payment;
+use Shopware\Models\Order\Order;
 use Shopware\Models\Order\Status;
 
 class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Controllers_Frontend_Payment implements CSRFWhitelistAware
@@ -298,6 +300,10 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
 
         if ($status === 'completed' && !Helper::orderHasClearedDate($order)) {
             $this->setClearedDate($transactionid);
+        }
+
+        if (Helper::isValidOrder($order)) {
+            $this->changePaymentMethod($order, $msporder->payment_details->type);
         }
 
         $this->Response()
@@ -583,5 +589,25 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
 
         $shippingTaxRate = 1 + ($basket['sShippingcostsTax'] / 100);
         return round($basket['sShippingcostsWithTax'] / $shippingTaxRate, 10);
+    }
+
+    /**
+     * @return void
+     */
+    private function changePaymentMethod(Order $order, string $gatewayCode)
+    {
+        $paymentMethodId = Shopware()->Models()->getRepository(Payment::class)
+            ->getActivePaymentsQuery(['name' => 'multisafepay_'.$gatewayCode])
+            ->getResult()[0]['id'];
+
+        //If payment method is the same, don't change it
+        if ($order->getPayment()->getId() === $paymentMethodId) {
+            return;
+        }
+
+        $paymentMethod = Shopware()->Models()->find(Payment::class, $paymentMethodId);
+        $order->setPayment($paymentMethod);
+        Shopware()->Models()->persist($order);
+        Shopware()->Models()->flush($order);
     }
 }
