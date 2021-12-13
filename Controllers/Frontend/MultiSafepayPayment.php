@@ -24,18 +24,22 @@
 use MltisafeMultiSafepayPayment\Components\API\MspClient;
 use MltisafeMultiSafepayPayment\Components\Gateways;
 use MltisafeMultiSafepayPayment\Components\Helper;
+use Monolog\Handler\RotatingFileHandler;
 use Shopware\Components\CSRFWhitelistAware;
 use Shopware\Components\OptinServiceInterface;
 use Shopware\Models\Payment\Payment;
 use Shopware\Models\Order\Order;
 use Shopware\Models\Order\Status;
+use Monolog\Logger;
 
 class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Controllers_Frontend_Payment implements CSRFWhitelistAware
 {
+    const MAX_LOG_FILES = 7;
     private $shopwareConfig;
     private $pluginConfig;
     private $quoteNumber;
     private $shop;
+    private $logger;
 
     /**
      * {@inheritdoc}
@@ -46,6 +50,15 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         $this->shopwareConfig = $this->get('config');
         $this->pluginConfig = $this->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment', $this->shop);
         $this->quoteNumber = $this->get('multi_safepay_payment.components.quotenumber');
+
+        $this->logger = new Logger('multisafepay');
+        $rotatingFileHandler = new RotatingFileHandler(
+            $this->get('kernel')->getLogDir() . '/multisafepay.log',
+            self::MAX_LOG_FILES,
+            $this->pluginConfig['multisafepay_debug_mode'] ? Logger::DEBUG : Logger::ERROR
+        );
+
+        $this->logger->pushHandler($rotatingFileHandler);
     }
 
     /**
@@ -514,16 +527,63 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
      */
     private function getBasketBasedOnSignature($signature)
     {
-        /** @var \Shopware\Components\Logger $logger */
-        $logger = $this->container->get('pluginlogger');
-        $logger->info('MultiSafepay: Checking signatures');
-
+        $this->logger->info(
+            'Start signature check',
+            [
+                'transactionId' => $this->Request()->getParam('transactionid'),
+                'sessionId' => $_SESSION['Shopware']['sessionId'] ?? 'session_id_not_found',
+                'signature' => $signature,
+                'action' => $this->Request()->getActionName()
+            ]
+        );
         try {
             $basket = $this->loadBasketFromSignature($signature);
+            $this->logger->info(
+                'Successfully loaded the basket',
+                [
+                    'transactionId' => $this->Request()->getParam('transactionid'),
+                    'signature' => $signature,
+                    'sessionId' => $_SESSION['Shopware']['sessionId'] ?? 'session_id_not_found',
+                    'basket' => $basket,
+                    'action' => $this->Request()->getActionName()
+                ]
+            );
             $this->verifyBasketSignature($signature, $basket);
-            $logger->info('MultiSafepay: Signature successfully validated');
-        } catch (RuntimeException $e) {
-            $logger->error('MultiSafepay: Signature could not be validated: ' . $e->getMessage(), ['basket' => $basket]);
+
+            $this->logger->info(
+                'Successfully verified the basket',
+                [
+                    'transactionId' => $this->Request()->getParam('transactionid'),
+                    'signature' => $signature,
+                    'sessionId' => $_SESSION['Shopware']['sessionId'] ?? 'session_id_not_found',
+                    'basket' => $basket,
+                    'action' => $this->Request()->getActionName()
+                ]
+            );
+        } catch (RuntimeException $runtimeException) {
+            $this->logger->warning(
+                RuntimeException::class .': Could not verify the signature: '. $runtimeException->getMessage(),
+                [
+                    'exception' => $runtimeException,
+                    'transactionId' => $this->Request()->getParam('transactionid'),
+                    'signature' => $signature,
+                    'sessionId' => $_SESSION['Shopware']['sessionId'] ?? 'session_id_not_found',
+                    'basket' => $basket ?? null,
+                    'action' => $this->Request()->getActionName()
+                ]
+            );
+            return false;
+        } catch (Exception $exception) {
+            $this->logger->error(
+                Exception::class .': Could not verify the signature: '. $exception->getMessage(),
+                [
+                    'exception' => $exception,
+                    'transactionId' => $this->Request()->getParam('transactionid'),
+                    'signature' => $signature,
+                    'basket' => $basket ?? null,
+                    'action' => $this->Request()->getActionName()
+                ]
+            );
             return false;
         }
         return $basket;
