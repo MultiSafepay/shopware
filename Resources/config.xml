@@ -126,5 +126,15 @@
                 <![CDATA[Set the gateway image for the 'Generic gateway'<br><br>Make sure to refresh your cache after selecting a logo.]]>
             </description>
         </element>
+        <element required="false" type="boolean">
+            <name>multisafepay_debug_mode</name>
+            <label lang="en">Enable debug mode</label>
+            <description lang="en">
+                <![CDATA[This will only work for the signature check]]>
+            </description>
+            <description lang="de">
+                <![CDATA[Dies funktioniert nur für die Signaturprüfung]]>
+            </description>
+        </element>
     </elements>
 </config>

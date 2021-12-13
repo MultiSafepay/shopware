@@ -2,6 +2,10 @@ FROM dockware/play:5.7.6
 
 USER root
 
+COPY docker/entrypoint.sh /entrypoint-multisafepay.sh
+
+RUN git clone https://github.com/vishnubob/wait-for-it.git /wait-for-it/
+RUN chmod +x /entrypoint-multisafepay.sh
 RUN { \
 		echo '\tSetEnvIf X-Forwarded-Proto https HTTPS=on'; \
 		echo '\tSetEnvIf X-Forwarded-Host ^(.+) HTTP_X_FORWARDED_HOST=$1'; \

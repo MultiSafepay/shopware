@@ -3,6 +3,7 @@ services:
   app:
     build:
       context: .
+      dockerfile: docker/Dockerfile
     ports:
       - "80:80"
       - "3306:3306"
@@ -16,6 +17,7 @@ services:
       - XDEBUG_ENABLED=1
       # default = latest PHP, optional = specific version
       - PHP_VERSION=7.4
+    entrypoint: "sh /entrypoint-multisafepay.sh ${APP_SUBDOMAIN} ${EXPOSE_HOST}"
   expose:
     depends_on:
       - app

@@ -1,3 +1,12 @@
+## 2.8.4
+Release date: Dec 13th, 2021
+
+### Changed
++ PLGSHPS-214: Improve logger for signature check
++ PLGSHPS-220: Add support to change payment method in backend on notification
+
+***
+
 ## 2.8.3
 Release date: Nov 30th, 2021
 
