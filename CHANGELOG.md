@@ -1,3 +1,11 @@
+## 2.8.3
+Release date: Nov 30th, 2021
+
+### Fixed
++ PLGSHPS-219: Fix payment link not created for backend orders
+
+***
+
 ## 2.8.2
 Release date: Oct 4th, 2021
 
