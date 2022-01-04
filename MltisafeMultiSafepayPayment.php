@@ -35,6 +35,9 @@ use Shopware\Models\Payment\Payment;
 
 class MltisafeMultiSafepayPayment extends Plugin
 {
+    const DELETED_GATEWAYS = [
+        'INGHOME'
+    ];
 
     /**
      * @return array
@@ -186,9 +189,9 @@ class MltisafeMultiSafepayPayment extends Plugin
                 'multisafepay_payment_link',
                 TypeMapping::TYPE_STRING,
                 [
-                'position' => -100,
-                'label' => 'MultiSafepay Backend orders payment link',
-                'displayInBackend' => true,
+                    'position' => -100,
+                    'label' => 'MultiSafepay Backend orders payment link',
+                    'displayInBackend' => true,
                 ]
             );
     }
@@ -240,6 +243,8 @@ class MltisafeMultiSafepayPayment extends Plugin
             $payment = $installer->createOrUpdate($context->getPlugin(), $options);
             $this->setMinAndMaxAmounts($payment->getId(), $gateway);
         }
+
+        $this->deleteGateways();
     }
 
     /**
@@ -284,5 +289,26 @@ class MltisafeMultiSafepayPayment extends Plugin
             $payment->setActive($active);
         }
         $em->flush();
+    }
+
+    /**
+     * Disable the payments methods that are no longer supported.
+     */
+    private function deleteGateways()
+    {
+        $paymentRepository = $this->container->get('models')->getRepository(Payment::class);
+
+        foreach (self::DELETED_GATEWAYS as $gateway) {
+            /** @var Payment|null $payment */
+            $payment = $paymentRepository->findOneBy([
+                'name' => 'multisafepay_' . $gateway,
+            ]);
+            if ($payment === null) {
+                continue;
+            }
+
+            $paymentId = $payment->getId();
+            $this->setActiveFlag([$paymentRepository->find($paymentId)], false);
+        }
     }
 }
