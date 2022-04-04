@@ -22,8 +22,8 @@
 namespace MltisafeMultiSafepayPayment\Tests\Integration\Components;
 
 use MltisafeMultiSafepayPayment\Components\Helper;
-use Shopware\Models\Order\Status;
 use PHPUnit\Framework\TestCase;
+use Shopware\Models\Order\Status;
 
 class HelperTest extends \Enlight_Components_Test_TestCase
 {

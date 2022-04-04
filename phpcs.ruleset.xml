@@ -2,15 +2,16 @@
 <ruleset name="Shopware">
     <description>Shopware Code Style Rules</description>
     <exclude-pattern>*/vendor/*</exclude-pattern>
-
-    <rule ref="PSR2">
-        <exclude name="Squiz.Classes.ValidClassName.NotCamelCaps"/>
-        <exclude name="PSR1.Classes.ClassDeclaration.MissingNamespace"/>
-
-        <exclude name="PEAR.Functions.FunctionCallSignature.ContentAfterOpenBracket"/>
-        <exclude name="PEAR.Functions.FunctionCallSignature.CloseBracketLine"/>
+    <rule ref="./vendor/multisafepay/coding-standards/php56.phpcs.xml">
+        <exclude name="PHPCompatibility.Keywords.ForbiddenNamesAsDeclared.objectFound"/>
+        <exclude name="SlevomatCodingStandard.ControlStructures.AssignmentInCondition.AssignmentInCondition"/>
     </rule>
-
-    <!-- MultiSafepay code style rule -->
-    <rule ref="PEAR.Commenting.FunctionComment.Missing"/>
+    <rule ref="Squiz.Classes.ValidClassName.NotCamelCaps">
+        <exclude-pattern>*/Controllers/Frontend/*</exclude-pattern>
+        <exclude-pattern>*/Controllers/Backend/*</exclude-pattern>
+    </rule>
+    <rule ref="PSR1.Classes.ClassDeclaration.MissingNamespace">
+        <exclude-pattern>*/Controllers/Frontend/*</exclude-pattern>
+        <exclude-pattern>*/Controllers/Backend/*</exclude-pattern>
+    </rule>
 </ruleset>

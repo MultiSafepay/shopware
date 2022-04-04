@@ -24,8 +24,8 @@
 namespace MltisafeMultiSafepayPayment\Subscriber;
 
 use Enlight\Event\SubscriberInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use MltisafeMultiSafepayPayment\Components\API\MspClient;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 class Ideal implements SubscriberInterface
 {

@@ -23,8 +23,8 @@
 
 namespace MltisafeMultiSafepayPayment\Components\API;
 
-use MltisafeMultiSafepayPayment\Components\API\Object\Orders;
 use MltisafeMultiSafepayPayment\Components\API\Object\Issuers;
+use MltisafeMultiSafepayPayment\Components\API\Object\Orders;
 
 class MspClient
 {

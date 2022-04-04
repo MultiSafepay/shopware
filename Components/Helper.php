@@ -23,8 +23,8 @@
 
 namespace MltisafeMultiSafepayPayment\Components;
 
-use Shopware\Models\Order\Status;
 use Shopware\Models\Order\Order;
+use Shopware\Models\Order\Status;
 
 class Helper
 {

@@ -25,12 +25,12 @@ use MltisafeMultiSafepayPayment\Components\API\MspClient;
 use MltisafeMultiSafepayPayment\Components\Gateways;
 use MltisafeMultiSafepayPayment\Components\Helper;
 use Monolog\Handler\RotatingFileHandler;
+use Monolog\Logger;
 use Shopware\Components\CSRFWhitelistAware;
 use Shopware\Components\OptinServiceInterface;
-use Shopware\Models\Payment\Payment;
 use Shopware\Models\Order\Order;
 use Shopware\Models\Order\Status;
-use Monolog\Logger;
+use Shopware\Models\Payment\Payment;
 
 class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Controllers_Frontend_Payment implements CSRFWhitelistAware
 {

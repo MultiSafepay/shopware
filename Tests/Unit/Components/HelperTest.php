@@ -23,8 +23,8 @@
 
 namespace MltisafeMultiSafepayPayment\Tests\Unit\Components;
 
-use PHPUnit\Framework\TestCase;
 use MltisafeMultiSafepayPayment\Components\Helper;
+use PHPUnit\Framework\TestCase;
 
 class HelperTest extends TestCase
 {
