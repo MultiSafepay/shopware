@@ -28,6 +28,7 @@ class Gateways
     const GATEWAYS = array(
         'AFTERPAY' => array('code' => 'AFTERPAY', 'name' => 'AfterPay', 'type' => 'redirect'),
         'ALIPAY' => array('code' => 'ALIPAY', 'name' => 'Alipay', 'type' => 'direct'),
+        'ALIPAYPLUS' => array('code' => 'ALIPAYPLUS', 'name' => 'Alipay+ ™ Partner', 'type' => 'direct'),
         'AMEX' => array('code' => 'AMEX', 'name' => 'American Express', 'type' => 'redirect'),
         'APPLEPAY' => array('code' => 'APPLEPAY', 'name' => 'Apple Pay', 'type' => 'redirect', 'template' => 'multisafepay_applepay.tpl'),
         'MISTERCASH' => array('code' => 'MISTERCASH', 'name' => 'Bancontact', 'type' => 'redirect'),
