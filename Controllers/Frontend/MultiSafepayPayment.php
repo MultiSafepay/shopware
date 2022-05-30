@@ -154,7 +154,7 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         $order_id = $this->quoteNumber->getNextQuotenumber();
 
         $items = "<ul>\n";
-        foreach ($basket['content'] as $item => $data) {
+        foreach ($basket['content'] as $data) {
             $items .= "<li>" . ($data['quantity'] * 1) . " x : " . $data['articlename'] . "</li>\n";
         }
         $items .= "</ul>\n";
@@ -412,7 +412,7 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         $rates = array();
         $items = $basket['content'];
 
-        foreach ($items as $product => $data) {
+        foreach ($items as $data) {
             $rate = $data['tax_rate'] + 0;
             $rates[$rate] = $rate;
 
@@ -451,7 +451,7 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         );
 
         //Add alternate tax rates
-        foreach ($rates as $index => $rate) {
+        foreach ($rates as $rate) {
             $alternateTaxRates['tax_tables']['alternate'][] = array(
                  "standalone" => "true",
                  "name" => (string) number_format($rate, 2),
@@ -531,7 +531,7 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
             'Start signature check',
             [
                 'transactionId' => $this->Request()->getParam('transactionid'),
-                'sessionId' => $_SESSION['Shopware']['sessionId'] ?? 'session_id_not_found',
+                'sessionId' => isset($_SESSION['Shopware']['sessionId']) ? session_id() : 'session_id_not_found',
                 'signature' => $signature,
                 'action' => $this->Request()->getActionName()
             ]
@@ -543,7 +543,7 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
                 [
                     'transactionId' => $this->Request()->getParam('transactionid'),
                     'signature' => $signature,
-                    'sessionId' => $_SESSION['Shopware']['sessionId'] ?? 'session_id_not_found',
+                    'sessionId' => isset($_SESSION['Shopware']['sessionId']) ? session_id() : 'session_id_not_found',
                     'basket' => $basket,
                     'action' => $this->Request()->getActionName()
                 ]
@@ -555,7 +555,7 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
                 [
                     'transactionId' => $this->Request()->getParam('transactionid'),
                     'signature' => $signature,
-                    'sessionId' => $_SESSION['Shopware']['sessionId'] ?? 'session_id_not_found',
+                    'sessionId' => isset($_SESSION['Shopware']['sessionId']) ? session_id() : 'session_id_not_found',
                     'basket' => $basket,
                     'action' => $this->Request()->getActionName()
                 ]
@@ -567,8 +567,8 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
                     'exception' => $runtimeException,
                     'transactionId' => $this->Request()->getParam('transactionid'),
                     'signature' => $signature,
-                    'sessionId' => $_SESSION['Shopware']['sessionId'] ?? 'session_id_not_found',
-                    'basket' => $basket ?? null,
+                    'sessionId' => isset($_SESSION['Shopware']['sessionId']) ? session_id() : 'session_id_not_found',
+                    'basket' => $basket ?: null,
                     'action' => $this->Request()->getActionName()
                 ]
             );
@@ -580,7 +580,7 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
                     'exception' => $exception,
                     'transactionId' => $this->Request()->getParam('transactionid'),
                     'signature' => $signature,
-                    'basket' => $basket ?? null,
+                    'basket' => $basket ?: null,
                     'action' => $this->Request()->getActionName()
                 ]
             );
@@ -654,7 +654,7 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
     /**
      * @return void
      */
-    private function changePaymentMethod(Order $order, string $gatewayCode)
+    private function changePaymentMethod(Order $order, $gatewayCode)
     {
         $paymentMethodId = Shopware()->Models()->getRepository(Payment::class)
             ->getActivePaymentsQuery(['name' => 'multisafepay_'.$gatewayCode])

@@ -1,4 +1,4 @@
-FROM dockware/play:5.7.6
+FROM dockware/dev:5.7.7
 
 USER root
 
