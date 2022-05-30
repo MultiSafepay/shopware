@@ -60,10 +60,8 @@ class Gateways
         'VISA' => array('code' => 'VISA', 'name' => 'Visa', 'type' => 'redirect'),
         'WALLET' => array('code' => 'WALLET', 'name' => 'Wallet', 'type' => 'redirect'),
 
-        'BABYGIFTCARD' => array('code' => 'BABYGIFTCARD', 'name' => 'Babygiftcard', 'type' => 'redirect'),
         'BEAUTYANDWELLNESS' => array('code' => 'BEAUTYANDWELLNESS', 'name' => 'Beauty and wellness', 'type' => 'redirect'),
         'BOEKENBON' => array('code' => 'BOEKENBON', 'name' => 'Boekenbon', 'type' => 'redirect'),
-        'EROTIEKBON' => array('code' => 'EROTIEKBON', 'name' => 'Erotiekbon', 'type' => 'redirect'),
         'FASHIONCHEQUE' => array('code' => 'FASHIONCHEQUE', 'name' => 'Fashioncheque', 'type' => 'redirect'),
         'FASHIONGIFTCARD' => array('code' => 'FASHIONGIFTCARD', 'name' => 'Fashiongiftcard', 'type' => 'redirect'),
         'FIETSENBON' => array('code' => 'FIETSENBON', 'name' => 'Fietsenbon', 'type' => 'redirect'),
@@ -72,7 +70,6 @@ class Gateways
         'GOOD4FUN' => array('code' => 'GOOD4FUN', 'name' => 'Good4fun Giftcard', 'type' => 'redirect'),
         'GOODCARD' => array('code' => 'GOODCARD', 'name' => 'Goodcard', 'type' => 'redirect'),
         'NATIONALETUINBON' => array('code' => 'NATIONALETUINBON', 'name' => 'Nationale tuinbon', 'type' => 'redirect'),
-        'NATIONALEVERWENCADEAUBON' => array('code' => 'NATIONALEVERWENCADEAUBON', 'name' => 'Nationale verwencadeaubon', 'type' => 'redirect'),
         'PARFUMCADEAUKAART' => array('code' => 'PARFUMCADEAUKAART', 'name' => 'Parfumcadeaukaart', 'type' => 'redirect'),
         'PODIUM' => array('code' => 'PODIUM', 'name' => 'Podium', 'type' => 'redirect'),
         'SPORTENFIT' => array('code' => 'SPORTENFIT', 'name' => 'Sportenfit', 'type' => 'redirect'),

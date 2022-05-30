@@ -36,7 +36,10 @@ use Shopware\Models\Payment\Payment;
 class MltisafeMultiSafepayPayment extends Plugin
 {
     const DELETED_GATEWAYS = [
-        'INGHOME'
+        'INGHOME',
+        'BABYGIFTCARD',
+        'EROTIEKBON',
+        'NATIONALEVERWENCADEAUBON'
     ];
 
     /**
