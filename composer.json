@@ -5,6 +5,9 @@
         "phpro/grumphp": "~1.5.0",
         "multisafepay/coding-standards":"dev-master"
     },
+    "conflict": {
+        "phpstan/phpdoc-parser": "~1.6.0"
+    },
     "config": {
         "allow-plugins": {
             "dealerdirect/phpcodesniffer-composer-installer": true,
