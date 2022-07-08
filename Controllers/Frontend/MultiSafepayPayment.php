@@ -385,19 +385,129 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
     }
 
     /**
-     * @param $sessionId
+     * @param array $hashData
      */
-    private function restoreSession($sessionId)
+    private function restoreSession($hashData)
     {
+        $sessionId = $hashData['sessionId'];
+
+        if ($sessionId == session_id()) {
+            $this->logger->info(
+                'Session Id is the same, no further actions required',
+                [
+                    'TransactionId' => $this->Request()->getParam('transactionid'),
+                    'CurrentSessionId' => isset($_SESSION['Shopware']['sessionId']) ? session_id() : 'session_id_not_found',
+                    'OrderSessionId' => $sessionId,
+                    'Action' => $this->Request()->getActionName()
+                ]
+            );
+            return;
+        }
+        $this->logger->info(
+            'Start session restore',
+            [
+                'TransactionId' => $this->Request()->getParam('transactionid'),
+                'CurrentSessionId' => isset($_SESSION['Shopware']['sessionId']) ? session_id() : 'session_id_not_found',
+                'OrderSessionId' => $sessionId,
+                'Action' => $this->Request()->getActionName()
+            ]
+        );
+
         if (class_exists(\Enlight_Components_Session::class)) {
             \Enlight_Components_Session::writeClose();
             \Enlight_Components_Session::setId($sessionId);
             \Enlight_Components_Session::start();
             return;
         }
-        Shopware()->Session()->save();
-        Shopware()->Session()->setId($sessionId);
-        Shopware()->Session()->start();
+
+        $this->logger->info(
+            'Finding session in database',
+            [
+                'TransactionId' => $this->Request()->getParam('transactionid'),
+                'CurrentSessionId' => isset($_SESSION['Shopware']['sessionId']) ? session_id() : 'session_id_not_found',
+                'OrderSessionId' => $sessionId,
+                'Action' => $this->Request()->getActionName()
+            ]
+        );
+
+
+        $session = Shopware()->Container()->get('db')->fetchRow(
+            'SELECT *
+            FROM s_core_sessions
+            WHERE id = :sessionId',
+            [
+                'sessionId' => $sessionId,
+            ]
+        );
+
+        if ($session) {
+            $this->logger->info(
+                'Session found in database, trying to restore it',
+                [
+                    'TransactionId' => $this->Request()->getParam('transactionid'),
+                    'CurrentSessionId' => isset($_SESSION['Shopware']['sessionId']) ? session_id() : 'session_id_not_found',
+                    'OrderSessionId' => $sessionId,
+                    'DatabaseData' => $session,
+                    'Action' => $this->Request()->getActionName()
+                ]
+            );
+
+            try {
+                Shopware()->Session()->save();
+                session_id($sessionId);
+                $this->logger->info(
+                    'Successfully restored session',
+                    [
+                        'TransactionId' => $this->Request()->getParam('transactionid'),
+                        'CurrentSessionId' => isset($_SESSION['Shopware']['sessionId']) ? session_id() : 'session_id_not_found',
+                        'OrderSessionId' => $sessionId,
+                        'Action' => $this->Request()->getActionName()
+                    ]
+                );
+            } catch (Exception $exception) {
+                $this->logger->warning(
+                    'Could not restore session',
+                    [
+                        'TransactionId' => $this->Request()->getParam('transactionid'),
+                        'CurrentSessionId' => isset($_SESSION['Shopware']['sessionId']) ? session_id() : 'session_id_not_found',
+                        'OrderSessionId' => $sessionId,
+                        'Action' => $this->Request()->getActionName(),
+                        'exception' => $exception->getMessage()
+                    ]
+                );
+            }
+            return;
+        }
+
+        if ($hashData['sessionData']) {
+            $this->logger->info(
+                'Trying to restore session using optin service ',
+                [
+                    'TransactionId' => $this->Request()->getParam('transactionid'),
+                    'CurrentSessionId' => isset($_SESSION['Shopware']['sessionId']) ? session_id() : 'session_id_not_found',
+                    'OrderSessionId' => $sessionId,
+                    'Action' => $this->Request()->getActionName()
+                ]
+            );
+
+            $sessionData = json_decode($hashData['sessionData'], true);
+
+            foreach ($sessionData as $key => $sessionDatum) {
+                if (!Shopware()->Session()->get($key)) {
+                    Shopware()->Session()->offsetSet($key, $sessionDatum);
+                }
+            }
+            return;
+        }
+        $this->logger->warning(
+            'Cannot restore session, no data found in the database',
+            [
+                'TransactionId' => $this->Request()->getParam('transactionid'),
+                'CurrentSessionId' => isset($_SESSION['Shopware']['sessionId']) ? session_id() : 'session_id_not_found',
+                'OrderSessionId' => $sessionId,
+                'Action' => $this->Request()->getActionName()
+            ]
+        );
     }
 
     /**
@@ -523,7 +633,7 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
 
     /**
      * @param $signature
-     * @return bool
+     * @return bool|ArrayObject
      */
     private function getBasketBasedOnSignature($signature)
     {
@@ -536,30 +646,37 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
                 'action' => $this->Request()->getActionName()
             ]
         );
+
+        // To prevent race conditions. if the basket cannot be found. we will NOT set the order to review necessary
         try {
             $basket = $this->loadBasketFromSignature($signature);
-            $this->logger->info(
-                'Successfully loaded the basket',
+        } catch (RuntimeException $runtimeException) {
+            $this->logger->warning(
+                RuntimeException::class . ': Could not verify the signature: ' . $runtimeException->getMessage(),
                 [
+                    'exception' => $runtimeException,
                     'transactionId' => $this->Request()->getParam('transactionid'),
                     'signature' => $signature,
                     'sessionId' => isset($_SESSION['Shopware']['sessionId']) ? session_id() : 'session_id_not_found',
-                    'basket' => $basket,
+                    'basket' => null,
                     'action' => $this->Request()->getActionName()
                 ]
             );
-            $this->verifyBasketSignature($signature, $basket);
+            return true;
+        }
+        $this->logger->info(
+            'Successfully loaded the basket',
+            [
+                'transactionId' => $this->Request()->getParam('transactionid'),
+                'signature' => $signature,
+                'sessionId' => isset($_SESSION['Shopware']['sessionId']) ? session_id() : 'session_id_not_found',
+                'basket' => $basket,
+                'action' => $this->Request()->getActionName()
+            ]
+        );
 
-            $this->logger->info(
-                'Successfully verified the basket',
-                [
-                    'transactionId' => $this->Request()->getParam('transactionid'),
-                    'signature' => $signature,
-                    'sessionId' => isset($_SESSION['Shopware']['sessionId']) ? session_id() : 'session_id_not_found',
-                    'basket' => $basket,
-                    'action' => $this->Request()->getActionName()
-                ]
-            );
+        try {
+            $this->verifyBasketSignature($signature, $basket);
         } catch (RuntimeException $runtimeException) {
             $this->logger->warning(
                 RuntimeException::class .': Could not verify the signature: '. $runtimeException->getMessage(),
@@ -573,19 +690,18 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
                 ]
             );
             return false;
-        } catch (Exception $exception) {
-            $this->logger->error(
-                Exception::class .': Could not verify the signature: '. $exception->getMessage(),
-                [
-                    'exception' => $exception,
-                    'transactionId' => $this->Request()->getParam('transactionid'),
-                    'signature' => $signature,
-                    'basket' => $basket ?: null,
-                    'action' => $this->Request()->getActionName()
-                ]
-            );
-            return false;
         }
+        $this->logger->info(
+            'Successfully verified the basket',
+            [
+                'transactionId' => $this->Request()->getParam('transactionid'),
+                'signature' => $signature,
+                'sessionId' => isset($_SESSION['Shopware']['sessionId']) ? $_SESSION['Shopware']['sessionId'] : 'session_id_not_found',
+                'basket' => $basket,
+                'action' => $this->Request()->getActionName()
+            ]
+        );
+
         return $basket;
     }
 
@@ -633,7 +749,7 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
             return null;
         }
 
-        $this->restoreSession($data['sessionId']);
+        $this->restoreSession($data);
     }
 
     /**
