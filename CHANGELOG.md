@@ -1,3 +1,18 @@
+## 2.9.0
+Release date: Jul 11th, 2022
+
+### Added
++ DAVAMS-478: Add Alipay plus
+
+### Changed
++ PLGSHPS-221: Disable ING Home'Pay on update and install
++ PLGSHPS-179: Disable Babygiftcard, Nationale verwencadeaubon and Erotiekbon on update and install
+
+### Fixed
++ PLGSHPS-200: Potential fix for orders getting the review necessary status while it shouldn't
+
+***
+
 ## 2.8.4
 Release date: Dec 13th, 2021
 
