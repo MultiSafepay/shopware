@@ -50,6 +50,7 @@ class Gateways
         'KLARNA' => array('code' => 'KLARNA', 'name' => 'Klarna - Buy now, pay later', 'type' => 'redirect'),
         'MAESTRO' => array('code' => 'MAESTRO', 'name' => 'Maestro', 'type' => 'redirect'),
         'MASTERCARD' => array('code' => 'MASTERCARD', 'name' => 'MasterCard', 'type' => 'redirect'),
+        'MYBANK' => array('code' => 'MYBANK', 'name' => 'MyBank', 'type' => 'redirect'),
         'PAYAFTER' => array('code' => 'PAYAFTER', 'name' => 'Pay After Delivery', 'type' => 'redirect'),
         'PAYPAL' => array('code' => 'PAYPAL', 'name' => 'PayPal', 'type' => 'direct'),
         'PSAFECARD' => array('code' => 'PSAFECARD', 'name' => 'Paysafecard', 'type' => 'redirect'),
