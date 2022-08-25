@@ -4,42 +4,42 @@
 
 # MultiSafepay plugin for Shopware 5
 
-Easily integrate MultiSafepay payment solutions into your Shopware 5 webshop with the free and completely new MultiSafepay Shopware 5 plugin.
+Easily integrate MultiSafepay payment solutions into your Shopware 5 webshop with our free plugin.
 
-[![Latest Stable Version](https://img.shields.io/github/release/multisafepay/shopware.svg)](https://github.com/MultiSafepay/Shopware)
+[![Latest stable version](https://img.shields.io/github/release/multisafepay/shopware.svg)](https://github.com/MultiSafepay/Shopware)
 
-## About MultiSafepay ##
-MultiSafepay is a collecting payment service provider which means we take care of the agreements, technical details and payment collection required for each payment method. You can start selling online today and manage all your transactions from one place.
-## Supported Payment Methods ##
-The supported Payment Methods & Giftcards for this plugin can be found over here: [Payment Methods & Giftcards](https://docs.multisafepay.com/plugins/shopware/faq/#available-payment-methods-in-shopware)
+## About MultiSafepay 
 
-## Requirements
-- To use the plugin you need a MultiSafepay account. You can create a test account on https://testmerchant.multisafepay.com/signup
-- Shopware version 5.6.x or 5.5.7 and above.
+MultiSafepay is a collecting payment service provider, which means we take care of electronic contracts, technical details, and payment collection for each payment method. You can start selling online today and manage all your transactions in one place.
 
-## Installation
+## Supported payment methods
 
-1. Login in your backend and navigate to Configuration and select Plugin Manager
-2. Search the MultiSafepay plugin and select Download now
-3. Navigate to Configuration and select Payment methods
-4. Navigate to Management and select Installed
-5. Search for the installed MultiSafepay plugin and click on the pencil
-6. Scroll down and look for the field named API key
-7. Enter your API key. Information on how to find your API key, please refer to the [API key page](https://docs.multisafepay.com/tools/multisafepay-control/get-your-api-key/). The other fields can be filled according to your own wishes.
+See MultiSafepay Docs – [Shopware](https://docs.multisafepay.com/docs/shopware) > Payment methods.
 
-For additional information or instructions please see our [installation & configuration manual](https://docs.multisafepay.com/plugins/shopware/manual/)
- 
-## Generic gateway
-We have created a gateway named 'Generic gateway'. You can use this gateway for example for branded gateways.
-In the MultiSafepay settings page in the Shopware backend you can fill in the gateway code that is provided by MultiSafepay. 
-## Support
-You can create issues on our repository. If you need any additional help or support, please contact <a href="mailto:integration@multisafepay.com">integration@multisafepay.com</a>
+## Prerequisites
 
-## A gift for your contribution
-We look forward to receiving your input. Have you seen an opportunity to change things for better? We would like to invite you to create a pull request on GitHub.
-Are you missing something and would like us to fix it? Suggest an improvement by sending us an [email](mailto:integration@multisafepay.com) or by creating an issue.
+- You will need a [MultiSafepay account](https://testmerchant.multisafepay.com/signup). Consider a test account first.
+- Shopware version 5.6.x or 5.5.7 and above
 
-What will you get in return? A brand new designed MultiSafepay t-shirt which will make you part of the team!
+## Installation and configuration
+
+1. Sign in to your Shopware 5 backend.
+2. Go to **Configuration** > **Plugin manager**.
+3. Search for the MultiSafepay plugin and click **Download now**.
+4. Go to **Configuration** > **Plugin manager** > **Installed**.
+5. Search for the installed MultiSafepay plugin and click on the pencil icon.
+6. In the **API key** field, enter your [API key](https://docs.multisafepay.com/docs/sites#site-id-api-key-and-security-code).
+7. Fill out the other fields as required.
+8. Go to **Configuration** and select the required payment methods.
+
+For more information, see MultiSafepay Docs – [Shopware](https://docs.multisafepay.com/docs/shopware).
+
+## Contributors
+
+If you see an opportunity to make an improvement, we invite you to create a pull request, create an issue, or email <integration@multisafepay.com> 
+
+As a thank you for your contribution, we'll send you a MultiSafepay t-shirt, making you part of the team!
 
 ## Want to be part of the team?
-Are you a developer interested in working at MultiSafepay? [View](https://www.multisafepay.com/careers/#jobopenings) our job openings and feel free to get in touch with us.
+
+Are you a developer interested in working at MultiSafepay? Check out our [job openings](https://www.multisafepay.com/careers/#jobopenings) and feel free to get in touch!
