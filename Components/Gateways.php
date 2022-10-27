@@ -26,7 +26,7 @@ namespace MltisafeMultiSafepayPayment\Components;
 class Gateways
 {
     const GATEWAYS = array(
-        'AFTERPAY' => array('code' => 'AFTERPAY', 'name' => 'AfterPay', 'type' => 'redirect'),
+        'AFTERPAY' => array('code' => 'AFTERPAY', 'name' => 'Riverty', 'type' => 'redirect'),
         'ALIPAY' => array('code' => 'ALIPAY', 'name' => 'Alipay', 'type' => 'direct'),
         'ALIPAYPLUS' => array('code' => 'ALIPAYPLUS', 'name' => 'Alipay+ ™ Partner', 'type' => 'direct'),
         'AMAZONBTN' => array('code' => 'AMAZONBTN', 'name' => 'Amazon Pay', 'type' => 'redirect'),
