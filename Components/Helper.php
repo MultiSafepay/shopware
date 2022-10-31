@@ -145,6 +145,11 @@ class Helper
         return self::isValidOrder($order) && $order->getClearedDate() !== null;
     }
 
+    public static function isConsideredPaid($multiSafepayStatus)
+    {
+        return in_array($multiSafepayStatus, ['completed', 'refunded', 'uncleared']);
+    }
+
     /**
      * @param $order
      * @return bool

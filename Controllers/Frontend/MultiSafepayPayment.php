@@ -34,6 +34,7 @@ use Shopware\Models\Payment\Payment;
 
 class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Controllers_Frontend_Payment implements CSRFWhitelistAware
 {
+    const TIMEOUT_ORDER_CREATION = 600;
     const MAX_LOG_FILES = 7;
     private $shopwareConfig;
     private $pluginConfig;
@@ -228,8 +229,6 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
     {
         $this->Front()->Plugins()->ViewRenderer()->setNoRender(true);
         $transactionid = $this->Request()->getParam('transactionid');
-        $hash = $this->Request()->getParam('hash');
-        $this->fillMissingSessionData($hash);
 
         $helper = new Helper();
         $msp = new MspClient();
@@ -242,25 +241,23 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
 
         $msporder = $msp->orders->get($endpoint = 'orders', $transactionid);
         $status = $msporder->status;
+        $createdDate = strtotime($msporder->modified);
+        $timeoutTime = $createdDate + self::TIMEOUT_ORDER_CREATION;
         $signature = $msporder->var1;
 
         $order = Shopware()->Models()->getRepository('Shopware\Models\Order\Order')->findOneBy(['transactionId' => $transactionid]);
 
-        $create_order = false;
         $update_order = false;
         switch ($status) {
             case "initialized":
-                $create_order = false;
                 $update_order = false;
                 break;
             case "expired":
-                $create_order = false;
                 $update_order = true;
                 $payment_status = $helper->getPaymentStatus('expired', $this->shop);
                 break;
             case "cancelled":
             case "void":
-                $create_order = false;
                 $update_order = true;
                 $payment_status = $helper->getPaymentStatus('cancelled', $this->shop);
                 break;
@@ -269,20 +266,16 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
                 $payment_status = $helper->getPaymentStatus('chargedback', $this->shop);
                 break;
             case "completed":
-                if (is_null($order)) {
-                    $create_order = true;
-                } elseif (Helper::orderHasClearedDate($order) === false) {
+                if (Helper::orderHasClearedDate($order) === false) {
                     $update_order = true;
                 }
                 $payment_status = $helper->getPaymentStatus('completed', $this->shop);
                 break;
             case "uncleared":
-                $create_order = true;
                 $update_order = false;
                 $payment_status = $helper->getPaymentStatus('uncleared', $this->shop);
                 break;
             case "declined":
-                $create_order = false;
                 $update_order = true;
                 $payment_status = $helper->getPaymentStatus('declined', $this->shop);
                 break;
@@ -297,7 +290,14 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
                 break;
         }
 
-        if ($create_order) {
+        if (null === $order && Helper::isConsideredPaid($status)) {
+
+            if ($timeoutTime > time()) {
+                return $this->Response()
+                    ->setBody('Order is not yet created')
+                    ->setHttpResponseCode(403);
+            }
+
             $basket = $this->getBasketBasedOnSignature($signature);
             if ($basket) {
                 $this->saveOrder($transactionid, $transactionid, null, true);
@@ -348,31 +348,12 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
 
         $signature = $mspOrder->var1;
 
-        for ($i = 0; $i <= 5; $i++) {
-            $orderExist = false;
-            $order = Shopware()->Models()
-                ->getRepository('Shopware\Models\Order\Order')
-                ->findOneBy(['transactionId' => $transactionId]);
-
-            if (Helper::isValidOrder($order)) {
-                $orderExist = true;
-                break;
-            }
-            sleep(1);
-        }
-
-        if ($orderExist) {
-            $this->redirect(['controller' => 'checkout', 'action' => 'finish', 'sUniqueID' => $this->Request()->transactionid]);
-            return;
-        }
-
-        $basket = $this->getBasketBasedOnSignature($signature);
-
-        if ($basket) {
+        if ($this->getBasketBasedOnSignature($signature)) {
             $this->saveOrder($transactionId, $transactionId, null, true);
-        } elseif (!$orderExist) {
-            $this->saveOrder($transactionId, $transactionId, Status::PAYMENT_STATE_REVIEW_NECESSARY, true);
+            return $this->redirect(['controller' => 'checkout', 'action' => 'finish', 'sUniqueID' => $this->Request()->transactionid]);
         }
+
+        $this->saveOrder($transactionId, $transactionId, Status::PAYMENT_STATE_REVIEW_NECESSARY, true);
         $this->redirect(['controller' => 'checkout', 'action' => 'finish', 'sUniqueID' => $this->Request()->transactionid]);
     }
 
@@ -532,7 +513,7 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
                 "unit_price" => $data['netprice'],
                 "quantity" => $data['quantity'],
                 "merchant_item_id" => $data['ordernumber'],
-                "tax_table_selector" => $taxIncluded ? (string) number_format($rate, 2) : 'BTW0',
+                "tax_table_selector" => $taxIncluded ? (string)number_format($rate, 2) : 'BTW0',
                 "weight" => array(
                     "unit" => $data['additional_details']['sUnit']['unit'],
                     "value" => $data['additional_details']['weight'],
@@ -553,7 +534,7 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
             "unit_price" => $this->getShippingExclTax($basket, $taxIncluded),
             "quantity" => "1",
             "merchant_item_id" => "msp-shipping",
-            "tax_table_selector" => $taxIncluded ? (string) number_format($shipping_rate, 2) : 'BTW0',
+            "tax_table_selector" => $taxIncluded ? (string)number_format($shipping_rate, 2) : 'BTW0',
             "weight" => array(
                 "unit" => "KG",
                 "value" => "0",
@@ -563,12 +544,12 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         //Add alternate tax rates
         foreach ($rates as $rate) {
             $alternateTaxRates['tax_tables']['alternate'][] = array(
-                 "standalone" => "true",
-                 "name" => (string) number_format($rate, 2),
-                 "rules" => array(
-                     array("rate" => $rate / 100)
-                 ),
-             );
+                "standalone" => "true",
+                "name" => (string)number_format($rate, 2),
+                "rules" => array(
+                    array("rate" => $rate / 100)
+                ),
+            );
         }
 
         if (!$taxIncluded) {
@@ -679,7 +660,7 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
             $this->verifyBasketSignature($signature, $basket);
         } catch (RuntimeException $runtimeException) {
             $this->logger->warning(
-                RuntimeException::class .': Could not verify the signature: '. $runtimeException->getMessage(),
+                RuntimeException::class . ': Could not verify the signature: ' . $runtimeException->getMessage(),
                 [
                     'exception' => $runtimeException,
                     'transactionId' => $this->Request()->getParam('transactionid'),
@@ -773,7 +754,7 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
     private function changePaymentMethod(Order $order, $gatewayCode)
     {
         $paymentMethodId = Shopware()->Models()->getRepository(Payment::class)
-            ->getActivePaymentsQuery(['name' => 'multisafepay_'.$gatewayCode])
+            ->getActivePaymentsQuery(['name' => 'multisafepay_' . $gatewayCode])
             ->getResult()[0]['id'];
 
         //If payment method is the same, don't change it
