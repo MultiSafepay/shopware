@@ -22,6 +22,7 @@
  */
 
 use MltisafeMultiSafepayPayment\Components\API\MspClient;
+use MltisafeMultiSafepayPayment\Components\Documents\Invoice;
 use MltisafeMultiSafepayPayment\Components\Gateways;
 use MltisafeMultiSafepayPayment\Components\Helper;
 use Monolog\Handler\RotatingFileHandler;
@@ -245,6 +246,7 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         $timeoutTime = $createdDate + self::TIMEOUT_ORDER_CREATION;
         $signature = $msporder->var1;
 
+        /** @var Order $order */
         $order = Shopware()->Models()->getRepository('Shopware\Models\Order\Order')->findOneBy(['transactionId' => $transactionid]);
 
         $update_order = false;
@@ -311,7 +313,10 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
             $this->savePaymentStatus($transactionid, $transactionid, $payment_status, $helper->isAllowedToSendStatusMail($status, $this->shop));
         }
 
+        $order = Shopware()->Models()->getRepository('Shopware\Models\Order\Order')->findOneBy(['transactionId' => $transactionid]);
+
         if ($status === 'completed' && !Helper::orderHasClearedDate($order)) {
+            $this->generateInvoice($order);
             $this->setClearedDate($transactionid);
         }
 
@@ -766,5 +771,28 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         $order->setPayment($paymentMethod);
         Shopware()->Models()->persist($order);
         Shopware()->Models()->flush($order);
+    }
+
+    private function generateInvoice($order)
+    {
+        if (!$this->pluginConfig['multisafepay_create_invoice']) {
+            return;
+        }
+
+        /** @var \Doctrine\ORM\PersistentCollection $documents */
+        $documents = $order->getDocuments();
+        $invoiceExist = false;
+
+        /** @var \Shopware\Models\Order\Document\Document $document */
+        foreach ($documents as $document) {
+            if ($document->getTypeId() === Invoice::INVOICE_DOCUMENT_TYPE) {
+                $invoiceExist = true;
+            }
+        }
+
+        if (!$invoiceExist) {
+            $invoiceController = $this->container->get('multi_safepay_payment.components.document.invoice');
+            $invoiceController->create($order);
+        }
     }
 }
