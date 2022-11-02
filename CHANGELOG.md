@@ -1,3 +1,23 @@
+# Changelog
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [2.10.0] - 2202-11-02
+### Added
++ DAVAMS-519: Add Amazon Pay
++ DAVAMS-487: Add MyBank payment method
++ PLGSHPS-192: Add automated invoice creation on completed orders
+
+### Changed
++ DAVAMS-545: Update Afterpay to Riverty
+
+### Fixed
++ PLGSHPS-237: Fix billing and shipping address missing on thank-you page
+
+***
+
 ## 2.9.0
 Release date: Jul 11th, 2022
 
