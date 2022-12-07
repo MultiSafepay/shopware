@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.11.0] - 2202-12-07
 ### Added
-+ PLGSHPS-223: Add support for the [PHP-SDK](https://github.com/multiSafepay/php-sdk)
++ PLGSHPS-223: Add support for the [PHP-SDK](https://github.com/MultiSafepay/php-sdk)
 
 ***
 
