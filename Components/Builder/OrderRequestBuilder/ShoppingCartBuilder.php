@@ -50,9 +50,11 @@ class ShoppingCartBuilder implements OrderRequestBuilderInterface
         }
 
         if ($controller->getBasket()['sShippingcosts'] > 0) {
+            $shippingInfo = $controller->get('session')->sOrderVariables->sDispatch;
+
             $cart[] = (new ShippingItem())
-                ->addName(!empty($shipping_info['name']) ? $shipping_info['name'] : 'Shipping')
-                ->addDescription(!empty($shipping_info['description']) ? $shipping_info['description'] : 'Shipping')
+                ->addName(!empty($shippingInfo['name']) ? $shippingInfo['name'] : 'Shipping')
+                ->addDescription(!empty($shippingInfo['description']) ? $shippingInfo['description'] : 'Shipping')
                 ->addQuantity(1)
                 ->addUnitPrice(new Money($controller->getBasket()['sShippingcostsNet'] * 100, $controller->getCurrencyShortName()))
                 ->addTaxRate($chargeVat ? $controller->getBasket()['sShippingcostsTax'] : 0)
