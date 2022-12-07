@@ -19,7 +19,7 @@ See MultiSafepay Docs – [Shopware](https://docs.multisafepay.com/docs/shopware
 ## Prerequisites
 
 - You will need a [MultiSafepay account](https://testmerchant.multisafepay.com/signup). Consider a test account first.
-- Shopware version 5.6.x or 5.5.7 and above
+- Shopware version 5.6.x and above
 
 ## Installation and configuration
 
