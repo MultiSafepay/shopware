@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.11.1] - 2202-12-07
+### Fixed
++ Fix incorrect shipping name being used on payment page
++ Fix incorrect hash being generated on multi-stores
+
+***
+
 ## [2.11.0] - 2202-12-07
 ### Added
 + PLGSHPS-223: Add support for the [PHP-SDK](https://github.com/MultiSafepay/php-sdk)
