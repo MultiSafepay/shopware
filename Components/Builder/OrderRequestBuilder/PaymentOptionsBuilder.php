@@ -48,7 +48,7 @@ class PaymentOptionsBuilder implements OrderRequestBuilderInterface
     {
         /** @var  $optinService \Shopware\Components\OptinService */
         $optinService = $container->get('shopware.components.optin_service');
-        $pluginConfig = $container->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment', $this->shop);
+        $pluginConfig = $container->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment', $container->get('shop'));
 
 
         return $optinService->add(
