@@ -2,7 +2,7 @@
 <ruleset name="Shopware">
     <description>Shopware Code Style Rules</description>
     <exclude-pattern>*/vendor/*</exclude-pattern>
-    <rule ref="./vendor/multisafepay/coding-standards/php56.phpcs.xml">
+    <rule ref="./vendor/multisafepay/coding-standards/php71.phpcs.xml">
         <exclude name="PHPCompatibility.Keywords.ForbiddenNamesAsDeclared.objectFound"/>
         <exclude name="SlevomatCodingStandard.ControlStructures.AssignmentInCondition.AssignmentInCondition"/>
     </rule>

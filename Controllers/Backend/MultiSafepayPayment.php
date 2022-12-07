@@ -1,5 +1,4 @@
-<?php
-
+<?php declare(strict_types=1);
 /**
  *
  * DISCLAIMER
@@ -21,12 +20,19 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-use MltisafeMultiSafepayPayment\Components\API\MspClient;
+use MultiSafepay\Api\Transactions\RefundRequest;
+use MultiSafepay\ValueObject\Money;
 use Shopware\Components\CSRFWhitelistAware;
 use Shopware\Models\Order\Status;
 
 class Shopware_Controllers_Backend_MultiSafepayPayment extends Shopware_Controllers_Backend_ExtJs implements CSRFWhitelistAware
 {
+    /** @var \MltisafeMultiSafepayPayment\Components\Factory\Client */
+    private $client;
+    public function preDispatch()
+    {
+        $this->client = $this->get('multi_safepay_payment.factory.client');
+    }
 
     /**
      * {@inheritdoc}
@@ -49,26 +55,23 @@ class Shopware_Controllers_Backend_MultiSafepayPayment extends Shopware_Controll
         $order = Shopware()->Models()->getRepository('Shopware\Models\Order\Order')->findOneBy(['number' => $orderNumber]);
 
         $pluginConfig = $this->container->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment', $order->getShop());
-        $msp = new MspClient();
-        $msp->setApiKey($pluginConfig['msp_api_key']);
-        if (!$pluginConfig['msp_environment']) {
-            $msp->setApiUrl('https://testapi.multisafepay.com/v1/json/');
-        } else {
-            $msp->setApiUrl('https://api.multisafepay.com/v1/json/');
-        }
 
-        $endpoint = 'orders/' . $transactionId . '/refunds';
-        $refundData = array(
-            "amount" => $order->getInvoiceAmount() * 100,
-            "currency" => $order->getCurrency(),
-            "description" => "Refund: " . $transactionId,
+        $transactionManager = $this->client->getSdk($pluginConfig)->getTransactionManager();
+        $transactionData = $transactionManager->get($transactionId);
+
+        $refundRequest = (new RefundRequest())->addMoney(
+            new Money(
+                $order->getInvoiceAmount() * 100,
+                $order->getCurrency()
+            )
         );
-        $msp->orders->post($refundData, $endpoint);
 
-        if (!empty($msp->orders->result->error_code)) {
+        try {
+            $transactionManager->refund($transactionData, $refundRequest);
+        } catch (Exception $exception) {
             return $this->view->assign([
                 'success' =>  false,
-                'message' => "{$msp->orders->result->error_code} - {$msp->orders->result->error_info}",
+                'message' => $exception->getMessage(),
             ]);
         }
 

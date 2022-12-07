@@ -1,4 +1,4 @@
-FROM dockware/dev:5.7.7
+FROM dockware/play:5.7.11
 
 USER root
 
@@ -12,3 +12,6 @@ RUN { \
 		echo '\tRequestHeader set Host %{HTTP_X_FORWARDED_HOST}e env=HTTP_X_FORWARDED_HOST'; \
         } | tee "/etc/apache2/conf-available/docker-php.conf" \
 	&& a2enconf docker-php && a2enmod headers
+
+WORKDIR /var/www/html/custom/plugins
+RUN git clone https://github.com/shopwareLabs/SwagBackendOrder.git

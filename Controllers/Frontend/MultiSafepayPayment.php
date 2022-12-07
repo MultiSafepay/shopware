@@ -1,5 +1,4 @@
-<?php
-
+<?php declare(strict_types=1);
 /**
  *
  * DISCLAIMER
@@ -21,7 +20,6 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-use MltisafeMultiSafepayPayment\Components\API\MspClient;
 use MltisafeMultiSafepayPayment\Components\Documents\Invoice;
 use MltisafeMultiSafepayPayment\Components\Gateways;
 use MltisafeMultiSafepayPayment\Components\Helper;
@@ -35,13 +33,15 @@ use Shopware\Models\Payment\Payment;
 
 class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Controllers_Frontend_Payment implements CSRFWhitelistAware
 {
-    const TIMEOUT_ORDER_CREATION = 600;
-    const MAX_LOG_FILES = 7;
+    public const TIMEOUT_ORDER_CREATION = 600;
+    public const MAX_LOG_FILES = 7;
     private $shopwareConfig;
     private $pluginConfig;
     private $quoteNumber;
     private $shop;
     private $logger;
+    /** @var \MltisafeMultiSafepayPayment\Components\Factory\Client */
+    private $client;
 
     /**
      * {@inheritdoc}
@@ -52,6 +52,7 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         $this->shopwareConfig = $this->get('config');
         $this->pluginConfig = $this->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment', $this->shop);
         $this->quoteNumber = $this->get('multi_safepay_payment.components.quotenumber');
+        $this->client = $this->get('multi_safepay_payment.factory.client');
 
         $this->logger = new Logger('multisafepay');
         $rotatingFileHandler = new RotatingFileHandler(
@@ -102,125 +103,24 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
      */
     public function gatewayAction()
     {
-        $router = $this->Front()->Router();
-        $userinfo = $this->getUser();
-        $basket = $this->getBasket();
-        $hash = $this->createHashFromSession();
-
-        $msp = new MspClient();
-        $msp->setApiKey($this->pluginConfig['msp_api_key']);
-        if (!$this->pluginConfig['msp_environment']) {
-            $msp->setApiUrl('https://testapi.multisafepay.com/v1/json/');
-        } else {
-            $msp->setApiUrl('https://api.multisafepay.com/v1/json/');
-        }
-
-        $checkoutData = $this->getCheckoutData($basket, $userinfo['additional']['charge_vat']);
-        $shoppingCart = $checkoutData["shopping_cart"];
-        $checkoutData = $checkoutData["checkout_options"];
-
-        list($street, $housenumber) = Helper::parseAddress($userinfo["billingaddress"]["street"], $userinfo["billingaddress"]["additionalAddressLine1"]);
-        list($shipping_street, $shipping_housenumber) = Helper::parseAddress($userinfo["shippingaddress"]["street"], $userinfo["shippingaddress"]["additionalAddressLine1"]);
-
-        $billing_data = array(
-            "locale" => Shopware()->Container()->get('shop')->getLocale()->getLocale(),
-            "ip_address" => Helper::getRemoteIP(),
-            "forwarded_ip" => Helper::getForwardedIP(),
-            "first_name" => $userinfo["billingaddress"]["firstname"],
-            "last_name" => $userinfo["billingaddress"]["lastname"],
-            "address1" => $street,
-            "address2" => $userinfo["billingaddress"]["additionalAddressLine1"],
-            "house_number" => $housenumber,
-            "zip_code" => $userinfo["billingaddress"]["zipcode"],
-            "city" => $userinfo["billingaddress"]["city"],
-            "state" => $userinfo["billingaddress"]["state"],
-            "country" => $userinfo["additional"]["country"]["countryiso"],
-            "phone" => $userinfo["billingaddress"]["phone"],
-            "email" => $userinfo["additional"]["user"]["email"],
-        );
-
-        $delivery_data = array(
-            "first_name" => $userinfo["shippingaddress"]["firstname"],
-            "last_name" => $userinfo["shippingaddress"]["lastname"],
-            "address1" => $shipping_street,
-            "address2" => $userinfo["shippingaddress"]["additionalAddressLine1"],
-            "house_number" => $shipping_housenumber,
-            "zip_code" => $userinfo["shippingaddress"]["zipcode"],
-            "city" => $userinfo["shippingaddress"]["city"],
-            "state" => $userinfo["shippingaddress"]["state"],
-            "country" => $userinfo["additional"]["countryShipping"]["countryiso"],
-            "phone" => $userinfo["shippingaddress"]["phone"],
-            "email" => $userinfo["additional"]["user"]["email"],
-        );
-
-        $order_id = $this->quoteNumber->getNextQuotenumber();
-
-        $items = "<ul>\n";
-        foreach ($basket['content'] as $data) {
-            $items .= "<li>" . ($data['quantity'] * 1) . " x : " . $data['articlename'] . "</li>\n";
-        }
-        $items .= "</ul>\n";
-
-        $paymentOptions = [
-            "notification_url" => $router->assemble(['action' => 'notify', 'forceSecure' => true, 'hash' => $hash]),
-            "redirect_url" => $router->assemble(['action' => 'return', 'forceSecure' => true, 'hash' => $hash]),
-            "cancel_url" => $router->assemble(['action' => 'cancel', 'forceSecure' => true, 'hash' => $hash]),
-            "close_window" => "true",
-        ];
-
-
-        $order_data = array(
-            "type" => Gateways::getGatewayType($this->Request()->payment),
-            "order_id" => $order_id,
-            "currency" => $this->getCurrencyShortName(),
-            "amount" => round($this->getAmount() * 100),
-            "description" => "Order #" . $order_id,
-            "items" => $items,
-            "manual" => "false",
-            "var1" => $this->getSignature(),
-            "gateway" => Gateways::getGatewayCode($this->Request()->payment),
-            "seconds_active" => Helper::getSecondsActive($this->pluginConfig["msp_time_label"], $this->pluginConfig["msp_time_active"]),
-            "payment_options" => $paymentOptions,
-            "customer" => $billing_data,
-            "delivery" => $delivery_data,
-            "plugin" => array(
-                "shop" => "Shopware" . ' ' . $this->shopwareConfig->get('version'),
-                "shop_version" => $this->shopwareConfig->get('version'),
-                "plugin_version" => ' - Plugin ' . Helper::getPluginVersion(),
-                "partner" => "MultiSafepay",
-            ),
-            "gateway_info" => array(
-                "issuer_id" => $this->get('session')->get('ideal_issuer'),
-            ),
-            "shopping_cart" => $shoppingCart,
-            "checkout_options" => $checkoutData,
-        );
-
-        if ($order_data['gateway'] == 'IDEAL' && !$order_data['gateway_info']['issuer_id']) {
-            $order_data['type'] = 'redirect';
-        }
+        /** @var \MltisafeMultiSafepayPayment\Components\Builder\OrderRequestBuilder $orderRequestBuilder */
+        $orderRequestBuilder = $this->get('multi_safepay_payment.builder.order_request_builder');
+        $pluginConfig = $this->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment', $this->shop);
 
         try {
-            $msp->orders->post($order_data);
+            $orderRequest = $orderRequestBuilder->build($this, $this->container, $this->getSignature());
+
+            if (empty($this->get('session')->get('ideal_issuer')) && Gateways::getGatewayCode($this->Request()->payment) === 'IDEAL') {
+                $orderRequest->addType('redirect');
+            }
+
+            $response = $this->client->getSdk($pluginConfig)->getTransactionManager()->create($orderRequest);
         } catch (\Exception $e) {
             $this->redirect(['controller' => 'checkout', 'action' => 'shippingPayment', 'multisafepay_error_message' => $e->getMessage()]);
             return;
         }
 
-        $result = $msp->orders->getResult();
-
-        if (!$result->success) {
-            $message = "There was an error processing your transaction request, please try again with another payment method.<br />";
-            $message .= "Error: " . "{$result->error_code} : {$result->error_info}";
-            $this->redirect([
-                'controller' => 'checkout',
-                'action' => 'shippingPayment',
-                'multisafepay_error_message' => urlencode($message)
-            ]);
-            return;
-        }
-
-        $this->redirect($msp->orders->getPaymentLink());
+        $this->redirect($response->getPaymentUrl());
     }
 
     /**
@@ -230,21 +130,15 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
     {
         $this->Front()->Plugins()->ViewRenderer()->setNoRender(true);
         $transactionid = $this->Request()->getParam('transactionid');
-
+        $pluginConfig = $this->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment', $this->shop);
         $helper = new Helper();
-        $msp = new MspClient();
-        $msp->setApiKey($this->pluginConfig['msp_api_key']);
-        if (!$this->pluginConfig['msp_environment']) {
-            $msp->setApiUrl('https://testapi.multisafepay.com/v1/json/');
-        } else {
-            $msp->setApiUrl('https://api.multisafepay.com/v1/json/');
-        }
 
-        $msporder = $msp->orders->get($endpoint = 'orders', $transactionid);
-        $status = $msporder->status;
-        $createdDate = strtotime($msporder->modified);
+        $transaction = $this->client->getSdk($pluginConfig)->getTransactionManager()->get($transactionid);
+        $status = $transaction->getStatus();
+        $createdDate = strtotime($transaction->getModified());
         $timeoutTime = $createdDate + self::TIMEOUT_ORDER_CREATION;
-        $signature = $msporder->var1;
+        $signature = $transaction->getVar1();
+        $gatewayCode = $transaction->getPaymentDetails()->getType();
 
         /** @var Order $order */
         $order = Shopware()->Models()->getRepository('Shopware\Models\Order\Order')->findOneBy(['transactionId' => $transactionid]);
@@ -293,7 +187,6 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         }
 
         if (null === $order && Helper::isConsideredPaid($status)) {
-
             if ($timeoutTime > time()) {
                 return $this->Response()
                     ->setBody('Order is not yet created')
@@ -321,7 +214,7 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         }
 
         if (Helper::isValidOrder($order)) {
-            $this->changePaymentMethod($order, $msporder->payment_details->type);
+            $this->changePaymentMethod($order, $gatewayCode);
         }
 
         $this->Response()
@@ -335,23 +228,14 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
     public function returnAction()
     {
         $request = $this->Request();
+        $pluginConfig = $this->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment', $this->shop);
         $transactionId = $request->getParam('transactionid');
 
         $hash = $request->getParam('hash');
         $this->fillMissingSessionData($hash);
 
-        // Setup the request
-        $msp = new MspClient();
-        $msp->setApiKey($this->pluginConfig['msp_api_key']);
-        if (!$this->pluginConfig['msp_environment']) {
-            $msp->setApiUrl('https://testapi.multisafepay.com/v1/json/');
-        } else {
-            $msp->setApiUrl('https://api.multisafepay.com/v1/json/');
-        }
-
-        $mspOrder = $msp->orders->get($endpoint = 'orders', $transactionId);
-
-        $signature = $mspOrder->var1;
+        $transaction = $this->client->getSdk($pluginConfig)->getTransactionManager()->get($transactionId);
+        $signature = $transaction->getVar1();
 
         if ($this->getBasketBasedOnSignature($signature)) {
             $this->saveOrder($transactionId, $transactionId, null, true);

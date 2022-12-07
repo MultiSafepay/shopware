@@ -1,12 +1,9 @@
-<?php
-
-
+<?php declare(strict_types=1);
 namespace MltisafeMultiSafepayPayment\Subscriber;
 
 use Enlight\Event\SubscriberInterface;
-use MltisafeMultiSafepayPayment\Components\API\MspClient;
-use MltisafeMultiSafepayPayment\Components\Gateways;
-use MltisafeMultiSafepayPayment\Components\Helper;
+use MltisafeMultiSafepayPayment\Components\Builder\OrderRequestBuilder;
+use MltisafeMultiSafepayPayment\Components\Factory\Client;
 use Shopware\Models\Order\Detail;
 use Shopware\Models\Order\Order;
 use Shopware\Models\Tax\Tax;
@@ -16,15 +13,22 @@ class OrderBackendController implements SubscriberInterface
 {
     public $container;
     public $shopwareConfig;
+    private $client;
+    private $orderRequestBuilder;
 
     /**
      * OrderBackendController constructor.
      * @param ContainerInterface $container
      */
-    public function __construct(ContainerInterface $container)
-    {
+    public function __construct(
+        Client              $client,
+        OrderRequestBuilder $orderRequestBuilder,
+        ContainerInterface  $container
+    ) {
         $this->container = $container;
         $this->shopwareConfig = $this->container->get('config');
+        $this->client = $client;
+        $this->orderRequestBuilder = $orderRequestBuilder;
     }
 
     /**
@@ -57,81 +61,14 @@ class OrderBackendController implements SubscriberInterface
             return;
         }
 
-
-        $pluginConfig = $this->container->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment', $order->getShop());
         $transactionId = $this->container->get('multi_safepay_payment.components.quotenumber')->getNextQuotenumber();
 
         $order->setTransactionId($transactionId);
-
-        list($street, $housenumber) = Helper::parseAddress($order->getBilling()->getStreet(), $order->getBilling()->getAdditionalAddressLine1());
-        list($sStreet, $sHousenumber) = Helper::parseAddress($order->getShipping()->getStreet(), $order->getShipping()->getAdditionalAddressLine1());
-
-        $orderData = [
-            "type" => 'paymentlink',
-            "order_id" => $transactionId,
-            "currency" => $order->getCurrency(),
-            "amount" => round($order->getInvoiceAmount() * 100),
-            "description" => "Order #" . $transactionId,
-            "manual" => "false",
-            "gateway" => Gateways::getGatewayCode(substr($order->getPayment()->getName(), 13)),
-            "seconds_active" => Helper::getSecondsActive($pluginConfig["msp_time_label"], $pluginConfig["msp_time_active"]),
-            "payment_options" => [
-                "notification_url" => Shopware()->Front()->Router()->assemble([
-                    'module' => 'frontend',
-                    'controller' => 'MultiSafepayPayment',
-                    'action' => 'notify',
-                    'forceSecure' => true
-                ]),
-                "close_window" => "true",
-            ],
-            "customer" => [
-                "locale" => $this->container->get('shop')->getLocale()->getLocale(),
-                "first_name" => $order->getBilling()->getFirstName(),
-                "last_name" => $order->getBilling()->getLastName(),
-                "address1" => $street,
-                "address2" => $order->getBilling()->getAdditionalAddressLine2(),
-                "house_number" => $housenumber,
-                "zip_code" => $order->getBilling()->getZipCode(),
-                "city" => $order->getBilling()->getCity(),
-                "state" => $order->getBilling()->getState() ? $order->getBilling()->getState()->getShortCode() : null,
-                "country" => $order->getBilling()->getCountry()->getIso(),
-                "phone" => $order->getBilling()->getPhone(),
-                "email" => $order->getCustomer()->getEmail(),
-            ],
-            "delivery" => [
-                "first_name" => $order->getShipping()->getFirstName(),
-                "last_name" => $order->getShipping()->getLastName(),
-                "address1" => $sStreet,
-                "address2" => $order->getShipping()->getAdditionalAddressLine2(),
-                "house_number" => $sHousenumber,
-                "zip_code" => $order->getShipping()->getZipCode(),
-                "city" => $order->getShipping()->getCity(),
-                "state" => $order->getShipping()->getState() ? $order->getShipping()->getState()->getShortCode() : null,
-                "country" => $order->getShipping()->getCountry()->getIso(),
-                "phone" => $order->getShipping()->getPhone(),
-                "email" => $order->getCustomer()->getEmail(),
-            ],
-            "plugin" => [
-                "shop" => "Shopware" . ' ' . $this->shopwareConfig->get('version'),
-                "shop_version" => $this->shopwareConfig->get('version'),
-                "plugin_version" => ' - Plugin ' . Helper::getPluginVersion(),
-                "partner" => "MultiSafepay",
-            ],
-            "shopping_cart" => $this->getProducts($order),
-            "checkout_options" => $this->getTaxRates($order),
-        ];
-
-
-        $msp = new MspClient();
-        $msp->setApiKey($pluginConfig['msp_api_key']);
-        if (!$pluginConfig['msp_environment']) {
-            $msp->setApiUrl('https://testapi.multisafepay.com/v1/json/');
-        } else {
-            $msp->setApiUrl('https://api.multisafepay.com/v1/json/');
-        }
+        $orderRequest = $this->orderRequestBuilder->buildBackendOrder($order);
+        $pluginConfig = $this->container->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment', $order->getShop());
 
         try {
-            $msp->orders->post($orderData);
+            $response = $this->client->getSdk($pluginConfig)->getTransactionManager()->create($orderRequest);
         } catch (\Exception $e) {
             return;
         }
@@ -147,7 +84,7 @@ class OrderBackendController implements SubscriberInterface
 
 
         $attributes = $this->container->get('shopware_attribute.data_loader')->load('s_order_attributes', $order->getId());
-        $attributes['multisafepay_payment_link'] = $msp->orders->getPaymentLink();
+        $attributes['multisafepay_payment_link'] = $response->getPaymentUrl();
         $this->container->get('shopware_attribute.data_persister')->persist($attributes, 's_order_attributes', $order->getId());
     }
 

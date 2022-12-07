@@ -16,7 +16,7 @@ services:
       # default = 0, recommended to be OFF for frontend devs
       - XDEBUG_ENABLED=1
       # default = latest PHP, optional = specific version
-      - PHP_VERSION=7.4
+      - PHP_VERSION=8.0
     entrypoint: "sh /entrypoint-multisafepay.sh ${APP_SUBDOMAIN} ${EXPOSE_HOST}"
   expose:
     depends_on:

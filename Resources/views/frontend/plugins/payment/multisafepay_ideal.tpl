@@ -6,12 +6,12 @@
             <select id="ideal_issuers_list" name="ideal_issuers">
                 <option selected disabled>{s name="chooseYourBank"}Choose your bank...{/s}</option>
                 {foreach $idealIssuers as $idealIssuer}
-                    <option value="{$idealIssuer->code}"
-                        {if $currentIssuer == $idealIssuer->code}
+                    <option value="{$idealIssuer.code}"
+                        {if $currentIssuer == $idealIssuer.code}
                             selected="selected"
                         {/if}
                     >
-                        {$idealIssuer->description}
+                        {$idealIssuer.description}
                     </option>
                 {/foreach}
             </select>

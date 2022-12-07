@@ -1,5 +1,4 @@
-<?php
-
+<?php declare(strict_types=1);
 /**
  *
  * DISCLAIMER
@@ -33,9 +32,13 @@ use Shopware\Components\Plugin\Context\UninstallContext;
 use Shopware\Components\Plugin\Context\UpdateContext;
 use Shopware\Models\Payment\Payment;
 
+require_once __DIR__ . '/vendor/autoload.php';
+
 class MltisafeMultiSafepayPayment extends Plugin
 {
-    const DELETED_GATEWAYS = [
+    public const PLUGIN_NAME = 'MltisafeMultiSafepayPayment';
+
+    public const DELETED_GATEWAYS = [
         'INGHOME',
         'BABYGIFTCARD',
         'EROTIEKBON',

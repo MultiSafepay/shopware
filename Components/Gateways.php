@@ -1,5 +1,4 @@
-<?php
-
+<?php declare(strict_types=1);
 /**
  *
  * DISCLAIMER
@@ -25,7 +24,7 @@ namespace MltisafeMultiSafepayPayment\Components;
 
 class Gateways
 {
-    const GATEWAYS = array(
+    public const GATEWAYS = array(
         'AFTERPAY' => array('code' => 'AFTERPAY', 'name' => 'Riverty', 'type' => 'redirect'),
         'ALIPAY' => array('code' => 'ALIPAY', 'name' => 'Alipay', 'type' => 'direct'),
         'ALIPAYPLUS' => array('code' => 'ALIPAYPLUS', 'name' => 'Alipay+ ™ Partner', 'type' => 'direct'),

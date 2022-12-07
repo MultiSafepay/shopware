@@ -1,5 +1,4 @@
-<?php
-
+<?php declare(strict_types=1);
 /**
  *
  * DISCLAIMER
@@ -28,7 +27,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 class Quotenumber
 {
-    const DEFAULT_PATTERN  = "%s%'.09d%s";
+    public const DEFAULT_PATTERN  = "%s%'.09d%s";
     /**
      * @var NumberRangeIncrementerInterface
      */

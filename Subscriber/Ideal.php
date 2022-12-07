@@ -1,5 +1,4 @@
-<?php
-
+<?php declare(strict_types=1);
 /**
  *
  * DISCLAIMER
@@ -24,7 +23,8 @@
 namespace MltisafeMultiSafepayPayment\Subscriber;
 
 use Enlight\Event\SubscriberInterface;
-use MltisafeMultiSafepayPayment\Components\API\MspClient;
+use MltisafeMultiSafepayPayment\Components\Factory\Client;
+use MltisafeMultiSafepayPayment\Components\Gateways;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 class Ideal implements SubscriberInterface
@@ -33,13 +33,18 @@ class Ideal implements SubscriberInterface
      * @var ContainerInterface
      */
     private $container;
+    /**
+     * @var Client
+     */
+    private $client;
 
     /**
      * @param ContainerInterface $container
      */
-    public function __construct(ContainerInterface $container)
+    public function __construct(ContainerInterface $container, Client $client)
     {
         $this->container = $container;
+        $this->client = $client;
     }
 
     /**
@@ -60,16 +65,17 @@ class Ideal implements SubscriberInterface
     public function onPostDispatchCheckout(\Enlight_Controller_ActionEventArgs $args)
     {
         if ($args->getRequest()->getControllerName() === 'checkout') {
-            $msp = new MspClient();
             $shop = $this->container->get('shop');
             $pluginConfig = $this->container->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment', $shop);
-            $msp->setApiKey($pluginConfig['msp_api_key']);
-            if (!$pluginConfig['msp_environment']) {
-                $msp->setApiUrl('https://testapi.multisafepay.com/v1/json/');
-            } else {
-                $msp->setApiUrl('https://api.multisafepay.com/v1/json/');
+
+            $privateIssuers = $this->client->getSdk($pluginConfig)->getIssuerManager()->getIssuersByGatewayCode(Gateways::GATEWAYS['IDEAL']['code']);
+            $issuers = [];
+            foreach ($privateIssuers as $issuer) {
+                $issuers[] = [
+                    'code' => $issuer->getCode(),
+                    'description' => $issuer->getDescription()
+                ];
             }
-            $issuers = $msp->issuers->get();
 
             $view = $args->getSubject()->View();
             $view->assign('currentIssuer', $this->container->get('session')->get('ideal_issuer'));

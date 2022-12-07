@@ -26,38 +26,31 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php_version: ['7.2', '7.3']
-        shopware_version: ['5.5', '5.6']
+        php_version: [ '7.4' ]
+        shopware_version: [ '5.6' ]
     name: Integration test - Php version ${{ matrix.php_version }} with Shopware ${{ matrix.shopware_version }}
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v1
       - name: Install php
         uses: shivammathur/setup-php@master
         with:
           php-version: ${{ matrix.php_version }}
-      - name: Checkout code
-        uses: actions/checkout@v1
-      - name: Download Shopware
-        run: git clone -b ${{ matrix.shopware_version }} --depth=1 https://github.com/shopware/shopware.git /tmp/shopware
-      - name: Download shopware dependencies
-        working-directory: /tmp/shopware
-        run: composer install --prefer-dist
+          tools: composer
+          coverage: none
       - name: Install Shopware
-        working-directory: /tmp/shopware/build
         run: |
-          mv build.properties.dist build.properties
-          ant write-properties -Dapp.host=shopware.docker  -Ddb.name=shopware -Ddb.host=127.0.0.1 -Ddb.user=root -Ddb.password=password -Ddb.port=${{ job.services.mysql.ports['3306'] }}
-          ant build-unit
+          git clone -b ${{ matrix.shopware_version }} --depth=1 https://github.com/shopware/shopware.git /tmp/shopware
+          cd /tmp/shopware
+          php psh.phar init --DB_HOST="127.0.0.1" --DB_USER="root" --DB_PASSWORD="password" --DB_PORT=${{ job.services.mysql.ports['3306'] }}
       - name: Install MultiSafepay Plugin
         run: |
           mkdir -p /tmp/shopware/custom/plugins/MltisafeMultiSafepayPayment
           mv * /tmp/shopware/custom/plugins/MltisafeMultiSafepayPayment
+          cd /tmp/shopware/custom/plugins/MltisafeMultiSafepayPayment
+          composer install --no-dev
           cd /tmp/shopware
-          bin/console sw:plugin:refresh
-          bin/console sw:plugin:install MltisafeMultiSafepayPayment
-          bin/console sw:plugin:activate MltisafeMultiSafepayPayment --clear-cache
-          bin/console sw:plugin:refresh
-          bin/console sw:generate:attributes
-          bin/console orm:generate:proxies
+          php /tmp/shopware/bin/console sw:plugin:install --clear-cache --activate MltisafeMultiSafepayPayment
       - name: Run PHPunit
         working-directory: /tmp/shopware/custom/plugins/MltisafeMultiSafepayPayment
         run: ../../../vendor/bin/phpunit --coverage-clover=coverage.xml -c phpunit.xml.dist

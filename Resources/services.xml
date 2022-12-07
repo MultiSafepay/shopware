@@ -3,7 +3,10 @@
 <container xmlns="http://symfony.com/schema/dic/services"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
     <imports>
+        <import resource="services/factory.xml"/>
+        <import resource="services/builder.xml"/>
         <import resource="services/components.xml"/>
     </imports>
     <services>
@@ -17,6 +20,7 @@
         <service id="multi_safepay_payment.subscriber.ideal" class="MltisafeMultiSafepayPayment\Subscriber\Ideal"
                  public="true">
             <argument type="service" id="service_container"/>
+            <argument type="service" id="multi_safepay_payment.factory.client"/>
             <tag name="shopware.event_subscriber"/>
         </service>
 
@@ -30,9 +34,12 @@
         <service id="multi_safepay_payment.subscriber.order_history_subscriber"
                  public="true"
                  class="MltisafeMultiSafepayPayment\Subscriber\OrderHistorySubscriber">
+            <argument type="service" id="multi_safepay_payment.factory.client"/>
             <tag name="doctrine.event_subscriber"/>
         </service>
         <service id="multi_safepay_payment.subscriber.order_backend_controller" class="MltisafeMultiSafepayPayment\Subscriber\OrderBackendController">
+            <argument type="service" id="multi_safepay_payment.factory.client"/>
+            <argument type="service" id="multi_safepay_payment.builder.order_request_builder"/>
             <argument type="service" id="service_container"/>
             <tag name="shopware.event_subscriber"/>
         </service>

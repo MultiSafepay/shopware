@@ -19,43 +19,29 @@
  * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-namespace MltisafeMultiSafepayPayment\Components\Documents;
+namespace MltisafeMultiSafepayPayment\Components\Builder\OrderRequestBuilder;
 
+use MultiSafepay\Api\Transactions\OrderRequest;
+use MultiSafepay\Api\Transactions\OrderRequest\Arguments\Description;
 use Shopware\Models\Order\Order;
-use Shopware_Components_Document;
 
-class Invoice
+class DescriptionBuilder implements OrderRequestBuilderInterface
 {
-    public const INVOICE_DOCUMENT_TYPE = 1;
-
-    public function create(Order $order)
+    public function build(OrderRequest $orderRequest, $controller, $container): OrderRequest
     {
-        $documentId = self::INVOICE_DOCUMENT_TYPE;
-        $orderId = $order->getId();
-        $orderDocument = Shopware_Components_Document::initDocument(
-            $orderId,
-            $documentId,
-            $this->getDocumentOptions($order)
+        return $orderRequest->addDescription(
+            (new Description())->addDescription(
+                'Payment for order #' . $orderRequest->getOrderId()
+            )
         );
-
-        $orderDocument->render();
     }
 
-    private function getDocumentOptions(Order $order)
+    public function buildBackendOrder(OrderRequest $orderRequest, Order $order): OrderRequest
     {
-        return [
-            'netto' => false,
-            'bid' => '',
-            'voucher' => null,
-            'date' => $order->getOrderTime()->format('d.m.Y'),
-            'delivery_date' => null,
-            'shippingCostsAsPosition' => true,
-            '_renderer' => 'pdf',
-            '_preview' => false,
-            '_previewForcePagebreak' => null,
-            '_previewSample' => null,
-            'docComment' => '',
-            'forceTaxCheck' => false,
-        ];
+        return $orderRequest->addDescription(
+            (new Description())->addDescription(
+                'Payment for order #' . $order->getId()
+            )
+        );
     }
 }

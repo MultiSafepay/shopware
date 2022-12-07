@@ -1,17 +1,21 @@
-<?php
-
-
+<?php declare(strict_types=1);
 namespace MltisafeMultiSafepayPayment\Subscriber;
 
 use Doctrine\Common\EventSubscriber;
 use Doctrine\ORM\Event\PreUpdateEventArgs;
 use Doctrine\ORM\Events;
-use MltisafeMultiSafepayPayment\Components\API\MspClient;
+use MltisafeMultiSafepayPayment\Components\Factory\Client;
+use MultiSafepay\Api\Transactions\UpdateRequest;
 use Shopware\Models\Order\Order;
 use Shopware\Models\Order\Status;
 
 class OrderHistorySubscriber implements EventSubscriber
 {
+    private $client;
+    public function __construct(Client $client)
+    {
+        $this->client = $client;
+    }
 
     /**
      * @return array
@@ -43,24 +47,17 @@ class OrderHistorySubscriber implements EventSubscriber
         }
 
         $pluginConfig = Shopware()->Container()->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment', $order->getShop());
-        $msp = new MspClient();
-        $msp->setApiKey($pluginConfig['msp_api_key']);
-        if (!$pluginConfig['msp_environment']) {
-            $msp->setApiUrl('https://testapi.multisafepay.com/v1/json/');
-        } else {
-            $msp->setApiUrl('https://api.multisafepay.com/v1/json/');
-        }
 
-        $msp->orders->patch(
-            array(
-                "tracktrace_code" => $order->getTrackingCode(),
-                "carrier" => "",
-                "ship_date" => date('Y-m-d H:i:s'),
-                "reason" => 'Shipped'
-            ),
-            'orders/' . $order->getTransactionId()
+        $this->client->getSdk($pluginConfig)->getTransactionManager()->update(
+            $order->getTransactionId(),
+            (new UpdateRequest())->addStatus('shipped')->addData([
+                [
+                    "tracktrace_code" => $order->getTrackingCode(),
+                    "carrier" => "",
+                    "ship_date" => date('Y-m-d H:i:s'),
+                    "reason" => 'Shipped'
+                ],
+            ])
         );
-
-        $msp->orders->getResult()->success;
     }
 }

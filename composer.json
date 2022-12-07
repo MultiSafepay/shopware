@@ -1,12 +1,14 @@
 {
     "name": "multisafepay/shopware",
-    "require": {},
-    "require-dev": {
-        "phpro/grumphp": "~1.5.0",
-        "multisafepay/coding-standards":"dev-master"
+    "require": {
+        "ext-json": "*",
+        "multisafepay/php-sdk": "^5.4",
+        "kriswallsmith/buzz" : "^1.2",
+        "nyholm/psr7": "^1.1"
     },
-    "conflict": {
-        "phpstan/phpdoc-parser": "~1.6.0"
+    "require-dev": {
+        "phpro/grumphp": "~1.5.0 || v0.19.1",
+        "multisafepay/coding-standards":"dev-master"
     },
     "config": {
         "allow-plugins": {
