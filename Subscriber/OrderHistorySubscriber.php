@@ -12,9 +12,10 @@ use Shopware\Models\Order\Status;
 class OrderHistorySubscriber implements EventSubscriber
 {
     private $client;
-    public function __construct(Client $client)
+
+    public function __construct()
     {
-        $this->client = $client;
+        $this->client = Shopware()->Container()->get('multi_safepay_payment.factory.client');
     }
 
     /**
@@ -51,12 +52,10 @@ class OrderHistorySubscriber implements EventSubscriber
         $this->client->getSdk($pluginConfig)->getTransactionManager()->update(
             $order->getTransactionId(),
             (new UpdateRequest())->addStatus('shipped')->addData([
-                [
-                    "tracktrace_code" => $order->getTrackingCode(),
-                    "carrier" => "",
-                    "ship_date" => date('Y-m-d H:i:s'),
-                    "reason" => 'Shipped'
-                ],
+                "tracktrace_code" => $order->getTrackingCode(),
+                "carrier" => "",
+                "ship_date" => date('Y-m-d H:i:s'),
+                "reason" => 'Shipped'
             ])
         );
     }
