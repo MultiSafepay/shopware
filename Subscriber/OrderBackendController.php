@@ -50,6 +50,7 @@ class OrderBackendController implements SubscriberInterface
     public function onGetBackendController(\Enlight_Event_EventArgs $args)
     {
         // Only when event is triggered from SwagBackendOrder
+        // @phpstan-ignore-next-line */
         if (!$args->getSubject() instanceof \Shopware_Controllers_Backend_SwagBackendOrder) {
             return;
         }
