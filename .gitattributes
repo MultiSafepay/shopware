@@ -8,4 +8,5 @@
 /docker/ export-ignore
 /docker-compose.yml export-ignore
 /Makefile export-ignore
-/env.example export-ignore
+/.env.example export-ignore
+/bin/ export-ignore
