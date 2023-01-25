@@ -44,9 +44,14 @@ class ShoppingCartBuilder implements OrderRequestBuilderInterface
                 ->addUnitPrice(new Money($item['netprice'] * 100, $controller->getCurrencyShortName()))
                 ->addQuantity($item['quantity'])
                 ->addMerchantItemId($item['ordernumber'])
-                ->addWeight((new Weight($item['additional_details']['sUnit']['unit'], $item['additional_details']['weight'])))
                 ->addTaxRate($chargeVat ? (float) $item['tax_rate'] : 0)
                 ->addTaxTableSelector($chargeVat ? $item['tax_rate'] : 0);
+
+            if ($item['additional_details']['sUnit']['unit'] !== null) {
+                /** @var CartItem $lastItem */
+                $lastItem = end($cart);
+                $lastItem->addWeight(new Weight($item['additional_details']['sUnit']['unit'], $item['additional_details']['weight']));
+            }
         }
 
         if ($controller->getBasket()['sShippingcosts'] > 0) {
