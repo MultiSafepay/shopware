@@ -1,54 +1,55 @@
 <?php declare(strict_types=1);
 namespace MltisafeMultiSafepayPayment\Subscriber;
 
-use Doctrine\Common\EventSubscriber;
-use Doctrine\ORM\Event\PreUpdateEventArgs;
-use Doctrine\ORM\Events;
+use Enlight\Event\SubscriberInterface;
+use Enlight_Event_EventArgs;
 use MltisafeMultiSafepayPayment\Components\Factory\Client;
 use MultiSafepay\Api\Transactions\UpdateRequest;
 use Shopware\Models\Order\Order;
 use Shopware\Models\Order\Status;
 
-class OrderHistorySubscriber implements EventSubscriber
+class OrderHistorySubscriber implements SubscriberInterface
 {
     private $client;
 
-    public function __construct()
+    public function __construct(Client $client)
     {
-        $this->client = Shopware()->Container()->get('multi_safepay_payment.factory.client');
+        $this->client = $client;
     }
 
     /**
      * @return array
      */
-    public function getSubscribedEvents()
+    public static function getSubscribedEvents()
     {
-        return [Events::preUpdate];
+        return ['Shopware\Models\Order\Order::postUpdate' => 'onOrderUpdate'];
     }
 
     /**
      * If the order is getting updated. check if it is changed to Shipped. If so, update the status at MultiSafepay
-     *
-     * @param PreUpdateEventArgs $eventArgs
-     * @throws \Exception
      */
-    public function preUpdate(PreUpdateEventArgs $eventArgs)
+    public function onOrderUpdate(Enlight_Event_EventArgs $eventArgs)
     {
-        $order = $eventArgs->getEntity();
+        /** @var Order $order */
+        $order = $eventArgs->get('entity');
 
-        if (!($order instanceof Order) || !$eventArgs->hasChangedField('orderStatus')) {
+        if ($order === null) {
             return;
         }
 
-        /** @var Status $newStatus */
-        $newStatus = $eventArgs->getNewValue('orderStatus');
+        // Check what has been changed
+        $changeSet = $eventArgs->get('entityManager')->getUnitOfWork()->getEntityChangeSet($order);
 
-        if (Status::ORDER_STATE_COMPLETELY_DELIVERED !== $newStatus->getId()) {
+        // Check if there are changes in the orderStatus
+        if (!isset($changeSet['orderStatus'])) {
+            return;
+        }
+
+        if (Status::ORDER_STATE_COMPLETELY_DELIVERED !== $order->getOrderStatus()->getId()) {
             return;
         }
 
         $pluginConfig = Shopware()->Container()->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment', $order->getShop());
-
         $this->client->getSdk($pluginConfig)->getTransactionManager()->update(
             $order->getTransactionId(),
             (new UpdateRequest())->addStatus('shipped')->addData([
