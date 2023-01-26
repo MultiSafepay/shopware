@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.11.3] - 2023-01-26
+### Changed
++ PLGSHPS-248: Listen to Shopware\Models\Order\Order::postUpdate instead of Events::preUpdate for sending shipped requests
++ PLGSHPS-247: Add scheduleClearCache function on update
+
+### Fixed
++ PLGSHPS-246: Fix PHP error when weight is null
+
+***
+
 ## [2.11.2] - 2023-01-12
 ### Fixed
 + PLGSHPS-244: Fix 500 error on update
