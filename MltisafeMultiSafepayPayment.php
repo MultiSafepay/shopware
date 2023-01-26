@@ -180,6 +180,7 @@ class MltisafeMultiSafepayPayment extends Plugin
     {
         $this->updateAttributes($context);
         $this->updateGateways($context);
+        $context->scheduleClearCache(UpdateContext::CACHE_LIST_ALL);
         parent::update($context);
     }
 
