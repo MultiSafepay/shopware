@@ -5,7 +5,7 @@
     <label lang="en">MultiSafepay</label>
     <label lang="de">MultiSafepay</label>
 
-    <version>2.11.2</version>
+    <version>2.11.3</version>
     <copyright>(c) MultiSafepay</copyright>
     <license>proprietary</license>
     <link>https://www.multisafepay.com</link>
@@ -25,6 +25,20 @@
         ]]>
     </description>
 
+    <changelog version="2.11.3">
+        <changes lang="en"><![CDATA[
+                PLGSHPS-246: Fix PHP error when weight is null
+                PLGSHPS-248: Listen to Shopware\Models\Order\Order::postUpdate instead of Events::preUpdate for sending shipped requests
+                PLGSHPS-247: Add scheduleClearCache function on update
+            ]]>
+        </changes>
+        <changes lang="de"><![CDATA[
+                PLGSHPS-246: Fix PHP error when weight is null
+                PLGSHPS-248: Listen to Shopware\Models\Order\Order::postUpdate instead of Events::preUpdate for sending shipped requests
+                PLGSHPS-247: Add scheduleClearCache function on update
+            ]]>
+        </changes>
+    </changelog>
     <changelog version="2.11.2">
         <changes lang="en"><![CDATA[
                 PLGSHPS-244: Fix 500 error on update
