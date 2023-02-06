@@ -31,11 +31,15 @@
             <argument type="service" id="session"/>
             <tag name="shopware.event_subscriber"/>
         </service>
+        <service id="multi_safepay_payment.subscriber.order_update_subscriber"
+                 public="true"
+                 class="MltisafeMultiSafepayPayment\Subscriber\OrderUpdateSubscriber">
+            <tag name="shopware.event_subscriber"/>
+        </service>
         <service id="multi_safepay_payment.subscriber.order_history_subscriber"
                  public="true"
                  class="MltisafeMultiSafepayPayment\Subscriber\OrderHistorySubscriber">
-            <argument type="service" id="multi_safepay_payment.factory.client"/>
-            <tag name="shopware.event_subscriber"/>
+            <tag name="doctrine.event_subscriber"/>
         </service>
         <service id="multi_safepay_payment.subscriber.order_backend_controller" class="MltisafeMultiSafepayPayment\Subscriber\OrderBackendController">
             <argument type="service" id="multi_safepay_payment.factory.client"/>
