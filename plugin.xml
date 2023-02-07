@@ -5,7 +5,7 @@
     <label lang="en">MultiSafepay</label>
     <label lang="de">MultiSafepay</label>
 
-    <version>2.11.3</version>
+    <version>2.11.4</version>
     <copyright>(c) MultiSafepay</copyright>
     <license>proprietary</license>
     <link>https://www.multisafepay.com</link>
@@ -25,6 +25,16 @@
         ]]>
     </description>
 
+    <changelog version="2.11.4">
+        <changes lang="en"><![CDATA[
+                PLGSHPS-249: Move shippingRequest to OrderUpdateSubscriber and create empty file OrderHistorySubscriber to fix error on update
+            ]]>
+        </changes>
+        <changes lang="de"><![CDATA[
+                PLGSHPS-249: Move shippingRequest to OrderUpdateSubscriber and create empty file OrderHistorySubscriber to fix error on update
+            ]]>
+        </changes>
+    </changelog>
     <changelog version="2.11.3">
         <changes lang="en"><![CDATA[
                 PLGSHPS-246: Fix PHP error when weight is null

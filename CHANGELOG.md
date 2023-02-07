@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.11.4] - 2023-02-07
+### Changed
++ PLGSHPS-249: Move shippingRequest to OrderUpdateSubscriber and create empty file OrderHistorySubscriber to fix error on update
+
+***
+
 ## [2.11.3] - 2023-01-26
 ### Changed
 + PLGSHPS-248: Listen to Shopware\Models\Order\Order::postUpdate instead of Events::preUpdate for sending shipped requests
