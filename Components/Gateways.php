@@ -52,6 +52,7 @@ class Gateways
         'MASTERCARD' => array('code' => 'MASTERCARD', 'name' => 'MasterCard', 'type' => 'redirect'),
         'MYBANK' => array('code' => 'MYBANK', 'name' => 'MyBank', 'type' => 'redirect'),
         'PAYAFTER' => array('code' => 'PAYAFTER', 'name' => 'Pay After Delivery', 'type' => 'redirect'),
+        'BNPL_INSTM' => array('code' => 'BNPL_INSTM', 'name' => 'Pay After Delivery Installments', 'type' => 'redirect'),
         'PAYPAL' => array('code' => 'PAYPAL', 'name' => 'PayPal', 'type' => 'direct'),
         'PSAFECARD' => array('code' => 'PSAFECARD', 'name' => 'Paysafecard', 'type' => 'redirect'),
         'SANTANDER' => array('code' => 'SANTANDER', 'name' => 'Betaal per Maand', 'type' => 'redirect'),
