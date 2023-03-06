@@ -40,7 +40,7 @@ class ShoppingCartBuilder implements OrderRequestBuilderInterface
         foreach ($controller->getBasket()['content'] as $item) {
             $cart[] = (new CartItem())
                 ->addName($item['articlename'])
-                ->addDescription($item['additional_details']['description'])
+                ->addDescription($item['additional_details']['description'] ?? '')
                 ->addUnitPrice(new Money($item['netprice'] * 100, $controller->getCurrencyShortName()))
                 ->addQuantity($item['quantity'])
                 ->addMerchantItemId($item['ordernumber'])
