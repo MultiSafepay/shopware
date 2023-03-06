@@ -45,7 +45,7 @@ class ShoppingCartBuilder implements OrderRequestBuilderInterface
                 ->addQuantity($item['quantity'])
                 ->addMerchantItemId($item['ordernumber'])
                 ->addTaxRate($chargeVat ? (float) $item['tax_rate'] : 0)
-                ->addTaxTableSelector($chargeVat ? $item['tax_rate'] : 0);
+                ->addTaxTableSelector($chargeVat ? (string)$item['tax_rate'] : '0');
 
             if ($item['additional_details']['sUnit']['unit'] !== null) {
                 /** @var CartItem $lastItem */
@@ -63,7 +63,7 @@ class ShoppingCartBuilder implements OrderRequestBuilderInterface
                 ->addQuantity(1)
                 ->addUnitPrice(new Money($controller->getBasket()['sShippingcostsNet'] * 100, $controller->getCurrencyShortName()))
                 ->addTaxRate($chargeVat ? $controller->getBasket()['sShippingcostsTax'] : 0)
-                ->addTaxTableSelector($chargeVat ? (string)$controller->getBasket()['sShippingcostsTax'] : "0");
+                ->addTaxTableSelector($chargeVat ? (string)$controller->getBasket()['sShippingcostsTax'] : '0');
         }
 
         return $orderRequest->addShoppingCart((new ShoppingCart($cart)));
@@ -84,7 +84,7 @@ class ShoppingCartBuilder implements OrderRequestBuilderInterface
                 ->addQuantity($product->getQuantity())
                 ->addMerchantItemId((string)$product->getId())
                 ->addTaxRate($product->getTaxRate() ? (float) $product->getTaxRate() : 0)
-                ->addTaxTableSelector($product->getTaxRate() ? (string)$product->getTaxRate() : (string)0);
+                ->addTaxTableSelector($product->getTaxRate() ? (string)$product->getTaxRate() : '0');
         }
 
         $cart[] = (new ShippingItem())
