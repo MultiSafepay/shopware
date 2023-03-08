@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.11.5] - 2023-03-08
+### Added
++ DAVAMS-579: Add Pay After Delivery Installments
+
+### Changed
++ DAVAMS-589: Rebrand Pay After Delivery logo
+
+### Fixed
++ PLGSHPS-251: Fix error when description is missing
++ PLGSHPS-252: Fix error when VAT is 0
+
+***
+
 ## [2.11.4] - 2023-02-07
 ### Changed
 + PLGSHPS-249: Move shippingRequest to OrderUpdateSubscriber and create empty file OrderHistorySubscriber to fix error on update
