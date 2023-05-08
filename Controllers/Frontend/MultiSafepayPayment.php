@@ -1,30 +1,10 @@
 <?php declare(strict_types=1);
-/**
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade the MultiSafepay plugin
- * to newer versions in the future. If you wish to customize the plugin for your
- * needs please document your changes and make backups before you update.
- *
- * @category    MultiSafepay
- * @package     Connect
- * @author      MultiSafepay <techsupport@multisafepay.com>
- * @copyright   Copyright (c) 2019 MultiSafepay, Inc. (https://www.multisafepay.com)
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
- * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
- * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
-
 use MltisafeMultiSafepayPayment\Components\Documents\Invoice;
 use MltisafeMultiSafepayPayment\Components\Gateways;
 use MltisafeMultiSafepayPayment\Components\Helper;
 use Monolog\Handler\RotatingFileHandler;
 use Monolog\Logger;
+use MultiSafepay\Api\Transactions\TransactionResponse;
 use Shopware\Components\CSRFWhitelistAware;
 use Shopware\Components\OptinServiceInterface;
 use Shopware\Models\Order\Order;
@@ -133,7 +113,23 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         $pluginConfig = $this->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment', $this->shop);
         $helper = new Helper();
 
-        $transaction = $this->client->getSdk($pluginConfig)->getTransactionManager()->get($transactionid);
+        if ('POST' === $this->Request()->getMethod()) {
+            $request = $this->Request();
+
+            if (!\MultiSafepay\Util\Notification::verifyNotification(
+                $request->getContent(),
+                $_SERVER['HTTP_AUTH'],
+                $pluginConfig['msp_api_key']
+            )) {
+                return $this->Response()
+                    ->setBody('NG')
+                    ->setHttpResponseCode(403);
+            }
+            $transaction = new TransactionResponse(json_decode($request->getContent(), true), $request->getContent());
+        } else {
+            $transaction = $this->client->getSdk($pluginConfig)->getTransactionManager()->get($transactionid);
+        }
+
         $status = $transaction->getStatus();
         $createdDate = strtotime($transaction->getModified());
         $timeoutTime = $createdDate + self::TIMEOUT_ORDER_CREATION;

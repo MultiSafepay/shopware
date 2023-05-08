@@ -38,8 +38,7 @@ class PaymentOptionsBuilder implements OrderRequestBuilderInterface
 
         $paymentOptions->addCancelUrl($router->assemble(['action' => 'cancel', 'forceSecure' => true, 'hash' => $hash]))
             ->addNotificationUrl($router->assemble(['action' => 'notify', 'forceSecure' => true, 'hash' => $hash]))
-            ->addRedirectUrl($router->assemble(['action' => 'return', 'forceSecure' => true, 'hash' => $hash]))
-            ->addNotificationMethod('GET');
+            ->addRedirectUrl($router->assemble(['action' => 'return', 'forceSecure' => true, 'hash' => $hash]));
 
         return $orderRequest->addPaymentOptions($paymentOptions);
     }
@@ -65,7 +64,6 @@ class PaymentOptionsBuilder implements OrderRequestBuilderInterface
     {
         return $orderRequest->addPaymentOptions(
             (new PaymentOptions())
-                ->addNotificationMethod('GET')
                 ->addNotificationUrl(Shopware()->Front()->Router()->assemble([
                     'module' => 'frontend',
                     'controller' => 'MultiSafepayPayment',
