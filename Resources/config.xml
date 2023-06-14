@@ -40,6 +40,28 @@
             </store>
         </element>
 
+        <element type="select" scope="shop">
+            <name>multisafepay_order_creation</name>
+            <label lang="en">When should the order be created</label>
+            <value>1</value>
+            <store>
+                <option>
+                    <value>1</value>
+                    <label lang="en">Order created after order completion (default)</label>
+                </option>
+                <option>
+                    <value>2</value>
+                    <label lang="en">Order created before order completion</label>
+                </option>
+            </store>
+        </element>
+
+        <element required="false" type="boolean" scope="shop">
+            <name>msp_reset_stock</name>
+            <label lang="en">Reset stock when order is cancelled</label>
+            <value>false</value>
+        </element>
+
         <element required="false" type="text" scope="shop">
             <name>msp_quote_prefix</name>
             <label lang="en">Quote number prefix</label>

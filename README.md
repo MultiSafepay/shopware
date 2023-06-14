@@ -34,6 +34,17 @@ See MultiSafepay Docs – [Shopware](https://docs.multisafepay.com/docs/shopware
 
 For more information, see MultiSafepay Docs – [Shopware](https://docs.multisafepay.com/docs/shopware).
 
+### Order flows
+Since version 2.12.0, we have added support for multiple payment flows within our Shopware 5 plugin. Each one comes with it's pros and cons.
+
+#### After flow (default)
+The preferred method, but can cause some inconsistencies with the order creation due to session handling and [Second Chance](https://docs.multisafepay.com/docs/second-chance).
+
+#### Before flow
+Currently, the flow with the least order inconsistency, but has some drawbacks to analytics. This includes for example:
+
+* The abandoned cart analytics won't be correctly displayed
+
 ## Contributors
 
 If you see an opportunity to make an improvement, we invite you to create a pull request, create an issue, or email <integration@multisafepay.com>

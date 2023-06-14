@@ -8,6 +8,7 @@
         <import resource="services/factory.xml"/>
         <import resource="services/builder.xml"/>
         <import resource="services/components.xml"/>
+        <import resource="services/services.xml"/>
     </imports>
     <services>
         <service id="multi_safepay_payment.subscriber.frontend"

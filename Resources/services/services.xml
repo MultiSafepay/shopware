@@ -1,0 +1,18 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+    <services>
+        <service id="multisafepay.service.basket_restore_service" class="MltisafeMultiSafepayPayment\Service\BasketRestoreService" public="true">
+            <argument type="service" id="service_container"/>
+        </service>
+        <service id="multisafepay.service.order_service" class="MltisafeMultiSafepayPayment\Service\OrderService" public="true">
+            <argument type="service" id="models"/>
+            <argument type="service" id="service_container"/>
+        </service>
+        <service id="multisafepay.service.stock_service" class="MltisafeMultiSafepayPayment\Service\StockService" public="true">
+            <argument type="service" id="models"/>
+        </service>
+    </services>
+</container>

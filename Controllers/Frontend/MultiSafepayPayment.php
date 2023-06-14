@@ -1,4 +1,24 @@
 <?php declare(strict_types=1);
+/**
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade the MultiSafepay plugin
+ * to newer versions in the future. If you wish to customize the plugin for your
+ * needs please document your changes and make backups before you update.
+ *
+ * @category    MultiSafepay
+ * @package     Shopware
+ * @author      MultiSafepay <integration@multisafepay.com>
+ * @copyright   Copyright (c) MultiSafepay, Inc. (https://www.multisafepay.com)
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 use MltisafeMultiSafepayPayment\Components\Documents\Invoice;
 use MltisafeMultiSafepayPayment\Components\Gateways;
 use MltisafeMultiSafepayPayment\Components\Helper;
@@ -22,6 +42,9 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
     private $logger;
     /** @var \MltisafeMultiSafepayPayment\Components\Factory\Client */
     private $client;
+
+    private const MULTISAFEPAY_CREATE_ORDER_AFTER = 1;
+    private const MULTISAFEPAY_CREATE_ORDER_BEFORE = 2;
 
     /**
      * {@inheritdoc}
@@ -95,6 +118,10 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
             }
 
             $response = $this->client->getSdk($pluginConfig)->getTransactionManager()->create($orderRequest);
+
+            if ($pluginConfig['multisafepay_order_creation'] == self::MULTISAFEPAY_CREATE_ORDER_BEFORE) {
+                $this->saveOrder($response->getOrderId(), $response->getOrderId(), null, null);
+            }
         } catch (\Exception $e) {
             $this->redirect(['controller' => 'checkout', 'action' => 'shippingPayment', 'multisafepay_error_message' => $e->getMessage()]);
             return;
@@ -209,7 +236,7 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
             $this->setClearedDate($transactionid);
         }
 
-        if (Helper::isValidOrder($order)) {
+        if (Helper::isValidOrder($order) && !empty($gatewayCode)) {
             $this->changePaymentMethod($order, $gatewayCode);
         }
 
@@ -231,8 +258,14 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         $this->fillMissingSessionData($hash);
 
         $transaction = $this->client->getSdk($pluginConfig)->getTransactionManager()->get($transactionId);
-        $signature = $transaction->getVar1();
+        $order = Shopware()->Models()->getRepository('Shopware\Models\Order\Order')->findOneBy(['transactionId' => $transactionId]);
 
+        if ($order instanceof Order) {
+            $this->redirect(['controller' => 'checkout', 'action' => 'finish', 'sUniqueID' => $this->Request()->transactionid]);
+            return;
+        }
+
+        $signature = $transaction->getVar1();
         if ($this->getBasketBasedOnSignature($signature)) {
             $this->saveOrder($transactionId, $transactionId, null, true);
             return $this->redirect(['controller' => 'checkout', 'action' => 'finish', 'sUniqueID' => $this->Request()->transactionid]);
@@ -247,6 +280,20 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
      */
     public function cancelAction()
     {
+        $request = $this->Request();
+        $transactionId = $request->getParam('transactionid');
+
+        $order = Shopware()->Models()->getRepository('Shopware\Models\Order\Order')->findOneBy(['transactionId' => $transactionId]);
+
+        if ($order instanceof Order) {
+            $pluginConfig = $this->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment', $this->shop);
+            $this->container->get('multisafepay.service.basket_restore_service')->restoreBasketByOrder($order);
+            $this->container->get('multisafepay.service.order_service')->cancelOrder($order);
+
+            if ($pluginConfig['msp_reset_stock']) {
+                $this->container->get('multisafepay.service.stock_service')->restoreStockByOrder($order);
+            }
+        }
         $this->redirect(['controller' => 'checkout']);
     }
 

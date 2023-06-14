@@ -19,14 +19,34 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-namespace MltisafeMultiSafepayPayment\Components\Builder\OrderRequestBuilder;
+namespace MltisafeMultiSafepayPayment\Service;
 
-use MultiSafepay\Api\Transactions\OrderRequest;
+use Shopware\Components\Model\ModelManager;
 use Shopware\Models\Order\Order;
+use Shopware\Models\Order\Status;
 
-interface OrderRequestBuilderInterface
+class OrderService
 {
-    public function build(OrderRequest $orderRequest, $controller, $container): OrderRequest;
+    private $container;
+    private $em;
+    public function __construct(ModelManager $modelManager, $container)
+    {
+        $this->em = $modelManager;
+        $this->container = $container;
+    }
 
-    public function buildBackendOrder(OrderRequest $orderRequest, Order $order): OrderRequest;
+    public function cancelOrder(Order $order)
+    {
+        /** @var Status $statusCanceled */
+        $statusCanceled = $this->container->get('models')
+            ->getRepository(Status::class)
+            ->find(Status::PAYMENT_STATE_THE_PROCESS_HAS_BEEN_CANCELLED);
+
+        // Move the order to the cancelled status
+        $order->setPaymentStatus($statusCanceled);
+
+        // save order status
+        $this->em->persist($order);
+        $this->em->flush();
+    }
 }

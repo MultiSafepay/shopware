@@ -1,6 +1,5 @@
 <?php declare(strict_types=1);
 /**
- *
  * DISCLAIMER
  *
  * Do not edit or add to this file if you wish to upgrade the MultiSafepay plugin
@@ -8,9 +7,9 @@
  * needs please document your changes and make backups before you update.
  *
  * @category    MultiSafepay
- * @package     Connect
- * @author      MultiSafepay <techsupport@multisafepay.com>
- * @copyright   Copyright (c) 2018 MultiSafepay, Inc. (http://www.multisafepay.com)
+ * @package     Shopware
+ * @author      MultiSafepay <integration@multisafepay.com>
+ * @copyright   Copyright (c) MultiSafepay, Inc. (https://www.multisafepay.com)
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR

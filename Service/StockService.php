@@ -19,43 +19,44 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-namespace MltisafeMultiSafepayPayment\Components\Documents;
+namespace MltisafeMultiSafepayPayment\Service;
 
+use Shopware\Components\Model\ModelManager;
+use Shopware\Models\Order\Detail;
 use Shopware\Models\Order\Order;
-use Shopware_Components_Document;
 
-class Invoice
+class StockService
 {
-    public const INVOICE_DOCUMENT_TYPE = 1;
+    private $em;
 
-    public function create(Order $order)
+    public function __construct(ModelManager $modelManager)
     {
-        $documentId = self::INVOICE_DOCUMENT_TYPE;
-        $orderId = $order->getId();
-        $orderDocument = Shopware_Components_Document::initDocument(
-            $orderId,
-            $documentId,
-            $this->getDocumentOptions($order)
-        );
-
-        $orderDocument->render();
+        $this->em = $modelManager;
     }
 
-    private function getDocumentOptions(Order $order)
+    public function restoreStockByOrder(Order $order)
     {
-        return [
-            'netto' => false,
-            'bid' => '',
-            'voucher' => null,
-            'date' => $order->getOrderTime()->format('d.m.Y'),
-            'delivery_date' => null,
-            'shippingCostsAsPosition' => true,
-            '_renderer' => 'pdf',
-            '_preview' => false,
-            '_previewForcePagebreak' => null,
-            '_previewSample' => null,
-            'docComment' => '',
-            'forceTaxCheck' => false,
-        ];
+        foreach ($order->getDetails() as $detail) {
+            $this->restoreStockByDetails($detail);
+        }
+    }
+
+    public function restoreStockByDetails(Detail $detail)
+    {
+        $detail->setQuantity(0);
+
+        $this->em->persist($detail);
+        $this->em->flush($detail);
+
+        $articleDetailRepo = $this->em->getRepository('Shopware\Models\Article\Detail');
+
+        /** @var \Shopware\Models\Article\Detail $article */
+        $article = $articleDetailRepo->findOneBy(
+            ['number' => $detail->getArticleNumber()]
+        );
+
+        $article->setInStock($article->getInStock());
+        $this->em->persist($article);
+        $this->em->flush($article);
     }
 }
