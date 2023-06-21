@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.12.0] - 2023-06-21
+### Added
++ PLGSHPS-254: Add an option to switch the order flow for creating orders
++ PLGSHPS-125: Add POST notification support
+
+
 ## [2.11.5] - 2023-03-08
 ### Added
 + DAVAMS-579: Add Pay After Delivery Installments
