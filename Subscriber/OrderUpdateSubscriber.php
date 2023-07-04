@@ -64,14 +64,18 @@ class OrderUpdateSubscriber implements SubscriberInterface
         }
 
         $pluginConfig = Shopware()->Container()->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment', $order->getShop());
-        $client->getSdk($pluginConfig)->getTransactionManager()->update(
-            $order->getTransactionId(),
-            (new UpdateRequest())->addStatus('shipped')->addData([
-                "tracktrace_code" => $order->getTrackingCode(),
-                "carrier" => "",
-                "ship_date" => date('Y-m-d H:i:s'),
-                "reason" => 'Shipped'
-            ])
-        );
+        try {
+            $client->getSdk($pluginConfig)->getTransactionManager()->update(
+                $order->getTransactionId(),
+                (new UpdateRequest())->addStatus('shipped')->addData([
+                    "tracktrace_code" => $order->getTrackingCode(),
+                    "carrier" => "",
+                    "ship_date" => date('Y-m-d H:i:s'),
+                    "reason" => 'Shipped'
+                ])
+            );
+        } catch (\Exception $exception) {
+            Shopware()->Container()->get('pluginlogger')->error('Error while trying to send shipping request to MultiSafepay: '.$exception->getMessage(), ['transactionId' => $order->getTransactionId()]);
+        }
     }
 }
