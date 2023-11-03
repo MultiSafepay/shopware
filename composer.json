@@ -10,6 +10,10 @@
         "phpro/grumphp": "~1.5.0 || v0.19.1",
         "multisafepay/coding-standards":"dev-master"
     },
+    "scripts": {
+        "phpcs": "@php vendor/bin/phpcs --standard=phpcs.ruleset.xml -n -v .",
+        "phpcbf": "@php vendor/bin/phpcbf --standard=phpcs.ruleset.xml -n -v ."
+    },
     "config": {
         "allow-plugins": {
             "dealerdirect/phpcodesniffer-composer-installer": true,

@@ -12,3 +12,11 @@ update-host:
 install:
 	docker-compose exec --user=www-data app php bin/console sw:plugin:refresh
 	docker-compose exec --user=www-data app php bin/console sw:plugin:install --clear-cache --activate MltisafeMultiSafepayPayment
+
+.PHONY: phpcs
+phpcs:
+	docker-compose exec --user=www-data --workdir /var/www/html/custom/plugins/MltisafeMultiSafepayPayment app composer run-script phpcs
+
+.PHONY: phpcbf
+phpcbf:
+	docker-compose exec --user=www-data --workdir /var/www/html/custom/plugins/MltisafeMultiSafepayPayment app composer run-script phpcbf
