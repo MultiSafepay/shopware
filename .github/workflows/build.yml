@@ -40,7 +40,7 @@ jobs:
           coverage: none
       - name: Install Shopware
         run: |
-          git clone -b ${{ matrix.shopware_version }} --depth=1 https://github.com/shopware/shopware.git /tmp/shopware
+          git clone -b ${{ matrix.shopware_version }} --depth=1 https://github.com/shopware5/shopware.git /tmp/shopware
           cd /tmp/shopware
           php psh.phar init --DB_HOST="127.0.0.1" --DB_USER="root" --DB_PASSWORD="password" --DB_PORT=${{ job.services.mysql.ports['3306'] }}
       - name: Install MultiSafepay Plugin
