@@ -10,8 +10,8 @@ update-host:
 
 .PHONY: install
 install:
-	docker-compose exec --user=www-data app php bin/console sw:plugin:refresh
-	docker-compose exec --user=www-data app php bin/console sw:plugin:install --clear-cache --activate MltisafeMultiSafepayPayment
+	docker-compose exec --user=www-data app php /var/www/html/bin/console sw:plugin:refresh
+	docker-compose exec --user=www-data app php /var/www/html/bin/console sw:plugin:install --clear-cache --activate MltisafeMultiSafepayPayment
 
 .PHONY: phpcs
 phpcs:
