@@ -41,7 +41,8 @@ class MltisafeMultiSafepayPayment extends Plugin
         'INGHOME',
         'BABYGIFTCARD',
         'EROTIEKBON',
-        'NATIONALEVERWENCADEAUBON'
+        'NATIONALEVERWENCADEAUBON',
+        'SANTANDER'
     ];
 
     /**

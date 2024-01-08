@@ -26,8 +26,7 @@ Ext.define('Shopware.apps.Order.view.list.MultiSafepayList', {
                         || record.raw.payment.name === "multisafepay_EINVOICE"
                         || record.raw.payment.name === "multisafepay_IN3"
                         || record.raw.payment.name === "multisafepay_KLARNA"
-                        || record.raw.payment.name === "multisafepay_PAYAFTER"
-                        || record.raw.payment.name === "multisafepay_SANTANDER")) {
+                        || record.raw.payment.name === "multisafepay_PAYAFTER")) {
                     return 'x-hidden';
                 }
                 return '';

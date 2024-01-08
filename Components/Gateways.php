@@ -54,7 +54,6 @@ class Gateways
         'BNPL_INSTM' => array('code' => 'BNPL_INSTM', 'name' => 'Pay After Delivery Installments', 'type' => 'redirect'),
         'PAYPAL' => array('code' => 'PAYPAL', 'name' => 'PayPal', 'type' => 'direct'),
         'PSAFECARD' => array('code' => 'PSAFECARD', 'name' => 'Paysafecard', 'type' => 'redirect'),
-        'SANTANDER' => array('code' => 'SANTANDER', 'name' => 'Betaal per Maand', 'type' => 'redirect'),
         'DIRECTBANK' => array('code' => 'DIRECTBANK', 'name' => 'SOFORT Banking', 'type' => 'redirect'),
         'TRUSTLY' => array('code' => 'TRUSTLY', 'name' => 'Trustly', 'type' => 'direct'),
         'TRUSTPAY' => array('code' => 'TRUSTPAY', 'name' => 'Trustpay', 'type' => 'redirect'),
