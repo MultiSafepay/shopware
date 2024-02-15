@@ -4,7 +4,7 @@
  *
  * Do not edit or add to this file if you wish to upgrade the MultiSafepay plugin
  * to newer versions in the future. If you wish to customize the plugin for your
- * needs please document your changes and make backups before you update.
+ * needs, please document your changes and make backups before you update.
  *
  * @category    MultiSafepay
  * @package     Shopware
@@ -30,12 +30,27 @@ use MultiSafepay\ValueObject\Weight;
 use Shopware\Models\Order\Detail;
 use Shopware\Models\Order\Order;
 
+/**
+ * Class ShoppingCartBuilder
+ *
+ * @package MltisafeMultiSafepayPayment\Components\Builder\OrderRequestBuilder
+ */
 class ShoppingCartBuilder implements OrderRequestBuilderInterface
 {
+    /**
+     * Build the order request
+     *
+     * @param OrderRequest $orderRequest
+     * @param $controller
+     * @param $container
+     *
+     * @return OrderRequest
+     */
     public function build(OrderRequest $orderRequest, $controller, $container): OrderRequest
     {
         $user = $controller->getUser();
         $chargeVat = $user['additional']['charge_vat'];
+        $cart = [];
 
         foreach ($controller->getBasket()['content'] as $item) {
             $cart[] = (new CartItem())
@@ -69,6 +84,13 @@ class ShoppingCartBuilder implements OrderRequestBuilderInterface
         return $orderRequest->addShoppingCart((new ShoppingCart($cart)));
     }
 
+    /**
+     * Build the order request from the backend
+     *
+     * @param OrderRequest $orderRequest
+     * @param Order $order
+     * @return OrderRequest
+     */
     public function buildBackendOrder(OrderRequest $orderRequest, Order $order): OrderRequest
     {
         $products = Shopware()->Models()->getRepository(Detail::class)->findBy(['order' => $order]);

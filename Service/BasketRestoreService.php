@@ -4,7 +4,7 @@
  *
  * Do not edit or add to this file if you wish to upgrade the MultiSafepay plugin
  * to newer versions in the future. If you wish to customize the plugin for your
- * needs please document your changes and make backups before you update.
+ * needs, please document your changes and make backups before you update.
  *
  * @category    MultiSafepay
  * @package     Shopware
@@ -21,20 +21,52 @@
 
 namespace MltisafeMultiSafepayPayment\Service;
 
+use Enlight_Event_Exception;
+use Enlight_Exception;
+use sBasket;
 use Shopware\Bundle\OrderBundle\Service\CalculationServiceInterface;
 use Shopware\Models\Order\Order;
+use Zend_Db_Adapter_Exception;
 
+/**
+ * Class BasketRestoreService
+ *
+ * @package MltisafeMultiSafepayPayment\Service
+ */
 class BasketRestoreService
 {
+    /**
+     * @var object|sBasket|null
+     */
     private $basket;
+
+    /**
+     * @var string
+     */
     private $shopwareVersion;
+
+    /**
+     * BasketRestoreService constructor
+     *
+     * @param $container
+     */
     public function __construct($container)
     {
         $this->shopwareVersion = $container->getParameter('shopware.release.version');
         $this->basket = Shopware()->Modules()->Basket();
     }
 
-    public function restoreBasketByOrder(Order $order)
+    /**
+     * Restore the basket by order
+     *
+     * @param Order $order
+     *
+     * @return void
+     * @throws Enlight_Event_Exception
+     * @throws Enlight_Exception
+     * @throws Zend_Db_Adapter_Exception
+     */
+    public function restoreBasketByOrder(Order $order): void
     {
         // Get the order articles
         $orderDetails = $order->getDetails();
@@ -57,7 +89,7 @@ class BasketRestoreService
             $order->calculateInvoiceAmount();
         }
 
-        // refresh the basket
+        // Refresh the basket
         $this->basket->sRefreshBasket();
     }
 }

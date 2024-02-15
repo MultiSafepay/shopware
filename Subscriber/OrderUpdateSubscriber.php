@@ -4,7 +4,7 @@
  *
  * Do not edit or add to this file if you wish to upgrade the MultiSafepay plugin
  * to newer versions in the future. If you wish to customize the plugin for your
- * needs please document your changes and make backups before you update.
+ * needs, please document your changes and make backups before you update.
  *
  * @category    MultiSafepay
  * @package     Shopware
@@ -23,36 +23,55 @@ namespace MltisafeMultiSafepayPayment\Subscriber;
 
 use Enlight\Event\SubscriberInterface;
 use Enlight_Event_EventArgs;
+use MltisafeMultiSafepayPayment\Service\CachedConfigService;
+use MltisafeMultiSafepayPayment\Service\LoggerService;
 use MultiSafepay\Api\Transactions\UpdateRequest;
+use MultiSafepay\Exception\ApiException;
 use Shopware\Models\Order\Order;
 use Shopware\Models\Order\Status;
 
+/**
+ * Class OrderUpdateSubscriber
+ *
+ * @package MltisafeMultiSafepayPayment\Subscriber
+ */
 class OrderUpdateSubscriber implements SubscriberInterface
 {
     /**
+     * Get subscribed events
+     *
      * @return array
      */
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
-        return ['Shopware\Models\Order\Order::postUpdate' => 'onOrderUpdate'];
+        return [
+            'Shopware\Models\Order\Order::postUpdate' => 'onOrderUpdate'
+        ];
     }
 
     /**
-     * If the order is getting updated. check if it is changed to Shipped. If so, update the status at MultiSafepay
+     * If the order is getting updated, check if it is changed to ship.
+     * If so, update the status at MultiSafepay
+     *
+     * @param Enlight_Event_EventArgs $eventArgs
+     * @return void
      */
-    public function onOrderUpdate(Enlight_Event_EventArgs $eventArgs)
+    public function onOrderUpdate(Enlight_Event_EventArgs $eventArgs): void
     {
+        $container = Shopware()->Container();
+
         /** @var Order $order */
         $order = $eventArgs->get('entity');
-
-        if ($order === null) {
+        if (is_null($order)) {
             return;
         }
 
-        $client = Shopware()->Container()->get('multi_safepay_payment.factory.client');
-
         // Check what has been changed
-        $changeSet = $eventArgs->get('entityManager')->getUnitOfWork()->getEntityChangeSet($order);
+        $entityManager = $eventArgs->get('entityManager');
+        if (is_null($entityManager)) {
+            return;
+        }
+        $changeSet = $entityManager->getUnitOfWork()->getEntityChangeSet($order);
 
         // Check if there are changes in the orderStatus
         if (!isset($changeSet['orderStatus'])) {
@@ -63,19 +82,53 @@ class OrderUpdateSubscriber implements SubscriberInterface
             return;
         }
 
-        $pluginConfig = Shopware()->Container()->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment', $order->getShop());
-        try {
-            $client->getSdk($pluginConfig)->getTransactionManager()->update(
-                $order->getTransactionId(),
-                (new UpdateRequest())->addStatus('shipped')->addData([
-                    "tracktrace_code" => $order->getTrackingCode(),
-                    "carrier" => "",
-                    "ship_date" => date('Y-m-d H:i:s'),
-                    "reason" => 'Shipped'
-                ])
+        // Retrieve the factory.client component
+        $client = $container->get('multisafepay.factory.client');
+        if (is_null($client)) {
+            return;
+        }
+
+        // Retrieve the cached_config_reader component
+        [$cachedConfigReader, $shop] = (new CachedConfigService($container))->selectConfigReader();
+        if (is_null($cachedConfigReader)) {
+            (new LoggerService($container))->addLog(
+                LoggerService::WARNING,
+                'Could not load plugin configuration',
+                [
+                    'TransactionId' => $order->getTransactionId(),
+                    'CurrentSessionId' => isset($_SESSION['Shopware']['sessionId']) ? session_id() : 'session_id_not_found',
+                    'Action' => 'postUpdate'
+                ]
             );
-        } catch (\Exception $exception) {
-            Shopware()->Container()->get('pluginlogger')->error('Error while trying to send shipping request to MultiSafepay: '.$exception->getMessage(), ['transactionId' => $order->getTransactionId()]);
+            return;
+        }
+        $pluginConfig = $cachedConfigReader->getByPluginName('MltisafeMultiSafepayPayment', $shop);
+
+        try {
+            $clientSdk = $client->getSdk($pluginConfig);
+            $transactionManager = $clientSdk->getTransactionManager();
+
+            $updateData = [
+                'tracktrace_code' => $order->getTrackingCode() ?? '',
+                'carrier' => '',
+                'ship_date' => date('Y-m-d H:i:s'),
+                'reason' => 'Shipped'
+            ];
+            $updateRequest = (new UpdateRequest())->addStatus('shipped')->addData($updateData);
+            $transactionManager->update(
+                $order->getTransactionId(),
+                $updateRequest
+            );
+        } catch (ApiException $apiException) {
+            (new LoggerService($container))->addLog(
+                LoggerService::ERROR,
+                'Error while trying to send shipping request to MultiSafepay',
+                [
+                    'TransactionId' => $order->getTransactionId(),
+                    'CurrentSessionId' => isset($_SESSION['Shopware']['sessionId']) ? session_id() : 'session_id_not_found',
+                    'Exception' => $apiException->getMessage()
+                ]
+            );
         }
     }
 }

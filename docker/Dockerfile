@@ -1,6 +1,17 @@
-FROM dockware/play:5.7.11
+FROM dockware/dev:5.7.11
 
 USER root
+
+# Update package lists, install locales, generate en_US.UTF-8 locale
+RUN apt-get update && \
+    apt-get install -y locales && \
+    locale-gen en_US.UTF-8 && \
+    rm -rf /var/lib/apt/lists/*
+
+# Set locale as default
+ENV LANG=en_US.UTF-8 \
+    LANGUAGE=en_US:en \
+    LC_ALL=en_US.UTF-8
 
 COPY docker/entrypoint.sh /entrypoint-multisafepay.sh
 

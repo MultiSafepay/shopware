@@ -1,7 +1,0 @@
-grumphp:
-  git_hook_variables:
-    EXEC_GRUMPHP_COMMAND: 'docker-compose exec -T --workdir /var/www/html/custom/plugins/MltisafeMultiSafepayPayment/ app'
-  hooks_dir: ~
-  tasks:
-    phpcs:
-      standard: phpcs.ruleset.xml

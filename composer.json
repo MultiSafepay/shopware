@@ -4,10 +4,10 @@
         "ext-json": "*",
         "multisafepay/php-sdk": "^5.4",
         "kriswallsmith/buzz" : "^1.2",
-        "nyholm/psr7": "^1.1"
+        "nyholm/psr7": "^1.1",
+        "symfony/options-resolver": "~4.4.30"
     },
     "require-dev": {
-        "phpro/grumphp": "~1.5.0 || v0.19.1",
         "multisafepay/coding-standards":"dev-master"
     },
     "scripts": {

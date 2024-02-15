@@ -4,7 +4,7 @@
  *
  * Do not edit or add to this file if you wish to upgrade the MultiSafepay plugin
  * to newer versions in the future. If you wish to customize the plugin for your
- * needs please document your changes and make backups before you update.
+ * needs, please document your changes and make backups before you update.
  *
  * @category    MultiSafepay
  * @package     Shopware
@@ -21,8 +21,15 @@
 
 namespace MltisafeMultiSafepayPayment;
 
-use MltisafeMultiSafepayPayment\Components\Gateways;
-use Shopware\Bundle\AttributeBundle\Service\TypeMapping;
+use Enlight_Controller_Action;
+use Enlight_Event_EventArgs;
+use Exception;
+use MltisafeMultiSafepayPayment\Service\LoggerService;
+use MltisafeMultiSafepayPayment\Service\PaymentMethodsService;
+use MltisafeMultiSafepayPayment\Subscriber\PaymentMethodsInstaller;
+use Psr\Http\Client\ClientExceptionInterface;
+use RuntimeException;
+use Shopware\Bundle\AttributeBundle\Service\TypeMappingInterface;
 use Shopware\Components\Plugin;
 use Shopware\Components\Plugin\Context\ActivateContext;
 use Shopware\Components\Plugin\Context\DeactivateContext;
@@ -33,11 +40,19 @@ use Shopware\Models\Payment\Payment;
 
 require_once __DIR__ . '/vendor/autoload.php';
 
+/**
+ * Class MltisafeMultiSafepayPayment
+ *
+ * @package MltisafeMultiSafepayPayment
+ */
 class MltisafeMultiSafepayPayment extends Plugin
 {
-    public const PLUGIN_NAME = 'MltisafeMultiSafepayPayment';
-
-    public const DELETED_GATEWAYS = [
+    /**
+     * Deleted payment methods
+     *
+     * @var array
+     */
+    public const DELETED_PAYMENT_METHODS = [
         'INGHOME',
         'BABYGIFTCARD',
         'EROTIEKBON',
@@ -46,276 +61,359 @@ class MltisafeMultiSafepayPayment extends Plugin
     ];
 
     /**
+     * Get subscribed events
+     *
      * @return array
      */
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         return [
-            'Enlight_Controller_Action_PostDispatchSecure_Backend_Order' => 'onOrderPostDispatch',
+            'Enlight_Controller_Action_PostDispatchSecure_Backend_Order' => 'onOrderPostDispatch'
         ];
     }
 
     /**
-     * @param \Enlight_Event_EventArgs $args
+     * On order post-dispatch
+     *
+     * @param Enlight_Event_EventArgs $args
      */
-    public function onOrderPostDispatch(\Enlight_Event_EventArgs $args)
+    public function onOrderPostDispatch(Enlight_Event_EventArgs $args): void
     {
-        /** @var \Enlight_Controller_Action $controller */
+        /** @var Enlight_Controller_Action $controller */
         $controller = $args->getSubject();
         $view = $controller->View();
         $request = $controller->Request();
 
         $view->addTemplateDir(__DIR__ . '/Resources/views');
-        if ($request->getActionName() == 'load') {
+        if ((string)$request->getActionName() === 'load') {
             $view->extendsTemplate('backend/order/view/list/multisafepay_list.js');
             $view->extendsTemplate('backend/order/controller/multisafepay_list.js');
         }
     }
 
     /**
+     * Install plugin
+     *
      * @param InstallContext $context
      */
-    public function install(InstallContext $context)
+    public function install(InstallContext $context): void
     {
         $this->installAttributes();
-        $this->installGateways($context);
         $this->installMultiSafepayQuoteNumber();
     }
 
     /**
-     * @param InstallContext $context
+     * Install payment methods
+     *
+     * @param ActivateContext $context
+     * @throws Exception|ClientExceptionInterface
      */
-    private function installGateways(InstallContext $context)
+    private function installPaymentMethods(ActivateContext $context): void
     {
-        $installer = $this->container->get('shopware.plugin_payment_installer');
+        $configReader = $this->container->get('shopware.plugin.config_reader');
+        $pluginConfig = $configReader ? $configReader->getByPluginName('MltisafeMultiSafepayPayment', null) : null;
 
-        foreach (Gateways::GATEWAYS as $gateway) {
-            /** @var Payment $payment */
-            $payment = $installer->createOrUpdate($context->getPlugin(), $this->getGatewayOptions($gateway));
-            $this->setMinAndMaxAmounts($payment->getId(), $gateway);
+        if (empty($pluginConfig['msp_api_key'])) {
+            throw new RuntimeException('Please fill in the API Key in the MultiSafepay settings, and save it.');
         }
+        $paymentMethodInstaller = new PaymentMethodsInstaller($this->container);
+        $paymentMethodInstaller->installPaymentMethodsWithoutShop();
     }
 
     /**
-     * @param $paymentMethodId
-     * @param array $gateway
-     */
-    private function setMinAndMaxAmounts($paymentMethodId, array $gateway)
-    {
-        if (!empty($gateway['max']) || !empty($gateway['min'])) {
-            $attributes = $this->container->get('shopware_attribute.data_loader')->load('s_core_paymentmeans_attributes', $paymentMethodId);
-            $attributes['msp_min_amount'] = $gateway['min'] ?: 0;
-            $attributes['msp_max_amount'] = $gateway['max'] ?: 0;
-            $this->container
-                ->get('shopware_attribute.data_persister')
-                ->persist($attributes, 's_core_paymentmeans_attributes', $paymentMethodId);
-        }
-    }
-
-    /**
-     * @return void
-     */
-    private function installAttributes()
-    {
-        $attributeCrudService = $this->container->get('shopware_attribute.crud_service');
-
-        $attributeCrudService->update(
-            's_core_paymentmeans_attributes',
-            'msp_min_amount',
-            TypeMapping::TYPE_FLOAT,
-            [
-                'position' => -100,
-                'label' => 'MultiSafepay Minimum Order Total',
-                'supportText' => 'Only applicable to MultiSafepay payment methods',
-                'helpText' => 'Payment method will be hidden when cart is less than amount',
-                'displayInBackend' => true,
-            ]
-        );
-
-        $attributeCrudService->update(
-            's_core_paymentmeans_attributes',
-            'msp_max_amount',
-            TypeMapping::TYPE_FLOAT,
-            [
-                'position' => -99,
-                'label' => 'MultiSafepay Maximum Order Total',
-                'supportText' => 'Only applicable to MultiSafepay payment methods',
-                'helpText' => 'Payment method will be hidden when cart exceeds amount',
-                'displayInBackend' => true,
-            ]
-        );
-
-        $this->container
-            ->get('shopware_attribute.crud_service')
-            ->update(
-                's_order_attributes',
-                'multisafepay_payment_link',
-                TypeMapping::TYPE_STRING,
-                [
-                    'position' => -100,
-                    'label' => 'MultiSafepay Backend orders payment link',
-                    'displayInBackend' => true,
-                ]
-            );
-    }
-
-    /**
-     * @return void
-     */
-    private function installMultiSafepayQuoteNumber()
-    {
-        $db = $this->container->get('dbal_connection');
-        $sql = "
-           INSERT IGNORE INTO `s_order_number` (`number`, `name`, `desc`) VALUES
-           (0, 'msp_quote_number', 'MultiSafepay Quote Number');
-       ";
-        $db->executeUpdate($sql);
-    }
-
-
-    /**
-     * @param UpdateContext $context
-     */
-    public function update(UpdateContext $context)
-    {
-        $this->updateAttributes($context);
-        $this->updateGateways($context);
-        $context->scheduleClearCache(UpdateContext::CACHE_LIST_ALL);
-        parent::update($context);
-    }
-
-    /**
-     * @param UpdateContext $context
-     */
-    public function updateAttributes(UpdateContext $context)
-    {
-        $this->container
-            ->get('shopware_attribute.crud_service')
-            ->update(
-                's_order_attributes',
-                'multisafepay_payment_link',
-                TypeMapping::TYPE_STRING,
-                [
-                    'position' => -100,
-                    'label' => 'MultiSafepay Backend orders payment link',
-                    'displayInBackend' => true,
-                ]
-            );
-    }
-
-    /**
-     * @param $gateway
+     * Get payment method options
+     *
+     * @param string $paymentMethodId
+     * @param string $paymentMethodName
      * @return array
      */
-    private function getGatewayOptions($gateway)
+    private function getPaymentMethodOptions(string $paymentMethodId, string $paymentMethodName): array
     {
+        $template = '';
+        if ($paymentMethodId === 'APPLEPAY') {
+            $template = 'multisafepay_applepay.tpl';
+        }
+
         return [
-            'name' => 'multisafepay_' . $gateway['code'],
-            'description' => $gateway['name'],
+            'name' => 'multisafepay_' . $paymentMethodId,
+            'description' => $paymentMethodName,
             'action' => 'MultiSafepayPayment',
             'active' => 0,
             'position' => 0,
             'additionalDescription' => '',
-            'template' => Gateways::getGatewayTemplate($gateway['code']),
+            'template' => $template
         ];
     }
 
     /**
-     * @param $gatewayName
+     * Method to check if the payment method is installed
+     *
+     * @param string $paymentMethodFullName
      * @return bool
      */
-    private function isGatewayInstalled($gatewayName)
+    private function isPaymentMethodInstalled(string $paymentMethodFullName): bool
     {
-        $payment = Shopware()->Models()->getRepository('Shopware\Models\Payment\Payment')->findOneBy(['name' => $gatewayName]);
-        return $payment ? true : false;
+        return (bool)Shopware()
+            ->Models()
+            ->getRepository(Payment::class)
+            ->findOneBy(
+                ['name' => $paymentMethodFullName]
+            );
     }
 
     /**
-     * @param UpdateContext $context
+     * Set min and max amounts
+     *
+     * @param $paymentMethodId
+     * @param array $paymentMethodAmounts
      */
-    private function updateGateways(UpdateContext $context)
+    private function setMinAndMaxAmounts($paymentMethodId, array $paymentMethodAmounts): void
+    {
+        if (!empty($paymentMethodAmounts['min_amount']) || !empty($paymentMethodAmounts['max_amount'])) {
+            $dataLoader = $this->container->get('shopware_attribute.data_loader');
+            $attributes = $dataLoader ? $dataLoader->load('s_core_paymentmeans_attributes', $paymentMethodId) : [];
+
+            $attributes['msp_min_amount'] = $paymentMethodAmounts['min_amount'];
+            $attributes['msp_max_amount'] = $paymentMethodAmounts['max_amount'] ?? 0.0;
+            $dataPersister = $this->container->get('shopware_attribute.data_persister');
+            if (!is_null($dataPersister)) {
+                $dataPersister->persist($attributes, 's_core_paymentmeans_attributes', $paymentMethodId);
+            }
+        }
+    }
+
+    /**
+     * Update payment methods
+     *
+     * @param UpdateContext $context
+     * @throws Exception|ClientExceptionInterface
+     */
+    private function updatePaymentMethods(UpdateContext $context): void
     {
         $installer = $this->container->get('shopware.plugin_payment_installer');
+        $paymentMethods = (new PaymentMethodsService($this->container))->loadPaymentMethods();
 
-        foreach (Gateways::GATEWAYS as $gateway) {
-            $options = [
-                'name' => 'multisafepay_' . $gateway['code'],
-                'description' => $gateway['name'],
-            ];
-            if (!$this->isGatewayInstalled('multisafepay_' . $gateway['code'])) {
-                $options = $this->getGatewayOptions($gateway);
-            } elseif ($gateway['code'] === 'GENERIC') {
-                unset($options['description']);
+        if (!empty($paymentMethods)) {
+            foreach ($paymentMethods as $paymentMethod) {
+                $paymentMethodId = $paymentMethod['id'];
+                $paymentMethodName = $paymentMethod['name'];
+                $options = [
+                    'name' => 'multisafepay_' . $paymentMethodId,
+                    'description' => $paymentMethodName
+                ];
+                $amounts = [
+                    'min_amount' => $paymentMethod['allowed_amount']['min'],
+                    'max_amount' => $paymentMethod['allowed_amount']['max']
+                ];
+
+                if (!$this->isPaymentMethodInstalled('multisafepay_' . $paymentMethodId)) {
+                    $options = $this->getPaymentMethodOptions($paymentMethodId, $paymentMethodName);
+                } elseif ($paymentMethodId === 'GENERIC') {
+                    unset($options['description']);
+                }
+                $payment = $installer ? $installer->createOrUpdate($context->getPlugin(), $options) : null;
+                if (!is_null($payment)) {
+                    $this->setMinAndMaxAmounts($payment->getId(), $amounts);
+                }
             }
-            $payment = $installer->createOrUpdate($context->getPlugin(), $options);
-            $this->setMinAndMaxAmounts($payment->getId(), $gateway);
+            $this->deletePaymentMethods();
         }
-
-        $this->deleteGateways();
     }
 
     /**
+     * Install attributes
+     *
+     * @return void
+     */
+    private function installAttributes(): void
+    {
+        $attributeCrudService = $this->container->get('shopware_attribute.crud_service');
+        if (!is_null($attributeCrudService)) {
+            $attributeCrudService->update(
+                's_core_paymentmeans_attributes',
+                'msp_min_amount',
+                TypeMappingInterface::TYPE_FLOAT,
+                [
+                    'position' => -100,
+                    'label' => 'MultiSafepay Minimum Order Total',
+                    'supportText' => 'Only applicable to MultiSafepay payment methods',
+                    'helpText' => 'Payment method will be hidden when cart is less than amount',
+                    'displayInBackend' => true
+                ]
+            );
+
+            $attributeCrudService->update(
+                's_core_paymentmeans_attributes',
+                'msp_max_amount',
+                TypeMappingInterface::TYPE_FLOAT,
+                [
+                    'position' => -99,
+                    'label' => 'MultiSafepay Maximum Order Total',
+                    'supportText' => 'Only applicable to MultiSafepay payment methods',
+                    'helpText' => 'Payment method will be hidden when cart exceeds amount',
+                    'displayInBackend' => true
+                ]
+            );
+        }
+
+        $crudService = $this->container->get('shopware_attribute.crud_service');
+        if (!is_null($crudService)) {
+            $crudService->update(
+                's_order_attributes',
+                'multisafepay_payment_link',
+                TypeMappingInterface::TYPE_STRING,
+                [
+                    'position' => -100,
+                    'label' => 'MultiSafepay Backend orders payment link',
+                    'displayInBackend' => true
+                ]
+            );
+        }
+    }
+
+    /**
+     * Installs MultiSafepay Quote Number
+     *
+     * Utilize an INSERT IGNORE statement to prevent duplicate entries.
+     * This method is called during the installation process.
+     *
+     * @return void
+     */
+    private function installMultiSafepayQuoteNumber(): void
+    {
+        $db = $this->container->get('dbal_connection');
+        if (!is_null($db)) {
+            $sql = "INSERT IGNORE INTO `s_order_number` (`number`, `name`, `desc`) VALUES (0, 'msp_quote_number', 'MultiSafepay Quote Number')";
+            $db->executeUpdate($sql);
+        }
+    }
+
+    /**
+     * Update plugin
+     *
+     * @param UpdateContext $context
+     * @throws Exception|ClientExceptionInterface
+     */
+    public function update(UpdateContext $context): void
+    {
+        $this->updateAttributes($context);
+        $this->updatePaymentMethods($context);
+        $context->scheduleClearCache(InstallContext::CACHE_LIST_ALL);
+        parent::update($context);
+    }
+
+    /**
+     * Update attributes
+     *
+     * @param UpdateContext $context
+     */
+    public function updateAttributes(UpdateContext $context): void
+    {
+        $crudService = $this->container->get('shopware_attribute.crud_service');
+        if (!is_null($crudService)) {
+            $crudService->update(
+                's_order_attributes',
+                'multisafepay_payment_link',
+                TypeMappingInterface::TYPE_STRING,
+                [
+                    'position' => -100,
+                    'label' => 'MultiSafepay Backend orders payment link',
+                    'displayInBackend' => true
+                ]
+            );
+        }
+    }
+
+    /**
+     * Uninstall plugin
+     *
      * @param UninstallContext $context
      */
-    public function uninstall(UninstallContext $context)
+    public function uninstall(UninstallContext $context): void
     {
-        $this->setActiveFlag($context->getPlugin()->getPayments(), false);
-
-        $context->scheduleClearCache(UninstallContext::CACHE_LIST_ALL);
+        $this->unsetActiveFlag(
+            $context->getPlugin()->getPayments()
+        );
+        $context->scheduleClearCache(InstallContext::CACHE_LIST_ALL);
     }
 
     /**
+     * Deactivate plugin
+     *
      * @param DeactivateContext $context
      */
-    public function deactivate(DeactivateContext $context)
+    public function deactivate(DeactivateContext $context): void
     {
-        $this->setActiveFlag($context->getPlugin()->getPayments(), false);
-
-        $context->scheduleClearCache(ActivateContext::CACHE_LIST_ALL);
+        $this->unsetActiveFlag(
+            $context->getPlugin()->getPayments()
+        );
+        $context->scheduleClearCache(InstallContext::CACHE_LIST_ALL);
     }
 
     /**
+     * Activate plugin
+     *
      * @param ActivateContext $context
+     * @throws Exception|ClientExceptionInterface
      */
-    public function activate(ActivateContext $context)
+    public function activate(ActivateContext $context): void
     {
-        $this->setActiveFlag($context->getPlugin()->getPayments(), true);
-
-        $context->scheduleClearCache(ActivateContext::CACHE_LIST_ALL);
+        $this->installPaymentMethods($context);
+        $context->scheduleClearCache(InstallContext::CACHE_LIST_ALL);
     }
 
     /**
-     * @param Payment[] $payments
-     * @param $active bool
+     * Unset the active flag for a payment method
+     *
+     * @param $payments
      */
-    private function setActiveFlag($payments, $active)
+    private function unsetActiveFlag($payments): void
     {
         $em = $this->container->get('models');
-
         foreach ($payments as $payment) {
-            $payment->setActive($active);
+            $payment->setActive(false);
         }
-        $em->flush();
+        if (!is_null($em)) {
+            try {
+                $em->flush();
+            } catch (Exception $exception) {
+                (new LoggerService($this->container))->addLog(
+                    LoggerService::ERROR,
+                    'Could not unset the active flag in the database',
+                    [
+                        'CurrentSessionId' => isset($_SESSION['Shopware']['sessionId']) ? session_id() : 'session_id_not_found',
+                        'Exception' => $exception->getMessage()
+                    ]
+                );
+            }
+        }
     }
 
     /**
-     * Disable the payments methods that are no longer supported.
+     * Disable the payment methods that are no longer supported
+     *
+     * @throws Exception
      */
-    private function deleteGateways()
+    private function deletePaymentMethods(): void
     {
-        $paymentRepository = $this->container->get('models')->getRepository(Payment::class);
+        $containerModels = $this->container->get('models');
+        $paymentRepository = $containerModels ? $containerModels->getRepository(Payment::class) : null;
 
-        foreach (self::DELETED_GATEWAYS as $gateway) {
-            /** @var Payment|null $payment */
-            $payment = $paymentRepository->findOneBy([
-                'name' => 'multisafepay_' . $gateway,
-            ]);
-            if ($payment === null) {
-                continue;
+        if (!is_null($paymentRepository)) {
+            foreach (self::DELETED_PAYMENT_METHODS as $paymentMethod) {
+                /** @var Payment|null $payment */
+                $payment = $paymentRepository->findOneBy(
+                    ['name' => 'multisafepay_' . $paymentMethod]
+                );
+                if (is_null($payment)) {
+                    continue;
+                }
+
+                $paymentId = $payment->getId();
+                $this->unsetActiveFlag(
+                    [$paymentRepository->find($paymentId)]
+                );
             }
-
-            $paymentId = $payment->getId();
-            $this->setActiveFlag([$paymentRepository->find($paymentId)], false);
         }
     }
 }

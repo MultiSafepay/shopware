@@ -4,7 +4,7 @@
  *
  * Do not edit or add to this file if you wish to upgrade the MultiSafepay plugin
  * to newer versions in the future. If you wish to customize the plugin for your
- * needs please document your changes and make backups before you update.
+ * needs, please document your changes and make backups before you update.
  *
  * @category    MultiSafepay
  * @package     Shopware
@@ -21,48 +21,59 @@
 
 namespace MltisafeMultiSafepayPayment\Components;
 
+use MltisafeMultiSafepayPayment\Service\CachedConfigService;
 use Shopware\Models\Order\Order;
 use Shopware\Models\Order\Status;
 
+/**
+ * Class Helper
+ *
+ * @package MltisafeMultiSafepayPayment\Components
+ */
 class Helper
 {
     /**
-     * Split the address into street and house number with extension.
+     * Split the address into street and house number with an extension.
      *
      * @param string $address1
      * @param string $address2
      * @return array
      */
-    public static function parseAddress($address1, $address2 = '')
+    public static function parseAddress(string $address1, string $address2 = ''): array
     {
         // Trim the addresses
         $address1 = trim($address1);
         $address2 = trim($address2);
-        $fullAddress = trim("{$address1} {$address2}");
+        $fullAddress = trim("$address1 $address2");
         $fullAddress = preg_replace("/[[:blank:]]+/", ' ', $fullAddress);
 
-        // Make array of all regex matches
+        // Make an array of all regex matches
         $matches = [];
 
         /**
          * Regex part one: Add all before number.
-         * If number contains whitespace, Add it also to street.
-         * All after that will be added to apartment
+         * If the number contains whitespace, Add it also to the street.
+         * All after that will be added to an apartment
          */
-        $pattern = '/(.+?)\s?([\d]+[\S]*)(\s?[A-z]*?)$/';
+        $pattern = '/(.+?)\s?(\d+\S*)(\s?[A-Za-z]*?)$/';
         preg_match($pattern, $fullAddress, $matches);
 
-        //Save the street and apartment and trim the result
-        $street = isset($matches[1]) ? $matches[1] : '';
-        $apartment = isset($matches[2]) ? $matches[2] : '';
-        $extension = isset($matches[3]) ? $matches[3] : '';
+        // Save the street and apartment and trim the result
+        $street = $matches[1] ?? '';
+        $apartment = $matches[2] ?? '';
+        $extension = $matches[3] ?? '';
         $street = trim($street);
         $apartment = trim($apartment . $extension);
 
-        return [$street, $apartment];
+        return [
+            $street,
+            $apartment
+        ];
     }
 
     /**
+     * Validate the IP
+     *
      * @param $ip
      * @return mixed|null
      */
@@ -74,45 +85,54 @@ class Helper
         $isValid = filter_var($ip, FILTER_VALIDATE_IP);
         if ($isValid) {
             return $isValid;
-        } else {
-            return null;
         }
+
+        return null;
     }
 
     /**
+     * Get the remote IP
+     *
      * @return mixed|string|null
      */
     public static function getRemoteIP()
     {
         if (isset($_SERVER['REMOTE_ADDR'])) {
             return self::validateIP($_SERVER['REMOTE_ADDR']);
-        } else {
-            return '';
         }
+
+        return '';
     }
 
     /**
+     * Get the forwarded IP
+     *
      * @return mixed|string|null
      */
     public static function getForwardedIP()
     {
         if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
             return self::validateIP($_SERVER['HTTP_X_FORWARDED_FOR']);
-        } else {
-            return '';
         }
+
+        return '';
     }
 
     /**
+     * Get the plugin version
+     *
      * @return string
      */
-    public static function getPluginVersion()
+    public static function getPluginVersion(): string
     {
-        $xml = simplexml_load_file(__DIR__ . '/../plugin.xml');
+        $xml = simplexml_load_string(file_get_contents(__DIR__ . '/../plugin.xml'));
+
         return (string)$xml->version;
     }
 
     /**
+     * Get the seconds active
+     *
      * @param $time_label
      * @param $time_active
      * @return float|int
@@ -131,37 +151,50 @@ class Helper
                 $seconds_active = $time_active;
                 break;
         }
+
         return $seconds_active;
     }
 
     /**
+     * Order has cleared date
+     *
      * @param $order
      * @return bool
      */
-    public static function orderHasClearedDate($order)
+    public static function orderHasClearedDate($order): bool
     {
-        return self::isValidOrder($order) && $order->getClearedDate() !== null;
+        return self::isValidOrder($order) && ($order->getClearedDate() !== null);
     }
 
-    public static function isConsideredPaid($multiSafepayStatus)
+    /**
+     * Method to check if the order is considered paid
+     *
+     * @param $multiSafepayStatus
+     * @return bool
+     */
+    public static function isConsideredPaid($multiSafepayStatus): bool
     {
         return in_array($multiSafepayStatus, ['completed', 'refunded', 'uncleared']);
     }
 
     /**
+     * Method to check if the order is valid
+     *
      * @param $order
      * @return bool
      */
-    public static function isValidOrder($order)
+    public static function isValidOrder($order): bool
     {
-        return $order instanceof \Shopware\Models\Order\Order;
+        return $order instanceof Order;
     }
 
     /**
+     * Method to check if the order is allowed to change the payment status
+     *
      * @param $order
      * @return bool
      */
-    public static function isOrderAllowedToChangePaymentStatus($order)
+    public static function isOrderAllowedToChangePaymentStatus($order): bool
     {
         if (!self::isValidOrder($order)) {
             return false;
@@ -171,16 +204,16 @@ class Helper
     }
 
     /**
+     * Get the payment status
+     *
      * @param $status
-     * @param null $shop
+     * @param $pluginConfig
      * @return int
      */
-    public function getPaymentStatus($status, $shop = null)
+    public function getPaymentStatus($status, $pluginConfig): int
     {
-        $config = $this->getMultiSafepaySettings($shop);
-
-        if ($this->isValidPaymentStatus($config['msp_update_' . $status . ''])) {
-            return $config['msp_update_' . $status . ''];
+        if ($this->isValidPaymentStatus($pluginConfig['msp_update_' . $status])) {
+            return $pluginConfig['msp_update_' . $status];
         }
 
         switch ($status) {
@@ -209,22 +242,24 @@ class Helper
     }
 
     /**
-     * @param $shop
+     * Get the MultiSafepay settings
+     *
      * @return mixed
      */
-    public function getMultiSafepaySettings($shop = null)
+    public function getMultiSafepaySettings()
     {
-        $config = Shopware()->Container()
-            ->get('shopware.plugin.cached_config_reader')
-            ->getByPluginName('MltisafeMultiSafepayPayment', $shop);
-        return $config;
+        [$cachedConfigReader, $shop] = (new CachedConfigService(Shopware()->Container()))->selectConfigReader();
+
+        return $cachedConfigReader ? $cachedConfigReader->getByPluginName('MltisafeMultiSafepayPayment', $shop) : [];
     }
 
     /**
+     * Method to check if the payment status is valid
+     *
      * @param $status
      * @return bool
      */
-    public function isValidPaymentStatus($status)
+    public function isValidPaymentStatus($status): bool
     {
         if ($status && !is_int($status)) {
             return false;
@@ -243,19 +278,19 @@ class Helper
     }
 
     /**
-     * Check if we should send a status email
+     * Method to check if status mail is allowed to be sent
      *
      * @param $status
-     * @param null $shop
+     * @param $pluginConfig
      * @return bool
      */
-    public function isAllowedToSendStatusMail($status, $shop = null)
+    public function isAllowedToSendStatusMail($status, $pluginConfig): bool
     {
-        $config = $this->getMultiSafepaySettings($shop);
-        $sendStatusMailOnCompleted = $config['msp_send_status_mail_on_completed'];
-        if (!$sendStatusMailOnCompleted && $status === 'completed') {
+        $sendStatusMailOnCompleted = $pluginConfig['msp_send_status_mail_on_completed'];
+        if (!$sendStatusMailOnCompleted && ($status === 'completed')) {
             return false;
         }
+
         return true;
     }
 }

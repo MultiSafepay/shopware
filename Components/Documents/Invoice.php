@@ -4,7 +4,7 @@
  *
  * Do not edit or add to this file if you wish to upgrade the MultiSafepay plugin
  * to newer versions in the future. If you wish to customize the plugin for your
- * needs please document your changes and make backups before you update.
+ * needs, please document your changes and make backups before you update.
  *
  * @category    MultiSafepay
  * @package     Shopware
@@ -21,14 +21,33 @@
 
 namespace MltisafeMultiSafepayPayment\Components\Documents;
 
+use Enlight_Event_Exception;
+use Enlight_Exception;
 use Shopware\Models\Order\Order;
 use Shopware_Components_Document;
 
+/**
+ * Class Invoice
+ *
+ * @package MltisafeMultiSafepayPayment\Components\Documents
+ */
 class Invoice
 {
+    /**
+     * @var int
+     */
     public const INVOICE_DOCUMENT_TYPE = 1;
 
-    public function create(Order $order)
+    /**
+     * Create the invoice document
+     *
+     * @param Order $order
+     *
+     * @return void
+     * @throws Enlight_Event_Exception
+     * @throws Enlight_Exception
+     */
+    public function create(Order $order): void
     {
         $documentId = self::INVOICE_DOCUMENT_TYPE;
         $orderId = $order->getId();
@@ -41,13 +60,23 @@ class Invoice
         $orderDocument->render();
     }
 
-    private function getDocumentOptions(Order $order)
+    /**
+     * Get the document options
+     *
+     * @param Order $order
+     *
+     * @return array
+     */
+    private function getDocumentOptions(Order $order): array
     {
+        $orderTime = $order->getOrderTime();
+        $formattedOrderTime = $orderTime ? $orderTime->format('d.m.Y') : null;
+
         return [
             'netto' => false,
             'bid' => '',
             'voucher' => null,
-            'date' => $order->getOrderTime()->format('d.m.Y'),
+            'date' => $formattedOrderTime,
             'delivery_date' => null,
             'shippingCostsAsPosition' => true,
             '_renderer' => 'pdf',
@@ -55,7 +84,7 @@ class Invoice
             '_previewForcePagebreak' => null,
             '_previewSample' => null,
             'docComment' => '',
-            'forceTaxCheck' => false,
+            'forceTaxCheck' => false
         ];
     }
 }

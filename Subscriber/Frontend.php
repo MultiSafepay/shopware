@@ -4,7 +4,7 @@
  *
  * Do not edit or add to this file if you wish to upgrade the MultiSafepay plugin
  * to newer versions in the future. If you wish to customize the plugin for your
- * needs please document your changes and make backups before you update.
+ * needs, please document your changes and make backups before you update.
  *
  * @category    MultiSafepay
  * @package     Shopware
@@ -22,7 +22,14 @@
 namespace MltisafeMultiSafepayPayment\Subscriber;
 
 use Enlight\Event\SubscriberInterface;
+use Enlight_Controller_ActionEventArgs;
+use Enlight_Event_EventArgs;
 
+/**
+ * Class Frontend
+ *
+ * @package MltisafeMultiSafepayPayment\Subscriber
+ */
 class Frontend implements SubscriberInterface
 {
     /**
@@ -31,60 +38,74 @@ class Frontend implements SubscriberInterface
     private $pluginDir;
 
     /**
+     * Frontend constructor
+     *
      * @param string $pluginDir
      */
-    public function __construct($pluginDir)
+    public function __construct(string $pluginDir)
     {
         $this->pluginDir = $pluginDir;
     }
 
     /**
-     * {@inheritdoc}
+     * Get subscribed events
+     *
+     * @return array
      */
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         return [
             'Theme_Inheritance_Template_Directories_Collected' => 'onCollectTemplateDir',
             'Enlight_Controller_Action_PostDispatchSecure_Frontend_Checkout' => 'onPostDispatchCheckout',
             'Enlight_Controller_Dispatcher_ControllerPath_Frontend_MultiSafepayPayment' => 'onGetControllerPathFrontend',
-            'Enlight_Controller_Dispatcher_ControllerPath_Backend_MultiSafepayPayment' => 'onGetControllerPathBackend',
+            'Enlight_Controller_Dispatcher_ControllerPath_Backend_MultiSafepayPayment' => 'onGetControllerPathBackend'
         ];
     }
 
     /**
+     * On get controller path frontend
+     *
      * @return string
      */
-    public function onGetControllerPathFrontend()
+    public function onGetControllerPathFrontend(): string
     {
         return $this->pluginDir . '/Controllers/Frontend/MultiSafepayPayment.php';
     }
 
     /**
+     * On get controller path backend
+     *
      * @return string
      */
-    public function onGetControllerPathBackend()
+    public function onGetControllerPathBackend(): string
     {
         return $this->pluginDir . '/Controllers/Backend/MultiSafepayPayment.php';
     }
 
     /**
-     * @param \Enlight_Controller_ActionEventArgs $args
+     * On post-dispatch checkout
+     *
+     * @param Enlight_Controller_ActionEventArgs $args
+     * @return void
      */
-    public function onPostDispatchCheckout(\Enlight_Controller_ActionEventArgs $args)
+    public function onPostDispatchCheckout(Enlight_Controller_ActionEventArgs $args): void
     {
         $errorMessage = $args->getRequest()->getParam('multisafepay_error_message');
         if ($errorMessage) {
             $view = $args->getSubject()->View();
 
-            $errorMessage = explode("<br />", urldecode($errorMessage));
+            $errorMessage = explode('<br />', urldecode($errorMessage));
             $view->assign('sErrorMessages', $errorMessage);
         }
     }
 
     /**
-     * @param \Enlight_Event_EventArgs $args
+     * On collect template dir
+     *
+     * @param Enlight_Event_EventArgs $args
+     * @return void
      */
-    public function onCollectTemplateDir(\Enlight_Event_EventArgs $args)
+    public function onCollectTemplateDir(Enlight_Event_EventArgs $args): void
     {
         $dirs = $args->getReturn();
         $dirs[] = $this->pluginDir . '/Resources/views/';

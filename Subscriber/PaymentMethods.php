@@ -21,31 +21,59 @@
 
 namespace MltisafeMultiSafepayPayment\Subscriber;
 
-use Doctrine\Common\EventSubscriber;
-use Doctrine\ORM\Event\PreUpdateEventArgs;
-use Doctrine\ORM\Events;
+use Enlight\Event\SubscriberInterface;
+use Psr\Http\Client\ClientExceptionInterface;
 
 /**
- * Class OrderHistorySubscriber
+ * Class PaymentMethods
  *
  * @package MltisafeMultiSafepayPayment\Subscriber
  */
-class OrderHistorySubscriber implements EventSubscriber
+class PaymentMethods implements SubscriberInterface
 {
+    private $paymentMethod;
+
+    /**
+     * PaymentMethods constructor
+     *
+     * @param PaymentMethodsInstaller $paymentMethodsInstaller
+     */
+    public function __construct(PaymentMethodsInstaller $paymentMethodsInstaller)
+    {
+        $this->paymentMethod = $paymentMethodsInstaller;
+    }
+
     /**
      * Get subscribed events
      *
      * @return array
      */
-    public function getSubscribedEvents(): array
+    public static function getSubscribedEvents(): array
     {
         return [
-            Events::preUpdate
+            'Shopware_Modules_Admin_GetPaymentMeans_DataFilter' => 'onPostDispatchCheckout'
         ];
     }
 
-    public function preUpdate(PreUpdateEventArgs $eventArgs): void
+    /**
+     * On post-dispatch checkout
+     *
+     * @throws ClientExceptionInterface
+     * @return void
+     */
+    public function onPostDispatchCheckout(): void
     {
-        // Class exist due to prevent errors. See PLGSHPS-249
+        $this->updatePaymentMethods();
+    }
+
+    /**
+     * Update payment methods
+     *
+     * @throws ClientExceptionInterface
+     * @return void
+     */
+    private function updatePaymentMethods(): void
+    {
+        $this->paymentMethod->installPaymentMethods();
     }
 }

@@ -4,7 +4,7 @@
  *
  * Do not edit or add to this file if you wish to upgrade the MultiSafepay plugin
  * to newer versions in the future. If you wish to customize the plugin for your
- * needs please document your changes and make backups before you update.
+ * needs, please document your changes and make backups before you update.
  *
  * @category    MultiSafepay
  * @package     Shopware
@@ -22,27 +22,46 @@
 namespace MltisafeMultiSafepayPayment\Components\Factory;
 
 use Buzz\Client\Curl as CurlClient;
+use Exception;
 use GuzzleHttp\Client as GuzzleClient;
 use MultiSafepay\Sdk;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Psr\Http\Client\ClientInterface;
 
+/**
+ * Class Client
+ *
+ * @package MltisafeMultiSafepayPayment\Components\Factory
+ */
 class Client
 {
+    /**
+     * Get the client
+     *
+     * @return ClientInterface
+     */
     private function getClient(): ClientInterface
     {
-        $client = new GuzzleClient();
-        if (!$client instanceof ClientInterface) {
+        try {
+            $client = new GuzzleClient();
+        } catch (Exception $e) {
             $client = new CurlClient(new Psr17Factory());
         }
 
         return $client;
     }
 
+    /**
+     * Get the SDK
+     *
+     * @param array $pluginConfig
+     *
+     * @return Sdk
+     */
     public function getSdk(array $pluginConfig): Sdk
     {
         return new Sdk(
-            $pluginConfig['msp_api_key'],
+            $pluginConfig['msp_api_key'] ?? '',
             (bool)$pluginConfig['msp_environment'],
             $this->getClient(),
             new Psr17Factory(),

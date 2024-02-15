@@ -4,7 +4,7 @@
  *
  * Do not edit or add to this file if you wish to upgrade the MultiSafepay plugin
  * to newer versions in the future. If you wish to customize the plugin for your
- * needs please document your changes and make backups before you update.
+ * needs, please document your changes and make backups before you update.
  *
  * @category    MultiSafepay
  * @package     Shopware
@@ -21,58 +21,84 @@
 
 namespace MltisafeMultiSafepayPayment\Tests\Integration\Components;
 
+use DateTime;
+use Doctrine\ORM\EntityRepository;
+use Doctrine\Persistence\ObjectRepository;
+use Enlight_Components_Test_TestCase;
+use Exception;
 use MltisafeMultiSafepayPayment\Components\Helper;
-use PHPUnit\Framework\TestCase;
+use Shopware\Components\Model\ModelManager;
+use Shopware\Models\Dispatch\Dispatch;
+use Shopware\Models\Order\Order;
 use Shopware\Models\Order\Status;
+use Shopware\Models\Partner\Partner;
+use Shopware\Models\Payment\Payment;
+use Shopware\Models\Shop\Shop;
 
-class HelperTest extends \Enlight_Components_Test_TestCase
+/**
+ * Class HelperTest
+ *
+ * @package MltisafeMultiSafepayPayment\Tests\Integration\Components
+ */
+class HelperTest extends Enlight_Components_Test_TestCase
 {
     /**
-     * @var Shopware\Components\Model\ModelManager
+     * @var ModelManager
      */
     protected $em;
+
     /**
-     * @var Shopware\Models\User\Repository
+     * @var EntityRepository|ObjectRepository
      */
     protected $repo;
 
     /**
      * Sets up the fixture, for example, opens a network connection.
      * This method is called before a test is executed.
+     *
+     * @return void
      */
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
         $this->em = Shopware()->Models();
-        $this->repo = Shopware()->Models()->getRepository('Shopware\Models\Order\Order');
+        $this->repo = Shopware()->Models()->getRepository(Order::class);
     }
 
     /**
      * TearDown Unit test.
+     *
+     * @return void
      */
-    public function tearDown()
+    public function tearDown(): void
     {
         parent::tearDown();
     }
 
     /**
      * Tests if Helper::orderHasClearedDate works correctly
+     *
+     * @return void
+     * @throws Exception
      */
-    public function testOrderHasClearedDate()
+    public function testOrderHasClearedDate(): void
     {
         $this->assertFalse(Helper::orderHasClearedDate($this));
 
         $order = $this->createOrder();
         $this->assertFalse(Helper::orderHasClearedDate($order));
 
-        $order->setClearedDate(new \DateTime());
+        $order->setClearedDate(new DateTime());
         $this->assertTrue(Helper::orderHasClearedDate($order));
     }
 
     /**
-     * test if Helper::isValidOrder can get the current class and validate it
+     * Test if Helper::isValidOrder can get the current class and validate it
+     *
+     * @return void
+     * @throws Exception
      */
-    public function testIsValidOrder()
+    public function testIsValidOrder(): void
     {
         $this->assertFalse(Helper::isValidOrder($this));
 
@@ -81,11 +107,14 @@ class HelperTest extends \Enlight_Components_Test_TestCase
     }
 
     /**
-     * @throws \Exception
+     * Test if Helper::isOrderAllowedToChangePaymentStatus can get the current class and validate it
+     *
+     * @return void
+     * @throws \Doctrine\ORM\OptimisticLockException|\Doctrine\ORM\Exception\ORMException|\Doctrine\ORM\ORMException
      */
-    public function testIsOrderAllowedToChangePaymentStatus()
+    public function testIsOrderAllowedToChangePaymentStatus(): void
     {
-        //Should fail because it is not a order instance.
+        //Should fail because it is not an order instance.
         $this->assertFalse(Helper::isOrderAllowedToChangePaymentStatus($this));
 
         $order = $this->createOrder();
@@ -101,24 +130,30 @@ class HelperTest extends \Enlight_Components_Test_TestCase
 
     /**
      * Test the function Helper::getPaymentStatus() with invalid data as String.
+     *
+     * @return void
      */
-    public function testGetPaymentStatusWithInvalidValueAsString()
+    public function testGetPaymentStatusWithInvalidValueAsString(): void
     {
         $helperMock = $this->setHelperMockInstanceWithUnclearedValue('invalid value');
 
-        $result = $helperMock->getPaymentStatus('uncleared');
+        $pluginConfig = $helperMock->getMultiSafepaySettings()['msp_update_uncleared'];
+        $result = $helperMock->getPaymentStatus('uncleared', $pluginConfig);
         $expected = Status::PAYMENT_STATE_RESERVED;
         $this->assertEquals($expected, $result);
     }
 
     /**
      * Test the function Helper::getPaymentStatus() with invalid data as Integer.
+     *
+     * @return void
      */
-    public function testGetPaymentStatusWithInvalidValueAsInteger()
+    public function testGetPaymentStatusWithInvalidValueAsInteger(): void
     {
         $helperMock = $this->setHelperMockInstanceWithUnclearedValue(99);
 
-        $result = $helperMock->getPaymentStatus('uncleared');
+        $pluginConfig = $helperMock->getMultiSafepaySettings()['msp_update_uncleared'];
+        $result = $helperMock->getPaymentStatus('uncleared', $pluginConfig);
         $expected = Status::PAYMENT_STATE_RESERVED;
         $this->assertEquals($expected, $result);
     }
@@ -126,50 +161,63 @@ class HelperTest extends \Enlight_Components_Test_TestCase
     /**
      * Test the function Helper::getPaymentStatus() with invalid data
      * The function test if getPaymentStatus() reaches the fallback
-     * when using a order status (int) instead of a payment status (int).
+     * when using an order status (int) instead of a payment status (int).
+     *
+     * @return void
      */
-    public function testGetPaymentStatusWithInvalidValueAsOrderStatusValue()
+    public function testGetPaymentStatusWithInvalidValueAsOrderStatusValue(): void
     {
         $helperMock = $this->setHelperMockInstanceWithUnclearedValue(Status::ORDER_STATE_READY_FOR_DELIVERY);
 
-        $result = $helperMock->getPaymentStatus('uncleared');
+        $pluginConfig = $helperMock->getMultiSafepaySettings()['msp_update_uncleared'];
+        $result = $helperMock->getPaymentStatus('uncleared', $pluginConfig);
         $expected = Status::PAYMENT_STATE_RESERVED;
         $this->assertEquals($expected, $result);
     }
 
     /**
      * Test the function Helper::getPaymentStatus() with valid data
+     *
+     * @return void
      */
-    public function testGetPaymentStatusWithValidValue()
+    public function testGetPaymentStatusWithValidValue(): void
     {
         $helperMock = $this->setHelperMockInstanceWithUnclearedValue(Status::PAYMENT_STATE_COMPLETELY_PAID);
 
-        $result = $helperMock->getPaymentStatus('uncleared');
+        $pluginConfig = $helperMock->getMultiSafepaySettings()['msp_update_completed'];
+        $result = $helperMock->getPaymentStatus('completed', $pluginConfig);
         $expected = Status::PAYMENT_STATE_COMPLETELY_PAID;
         $this->assertEquals($expected, $result);
     }
 
     /**
      * Test the Payment status with the default value
+     *
+     * @return void
      */
-    public function testGetPaymentStatusWithDefaultValue()
+    public function testGetPaymentStatusWithDefaultValue(): void
     {
         $helperMock = $this->setHelperMockInstanceWithUnclearedValue(Status::PAYMENT_STATE_RESERVED);
 
-        $result = $helperMock->getPaymentStatus('uncleared');
+        $pluginConfig = $helperMock->getMultiSafepaySettings()['msp_update_uncleared'];
+        $result = $helperMock->getPaymentStatus('uncleared', $pluginConfig);
         $expected = Status::PAYMENT_STATE_RESERVED;
         $this->assertEquals($expected, $result);
     }
 
     /**
+     * Set the Helper mock instance with the given value
+     *
      * @param $value
      * @return Helper
      */
-    public function setHelperMockInstanceWithUnclearedValue($value)
+    public function setHelperMockInstanceWithUnclearedValue($value): Helper
     {
         /** @var $helperMock Helper */
         $helperMock = $this->getMockBuilder(Helper::class)
-            ->setMethodsExcept(['getPaymentStatus', 'isValidPaymentStatus'])
+            ->setMethodsExcept(
+                ['getPaymentStatus', 'isValidPaymentStatus']
+            )
             ->getMock();
         $helperMock->expects($this->once())
             ->method('getMultiSafepaySettings')
@@ -180,20 +228,22 @@ class HelperTest extends \Enlight_Components_Test_TestCase
     }
 
     /**
-     * @return \Shopware\Models\Order\Order
-     * @throws \Exception
+     * Create a test double order
+     *
+     * @return Order
+     * @throws Exception
      */
-    public function createOrder()
+    public function createOrder(): Order
     {
-        $paymentStatusOpen = $this->em->getReference('\Shopware\Models\Order\Status', 17);
-        $orderStatusOpen = $this->em->getReference('\Shopware\Models\Order\Status', 0);
-        $paymentDebit = $this->em->getReference('\Shopware\Models\Payment\Payment', 2);
-        $dispatchDefault = $this->em->getReference('\Shopware\Models\Dispatch\Dispatch', 9);
-        $defaultShop = $this->em->getReference('\Shopware\Models\Shop\Shop', 1);
-        $partner = new \Shopware\Models\Partner\Partner();
+        $paymentStatusOpen = $this->em->getReference(Status::class, 17);
+        $orderStatusOpen = $this->em->getReference(Status::class, 0);
+        $paymentDebit = $this->em->getReference(Payment::class, 2);
+        $dispatchDefault = $this->em->getReference(Dispatch::class, 9);
+        $defaultShop = $this->em->getReference(Shop::class, 1);
+        $partner = new Partner();
         $partner->setCompany('Dummy');
         $partner->setIdCode('Dummy');
-        $partner->setDate(new \DateTime());
+        $partner->setDate(new DateTime());
         $partner->setContact('Dummy');
         $partner->setStreet('Dummy');
         $partner->setZipCode('Dummy');
@@ -205,7 +255,7 @@ class HelperTest extends \Enlight_Components_Test_TestCase
         $partner->setWeb('Dummy');
         $partner->setProfile('Dummy');
         $this->em->persist($partner);
-        $order = new \Shopware\Models\Order\Order();
+        $order = new Order();
         $order->setNumber('abc');
         $order->setPaymentStatus($paymentStatusOpen);
         $order->setOrderStatus($orderStatusOpen);

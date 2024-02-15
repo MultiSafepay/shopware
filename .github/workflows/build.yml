@@ -27,33 +27,45 @@ jobs:
       fail-fast: false
       matrix:
         php_version: [ '7.4' ]
-        shopware_version: [ '5.6' ]
+        shopware_version: [ '5.7.11' ]
     name: Integration test - Php version ${{ matrix.php_version }} with Shopware ${{ matrix.shopware_version }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v1
-      - name: Install php
+      - name: Install PHP
         uses: shivammathur/setup-php@master
         with:
           php-version: ${{ matrix.php_version }}
           tools: composer
           coverage: none
+      - name: Install Composer dependencies
+        run: |
+          composer install
       - name: Install Shopware
         run: |
-          git clone -b ${{ matrix.shopware_version }} --depth=1 https://github.com/shopware5/shopware.git /tmp/shopware
+          git clone https://github.com/shopware5/shopware.git /tmp/shopware
           cd /tmp/shopware
-          php psh.phar init --DB_HOST="127.0.0.1" --DB_USER="root" --DB_PASSWORD="password" --DB_PORT=${{ job.services.mysql.ports['3306'] }}
-      - name: Install MultiSafepay Plugin
+          git checkout tags/v${{ matrix.shopware_version }}
+          composer install
+          echo "<?php return ['db' => ['host' => '127.0.0.1', 'port' => '${{ job.services.mysql.ports['3306'] }}', 'username' => 'root', 'password' => 'password', 'dbname' => 'shopware']];" > config.php
+          bin/console sw:database:setup --steps=drop,create,import
+      - name: Install MultiSafepay plugin
         run: |
           mkdir -p /tmp/shopware/custom/plugins/MltisafeMultiSafepayPayment
           mv * /tmp/shopware/custom/plugins/MltisafeMultiSafepayPayment
           cd /tmp/shopware/custom/plugins/MltisafeMultiSafepayPayment
-          composer install --no-dev
+          composer install
           cd /tmp/shopware
-          php /tmp/shopware/bin/console sw:plugin:install --clear-cache --activate MltisafeMultiSafepayPayment
+          php /tmp/shopware/bin/console sw:plugin:install --clear-cache MltisafeMultiSafepayPayment
+          php /tmp/shopware/bin/console sw:plugin:config:set MltisafeMultiSafepayPayment msp_api_key 1111111
+          php /tmp/shopware/bin/console sw:plugin:config:set MltisafeMultiSafepayPayment msp_environment 0
+      - name: Install PHPUnit dependencies
+        working-directory: /tmp/shopware/custom/plugins/MltisafeMultiSafepayPayment
+        run: |
+          composer require phpunit/phpunit
       - name: Run PHPunit
         working-directory: /tmp/shopware/custom/plugins/MltisafeMultiSafepayPayment
-        run: ../../../vendor/bin/phpunit --coverage-clover=coverage.xml -c phpunit.xml.dist
+        run: ./vendor/bin/phpunit --coverage-clover=coverage.xml -c phpunit.xml.dist
       - name: Send clover to codecov
         working-directory: /tmp/shopware/custom/plugins/MltisafeMultiSafepayPayment
         run: bash <(curl -s https://codecov.io/bash) -t ${{ secrets.CODECOV_TOKEN }} -R .

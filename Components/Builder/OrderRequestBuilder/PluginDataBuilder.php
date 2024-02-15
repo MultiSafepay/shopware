@@ -4,7 +4,7 @@
  *
  * Do not edit or add to this file if you wish to upgrade the MultiSafepay plugin
  * to newer versions in the future. If you wish to customize the plugin for your
- * needs please document your changes and make backups before you update.
+ * needs, please document your changes and make backups before you update.
  *
  * @category    MultiSafepay
  * @package     Shopware
@@ -27,26 +27,63 @@ use MultiSafepay\Api\Transactions\OrderRequest\Arguments\PluginDetails;
 use Shopware\Models\Order\Order;
 use Shopware_Components_Config;
 
+/**
+ * Class PluginDataBuilder
+ *
+ * @package MltisafeMultiSafepayPayment\Components\Builder\OrderRequestBuilder
+ */
 class PluginDataBuilder implements OrderRequestBuilderInterface
 {
+    /**
+     * @var Shopware_Components_Config
+     */
     private $shopwareConfig;
+
+    /**
+     * PluginDataBuilder constructor
+     *
+     * @param Shopware_Components_Config $shopwareConfig
+     */
     public function __construct(Shopware_Components_Config $shopwareConfig)
     {
         $this->shopwareConfig = $shopwareConfig;
     }
 
+    /**
+     * Build the order request
+     *
+     * @param OrderRequest $orderRequest
+     * @param $controller
+     * @param $container
+     * @return OrderRequest
+     */
     public function build(OrderRequest $orderRequest, $controller, $container): OrderRequest
     {
         $baseUrl = $this->generateShopRootUrl($container->get('shop'));
+
         return $orderRequest->addPluginDetails($this->getPluginDetails($baseUrl));
     }
 
+    /**
+     * Build the order request from the backend
+     *
+     * @param OrderRequest $orderRequest
+     * @param Order $order
+     * @return OrderRequest
+     */
     public function buildBackendOrder(OrderRequest $orderRequest, Order $order): OrderRequest
     {
         $baseUrl = $this->generateShopRootUrl($order->getShop());
+
         return $orderRequest->addPluginDetails($this->getPluginDetails($baseUrl));
     }
 
+    /**
+     * Get the plugin details
+     *
+     * @param string|null $baseUrl
+     * @return PluginDetails
+     */
     private function getPluginDetails(?string $baseUrl): PluginDetails
     {
         $pluginDetails = (new PluginDetails())
@@ -61,7 +98,13 @@ class PluginDataBuilder implements OrderRequestBuilderInterface
         return $pluginDetails;
     }
 
-    private function generateShopRootUrl($shop)
+    /**
+     * Generate the shop root url
+     *
+     * @param $shop
+     * @return string
+     */
+    private function generateShopRootUrl($shop): string
     {
         return implode('/', [
             $shop->getSecure() ? 'https:/' : 'http:/',

@@ -4,7 +4,7 @@
  *
  * Do not edit or add to this file if you wish to upgrade the MultiSafepay plugin
  * to newer versions in the future. If you wish to customize the plugin for your
- * needs please document your changes and make backups before you update.
+ * needs, please document your changes and make backups before you update.
  *
  * @category    MultiSafepay
  * @package     Shopware
@@ -25,22 +25,42 @@ use MultiSafepay\Api\Transactions\OrderRequest;
 use MultiSafepay\Api\Transactions\OrderRequest\Arguments\Description;
 use Shopware\Models\Order\Order;
 
+/**
+ * Class DescriptionBuilder
+ *
+ * @package MltisafeMultiSafepayPayment\Components\Builder\OrderRequestBuilder
+ */
 class DescriptionBuilder implements OrderRequestBuilderInterface
 {
+    /**
+     * Build the order request
+     *
+     * @param OrderRequest $orderRequest
+     * @param $controller
+     * @param $container
+     * @return OrderRequest
+     */
     public function build(OrderRequest $orderRequest, $controller, $container): OrderRequest
     {
         return $orderRequest->addDescription(
             (new Description())->addDescription(
-                'Payment for order #' . $orderRequest->getOrderId()
+                'Payment for order #' . $orderRequest->getOrderId() ?? 'N/A'
             )
         );
     }
 
+    /**
+     * Build the order request from the backend
+     *
+     * @param OrderRequest $orderRequest
+     * @param Order $order
+     * @return OrderRequest
+     */
     public function buildBackendOrder(OrderRequest $orderRequest, Order $order): OrderRequest
     {
         return $orderRequest->addDescription(
             (new Description())->addDescription(
-                'Payment for order #' . $order->getId()
+                'Payment for order #' . $order->getId() ?? 'N/A'
             )
         );
     }

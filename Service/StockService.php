@@ -4,7 +4,7 @@
  *
  * Do not edit or add to this file if you wish to upgrade the MultiSafepay plugin
  * to newer versions in the future. If you wish to customize the plugin for your
- * needs please document your changes and make backups before you update.
+ * needs, please document your changes and make backups before you update.
  *
  * @category    MultiSafepay
  * @package     Shopware
@@ -21,34 +21,75 @@
 
 namespace MltisafeMultiSafepayPayment\Service;
 
+use Exception;
 use Shopware\Components\Model\ModelManager;
 use Shopware\Models\Order\Detail;
 use Shopware\Models\Order\Order;
 
+/**
+ * Class StockService
+ *
+ * @package MltisafeMultiSafepayPayment\Service
+ */
 class StockService
 {
+    /**
+     * @var ModelManager
+     */
     private $em;
 
+    /**
+     * StockService constructor
+     *
+     * @param ModelManager $modelManager
+     */
     public function __construct(ModelManager $modelManager)
     {
         $this->em = $modelManager;
     }
 
-    public function restoreStockByOrder(Order $order)
+    /**
+     * Restore the stock by order
+     *
+     * @param Order $order
+     * @return void
+     */
+    public function restoreStockByOrder(Order $order): void
     {
         foreach ($order->getDetails() as $detail) {
-            $this->restoreStockByDetails($detail);
+            $this->restoreStockByDetails($detail, $order);
         }
     }
 
-    public function restoreStockByDetails(Detail $detail)
+    /**
+     * Restore the stock by detail
+     *
+     * @param Detail $detail
+     * @param Order $order
+     * @return void
+     */
+    public function restoreStockByDetails(Detail $detail, Order $order): void
     {
         $detail->setQuantity(0);
+        $container = Shopware()->Container();
+        $transactionId = $order->getTransactionId() ?? '';
 
-        $this->em->persist($detail);
-        $this->em->flush($detail);
+        try {
+            $this->em->persist($detail);
+            $this->em->flush($detail);
+        } catch (Exception $exception) {
+            (new LoggerService($container))->addLog(
+                LoggerService::ERROR,
+                'Could not save the order detail when restoring the stock',
+                [
+                    'TransactionId' => $transactionId,
+                    'CurrentSessionId' => isset($_SESSION['Shopware']['sessionId']) ? session_id() : 'session_id_not_found',
+                    'Exception'     => $exception->getMessage()
+                ]
+            );
+        }
 
-        $articleDetailRepo = $this->em->getRepository('Shopware\Models\Article\Detail');
+        $articleDetailRepo = $this->em->getRepository(\Shopware\Models\Article\Detail::class);
 
         /** @var \Shopware\Models\Article\Detail $article */
         $article = $articleDetailRepo->findOneBy(
@@ -56,7 +97,19 @@ class StockService
         );
 
         $article->setInStock($article->getInStock());
-        $this->em->persist($article);
-        $this->em->flush($article);
+        try {
+            $this->em->persist($article);
+            $this->em->flush($article);
+        } catch (Exception $exception) {
+            (new LoggerService($container))->addLog(
+                LoggerService::ERROR,
+                'Could not save the order article when restoring the stock',
+                [
+                    'TransactionId' => $transactionId,
+                    'CurrentSessionId' => isset($_SESSION['Shopware']['sessionId']) ? session_id() : 'session_id_not_found',
+                    'Exception'     => $exception->getMessage()
+                ]
+            );
+        }
     }
 }

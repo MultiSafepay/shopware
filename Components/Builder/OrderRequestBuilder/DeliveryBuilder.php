@@ -4,7 +4,7 @@
  *
  * Do not edit or add to this file if you wish to upgrade the MultiSafepay plugin
  * to newer versions in the future. If you wish to customize the plugin for your
- * needs please document your changes and make backups before you update.
+ * needs, please document your changes and make backups before you update.
  *
  * @category    MultiSafepay
  * @package     Shopware
@@ -25,32 +25,43 @@ use MultiSafepay\Api\Transactions\OrderRequest;
 use MultiSafepay\Api\Transactions\OrderRequest\Arguments\CustomerDetails;
 use MultiSafepay\ValueObject\Customer\Address;
 use MultiSafepay\ValueObject\Customer\AddressParser;
-use MultiSafepay\ValueObject\Customer\EmailAddress;
-use MultiSafepay\ValueObject\Customer\PhoneNumber;
 use Shopware\Models\Order\Order;
 
+/**
+ * Class CustomerBuilder
+ *
+ * @package MltisafeMultiSafepayPayment\Components\Builder\OrderRequestBuilder
+ */
 class DeliveryBuilder implements OrderRequestBuilderInterface
 {
+    /**
+     * Build the order request
+     *
+     * @param OrderRequest  $orderRequest
+     * @param $controller
+     * @param $container
+     * @return OrderRequest
+     */
     public function build(OrderRequest $orderRequest, $controller, $container): OrderRequest
     {
         $user = $controller->getUser();
         $address = new Address();
-        [$street, $houseNumber] =
-            (new AddressParser())->parse($user["shippingaddress"]["street"], $user["shippingaddress"]["additionalAddressLine1"] ?? '');
+        $shop = $container->get('shop');
+        [$street, $houseNumber] = (new AddressParser())->parse($user['shippingaddress']['street'], $user['shippingaddress']['additionalAddressLine1'] ?? '');
 
-
-        $address->addCity($user["shippingaddress"]["city"])
-            ->addCountryCode($user["additional"]["countryShipping"]["countryiso"])
+        $address->addCity($user['shippingaddress']['city'])
+            ->addCountryCode($user['additional']['countryShipping']['countryiso'])
             ->addHouseNumber($houseNumber)
             ->addStreetName($street)
-            ->addZipCode($user["shippingaddress"]["zipcode"]);
+            ->addZipCode($user['shippingaddress']['zipcode']);
 
         $deliveryDetails = (new OrderRequest\Arguments\CustomerDetails())
-            ->addFirstName($user["shippingaddress"]["firstname"])
-            ->addLastName($user["shippingaddress"]["lastname"])
+            ->addLocale(is_null($shop) ? 'en_US' : $shop->getLocale()->getLocale() ?? 'en_US')
+            ->addFirstName($user['shippingaddress']['firstname'])
+            ->addLastName($user['shippingaddress']['lastname'])
             ->addAddress($address)
-            ->addPhoneNumber(new PhoneNumber($user["shippingaddress"]["phone"] ?? ''))
-            ->addEmailAddress(new EmailAddress($user["additional"]["user"]["email"]));
+            ->addPhoneNumberAsString($user['shippingaddress']['phone'] ?? '')
+            ->addEmailAddressAsString($user['additional']['user']['email']);
 
         if ($user['shippingaddress']['company']) {
             $deliveryDetails->addCompanyName($user['shippingaddress']['company']);
@@ -59,23 +70,35 @@ class DeliveryBuilder implements OrderRequestBuilderInterface
         return $orderRequest->addDelivery($deliveryDetails);
     }
 
+    /**
+     * Build the order request from the backend
+     *
+     * @param OrderRequest $orderRequest
+     * @param Order $order
+     * @return OrderRequest
+     */
     public function buildBackendOrder(OrderRequest $orderRequest, Order $order): OrderRequest
     {
-        $address = new Address();
-        [$street, $houseNumber] = (new AddressParser())->parse($order->getShipping()->getStreet(), $order->getShipping()->getAdditionalAddressLine1());
+        $shipping = $order->getShipping();
+        $customer = $order->getCustomer();
+        $deliveryDetails = new CustomerDetails();
 
-        $address->addCity($order->getShipping()->getCity())
-            ->addCountryCode($order->getShipping()->getCountry()->getIso())
-            ->addHouseNumber($houseNumber)
-            ->addStreetName($street)
-            ->addZipCode($order->getShipping()->getZipCode());
+        if ($shipping) {
+            [$street, $houseNumber] = (new AddressParser())->parse($shipping->getStreet(), $shipping->getAdditionalAddressLine1());
 
-        $deliveryDetails = (new CustomerDetails())
-            ->addFirstName($order->getShipping()->getFirstName())
-            ->addLastName($order->getShipping()->getLastName())
-            ->addAddress($address)
-            ->addPhoneNumberAsString($order->getShipping()->getPhone() ?? '')
-            ->addEmailAddressAsString($order->getCustomer()->getEmail() ?? '');
+            $address = new Address();
+            $address->addCity($shipping->getCity())
+                ->addCountryCode($shipping->getCountry()->getIso())
+                ->addHouseNumber($houseNumber)
+                ->addStreetName($street)
+                ->addZipCode($shipping->getZipCode());
+
+            $deliveryDetails->addFirstName($shipping->getFirstName())
+                ->addLastName($shipping->getLastName())
+                ->addAddress($address)
+                ->addPhoneNumberAsString($shipping->getPhone() ?? '')
+                ->addEmailAddressAsString(is_null($customer) ? '' : $customer->getEmail() ?? '');
+        }
 
         return $orderRequest->addDelivery($deliveryDetails);
     }

@@ -4,7 +4,7 @@
  *
  * Do not edit or add to this file if you wish to upgrade the MultiSafepay plugin
  * to newer versions in the future. If you wish to customize the plugin for your
- * needs please document your changes and make backups before you update.
+ * needs, please document your changes and make backups before you update.
  *
  * @category    MultiSafepay
  * @package     Shopware
@@ -24,9 +24,29 @@ namespace MltisafeMultiSafepayPayment\Components\Builder\OrderRequestBuilder;
 use MultiSafepay\Api\Transactions\OrderRequest;
 use Shopware\Models\Order\Order;
 
+/**
+ * Interface OrderRequestBuilderInterface
+ *
+ * @package MltisafeMultiSafepayPayment\Components\Builder\OrderRequestBuilder
+ */
 interface OrderRequestBuilderInterface
 {
+    /**
+     * Build the order request
+     *
+     * @param OrderRequest $orderRequest
+     * @param $controller
+     * @param $container
+     * @return OrderRequest
+     */
     public function build(OrderRequest $orderRequest, $controller, $container): OrderRequest;
 
+    /**
+     * Build the order request from the backend
+     *
+     * @param OrderRequest $orderRequest
+     * @param Order $order
+     * @return OrderRequest
+     */
     public function buildBackendOrder(OrderRequest $orderRequest, Order $order): OrderRequest;
 }

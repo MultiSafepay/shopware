@@ -2,51 +2,151 @@
 
 <container xmlns="http://symfony.com/schema/dic/services"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
-
-    <imports>
-        <import resource="services/factory.xml"/>
-        <import resource="services/builder.xml"/>
-        <import resource="services/components.xml"/>
-        <import resource="services/services.xml"/>
-    </imports>
+           xsi:schemaLocation="http://symfony.com/schema/dic/services https://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
-        <service id="multi_safepay_payment.subscriber.frontend"
+        <service id="Shopware.Models.Order" class="Shopware\Models\Order\Order"/>
+        <service id="multisafepay.subscriber.frontend"
                  class="MltisafeMultiSafepayPayment\Subscriber\Frontend"
                  public="true">
             <argument>%mltisafe_multi_safepay_payment.plugin_dir%</argument>
             <tag name="shopware.event_subscriber"/>
         </service>
-
-        <service id="multi_safepay_payment.subscriber.ideal" class="MltisafeMultiSafepayPayment\Subscriber\Ideal"
+        <service id="multisafepay.subscriber.payment_component_subscriber"
+                 class="MltisafeMultiSafepayPayment\Subscriber\PaymentComponentSubscriber"
                  public="true">
             <argument type="service" id="service_container"/>
-            <argument type="service" id="multi_safepay_payment.factory.client"/>
+            <argument type="service" id="multisafepay.factory.client"/>
+            <argument type="service" id="multisafepay.service.payment_methods_service"/>
             <tag name="shopware.event_subscriber"/>
         </service>
-
-        <service id="multi_safepay_payment.subscriber.payment_filter"
+        <service id="multisafepay.subscriber.payment_filter"
                  class="MltisafeMultiSafepayPayment\Subscriber\PaymentFilter"
                  public="true">
             <argument type="service" id="service_container"/>
             <argument type="service" id="session"/>
+            <argument type="service" id="multisafepay.service.payment_methods_service"/>
             <tag name="shopware.event_subscriber"/>
         </service>
-        <service id="multi_safepay_payment.subscriber.order_update_subscriber"
+        <service id="multisafepay.subscriber.order_update_subscriber"
                  public="true"
                  class="MltisafeMultiSafepayPayment\Subscriber\OrderUpdateSubscriber">
             <tag name="shopware.event_subscriber"/>
         </service>
-        <service id="multi_safepay_payment.subscriber.order_history_subscriber"
+        <service id="multisafepay.subscriber.order_history_subscriber"
                  public="true"
                  class="MltisafeMultiSafepayPayment\Subscriber\OrderHistorySubscriber">
             <tag name="doctrine.event_subscriber"/>
         </service>
-        <service id="multi_safepay_payment.subscriber.order_backend_controller" class="MltisafeMultiSafepayPayment\Subscriber\OrderBackendController">
-            <argument type="service" id="multi_safepay_payment.factory.client"/>
-            <argument type="service" id="multi_safepay_payment.builder.order_request_builder"/>
+        <service id="multisafepay.subscriber.order_backend_controller"
+                 class="MltisafeMultiSafepayPayment\Subscriber\OrderBackendController">
+            <argument type="service" id="multisafepay.factory.client"/>
+            <argument type="service" id="multisafepay.builder.order_request_builder"/>
             <argument type="service" id="service_container"/>
             <tag name="shopware.event_subscriber"/>
+        </service>
+        <service id="multisafepay.subscriber.payment_methods"
+                 class="MltisafeMultiSafepayPayment\Subscriber\PaymentMethods">
+            <argument type="service" id="multisafepay.installer.payment_methods_installer"/>
+            <tag name="shopware.event_subscriber"/>
+        </service>
+        <service id="multisafepay.components.document.invoice"
+                 class="MltisafeMultiSafepayPayment\Components\Documents\Invoice"
+                 public="true">
+        </service>
+        <service id="multisafepay.components.quotenumber"
+                 class="MltisafeMultiSafepayPayment\Components\Quotenumber"
+                 public="true">
+            <argument type="service" id="shopware.number_range_incrementer"/>
+            <argument type="service" id="service_container"/>
+        </service>
+        <service id="multisafepay.factory.client"
+                 class="MltisafeMultiSafepayPayment\Components\Factory\Client"
+                 public="true">
+        </service>
+        <service id="multisafepay.installer.payment_methods_installer"
+                 class="MltisafeMultiSafepayPayment\Subscriber\PaymentMethodsInstaller"
+                 public="true">
+            <argument type="service" id="service_container"/>
+        </service>
+        <service id="multisafepay.builder.order_request_builder"
+                 class="MltisafeMultiSafepayPayment\Components\Builder\OrderRequestBuilder"
+                 public="true">
+            <argument type="service" id="multisafepay.builder.order_request_builder_pool"/>
+            <argument type="service" id="multisafepay.components.quotenumber"/>
+        </service>
+        <service id="multisafepay.builder.order_request_builder_pool"
+                 class="MltisafeMultiSafepayPayment\Components\Builder\OrderRequestBuilderPool"
+                 public="true">
+            <argument type="service" id="multisafepay.builder.order_request_builder.customer_builder"/>
+            <argument type="service" id="multisafepay.builder.order_request_builder.payment_options_builder"/>
+            <argument type="service" id="multisafepay.builder.order_request_builder.description_builder"/>
+            <argument type="service" id="multisafepay.builder.order_request_builder.seconds_active_builder"/>
+            <argument type="service" id="multisafepay.builder.order_request_builder.plugin_data_builder"/>
+            <argument type="service" id="multisafepay.builder.order_request_builder.delivery_builder"/>
+            <argument type="service" id="multisafepay.builder.order_request_builder.shopping_cart_builder"/>
+        </service>
+        <service id="multisafepay.builder.order_request_builder.customer_builder"
+                 class="MltisafeMultiSafepayPayment\Components\Builder\OrderRequestBuilder\CustomerBuilder"
+                 public="true">
+        </service>
+        <service id="multisafepay.builder.order_request_builder.payment_options_builder"
+                 class="MltisafeMultiSafepayPayment\Components\Builder\OrderRequestBuilder\PaymentOptionsBuilder"
+                 public="true">
+        </service>
+        <service id="multisafepay.builder.order_request_builder.description_builder"
+                 class="MltisafeMultiSafepayPayment\Components\Builder\OrderRequestBuilder\DescriptionBuilder"
+                 public="true">
+        </service>
+        <service id="multisafepay.builder.order_request_builder.seconds_active_builder"
+                 class="MltisafeMultiSafepayPayment\Components\Builder\OrderRequestBuilder\SecondsActiveBuilder"
+                 public="true">
+            <argument type="service" id="shopware.plugin.cached_config_reader"/>
+        </service>
+        <service id="multisafepay.builder.order_request_builder.plugin_data_builder"
+                 class="MltisafeMultiSafepayPayment\Components\Builder\OrderRequestBuilder\PluginDataBuilder"
+                 public="true">
+            <argument type="service" id="config"/>
+        </service>
+        <service id="multisafepay.builder.order_request_builder.delivery_builder"
+                 class="MltisafeMultiSafepayPayment\Components\Builder\OrderRequestBuilder\DeliveryBuilder"
+                 public="true">
+        </service>
+        <service id="multisafepay.builder.order_request_builder.shopping_cart_builder"
+                 class="MltisafeMultiSafepayPayment\Components\Builder\OrderRequestBuilder\ShoppingCartBuilder"
+                 public="true">
+        </service>
+        <service id="multisafepay.service.basket_restore_service"
+                 class="MltisafeMultiSafepayPayment\Service\BasketRestoreService"
+                 public="true">
+            <argument type="service" id="service_container"/>
+        </service>
+        <service id="multisafepay.service.cached_config_service"
+                 class="MltisafeMultiSafepayPayment\Service\CachedConfigService"
+                 public="true">
+            <argument type="service" id="service_container"/>
+            <argument type="service" id="Shopware.Models.Order"/>
+        </service>
+        <service id="multisafepay.service.logger_service"
+                 class="MltisafeMultiSafepayPayment\Service\LoggerService"
+                 public="true">
+            <argument type="service" id="service_container"/>
+        </service>
+        <service id="multisafepay.service.order_service"
+                 class="MltisafeMultiSafepayPayment\Service\OrderService"
+                 public="true">
+            <argument type="service" id="models"/>
+            <argument type="service" id="service_container"/>
+        </service>
+        <service id="multisafepay.service.payment_methods_service"
+                 class="MltisafeMultiSafepayPayment\Service\PaymentMethodsService"
+                 public="true">
+            <argument type="service" id="service_container"/>
+            <argument type="service" id="multisafepay.factory.client"/>
+        </service>
+        <service id="multisafepay.service.stock_service"
+                 class="MltisafeMultiSafepayPayment\Service\StockService"
+                 public="true">
+            <argument type="service" id="models"/>
         </service>
     </services>
 </container>

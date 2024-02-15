@@ -4,7 +4,7 @@
  *
  * Do not edit or add to this file if you wish to upgrade the MultiSafepay plugin
  * to newer versions in the future. If you wish to customize the plugin for your
- * needs please document your changes and make backups before you update.
+ * needs, please document your changes and make backups before you update.
  *
  * @category    MultiSafepay
  * @package     Shopware
@@ -29,16 +29,59 @@ use MltisafeMultiSafepayPayment\Components\Builder\OrderRequestBuilder\PluginDat
 use MltisafeMultiSafepayPayment\Components\Builder\OrderRequestBuilder\SecondsActiveBuilder;
 use MltisafeMultiSafepayPayment\Components\Builder\OrderRequestBuilder\ShoppingCartBuilder;
 
+/**
+ * Class OrderRequestBuilderPool
+ *
+ * @package MltisafeMultiSafepayPayment\Components\Builder
+ */
 class OrderRequestBuilderPool
 {
+    /**
+     * @var CustomerBuilder
+     */
     private $customerBuilder;
+
+    /**
+     * @var PaymentOptionsBuilder
+     */
     private $paymentOptionsBuilder;
+
+    /**
+     * @var ShoppingCartBuilder
+     */
     private $shoppingCartBuilder;
+
+    /**
+     * @var DescriptionBuilder
+     */
     private $descriptionBuilder;
+
+    /**
+     * @var DeliveryBuilder
+     */
     private $deliveryBuilder;
+
+    /**
+     * @var SecondsActiveBuilder
+     */
     private $secondsActiveBuilder;
+
+    /**
+     * @var PluginDataBuilder
+     */
     private $pluginDataBuilder;
 
+    /**
+     * OrderRequestBuilderPool constructor
+     *
+     * @param CustomerBuilder $customerBuilder
+     * @param PaymentOptionsBuilder $paymentOptionsBuilder
+     * @param DescriptionBuilder $descriptionBuilder
+     * @param SecondsActiveBuilder $secondsActiveBuilder
+     * @param PluginDataBuilder $pluginDataBuilder
+     * @param DeliveryBuilder $deliveryBuilder
+     * @param ShoppingCartBuilder $shoppingCartBuilder
+     */
     public function __construct(
         CustomerBuilder $customerBuilder,
         PaymentOptionsBuilder $paymentOptionsBuilder,
@@ -57,6 +100,11 @@ class OrderRequestBuilderPool
         $this->shoppingCartBuilder = $shoppingCartBuilder;
     }
 
+    /**
+     * Get the order request builder pool
+     *
+     * @return array
+     */
     public function getOrderRequestBuilderPool(): array
     {
         return [
@@ -66,7 +114,7 @@ class OrderRequestBuilderPool
             'customer' => $this->customerBuilder,
             'delivery' => $this->deliveryBuilder,
             'seconds_active' => $this->secondsActiveBuilder,
-            'plugin_data' => $this->pluginDataBuilder,
+            'plugin_data' => $this->pluginDataBuilder
         ];
     }
 }

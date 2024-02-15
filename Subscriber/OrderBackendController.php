@@ -4,7 +4,7 @@
  *
  * Do not edit or add to this file if you wish to upgrade the MultiSafepay plugin
  * to newer versions in the future. If you wish to customize the plugin for your
- * needs please document your changes and make backups before you update.
+ * needs, please document your changes and make backups before you update.
  *
  * @category    MultiSafepay
  * @package     Shopware
@@ -22,13 +22,24 @@
 namespace MltisafeMultiSafepayPayment\Subscriber;
 
 use Enlight\Event\SubscriberInterface;
+use Enlight_Event_EventArgs;
 use MltisafeMultiSafepayPayment\Components\Builder\OrderRequestBuilder;
 use MltisafeMultiSafepayPayment\Components\Factory\Client;
+use MltisafeMultiSafepayPayment\Service\CachedConfigService;
+use MltisafeMultiSafepayPayment\Service\LoggerService;
+use MultiSafepay\Exception\ApiException;
+use Psr\Http\Client\ClientExceptionInterface;
 use Shopware\Models\Order\Detail;
 use Shopware\Models\Order\Order;
-use Shopware\Models\Tax\Tax;
+use Shopware_Controllers_Backend_SwagBackendOrder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Zend_Db_Adapter_Exception;
 
+/**
+ * Class OrderBackendController
+ *
+ * @package MltisafeMultiSafepayPayment\Subscriber
+ */
 class OrderBackendController implements SubscriberInterface
 {
     public $container;
@@ -37,7 +48,10 @@ class OrderBackendController implements SubscriberInterface
     private $orderRequestBuilder;
 
     /**
-     * OrderBackendController constructor.
+     * OrderBackendController constructor
+     *
+     * @param Client $client
+     * @param OrderRequestBuilder $orderRequestBuilder
      * @param ContainerInterface $container
      */
     public function __construct(
@@ -52,45 +66,79 @@ class OrderBackendController implements SubscriberInterface
     }
 
     /**
-     * @return string[]
+     * Get subscribed events
+     *
+     * @return array
      */
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         return [
-            'Shopware_Modules_Order_SaveOrder_OrderCreated' => 'onGetBackendController',
+            'Shopware_Modules_Order_SaveOrder_OrderCreated' => 'onGetBackendController'
         ];
     }
 
     /**
      * Create a payment link when the order is a backend order and is a MultiSafepay payment method
      *
-     * @param \Enlight_Event_EventArgs $args
-     * @throws \Zend_Db_Adapter_Exception
+     * @param Enlight_Event_EventArgs $args
+     * @throws Zend_Db_Adapter_Exception
      */
-    public function onGetBackendController(\Enlight_Event_EventArgs $args)
+    public function onGetBackendController(Enlight_Event_EventArgs $args): void
     {
         // Only when event is triggered from SwagBackendOrder
         // @phpstan-ignore-next-line */
-        if (!$args->getSubject() instanceof \Shopware_Controllers_Backend_SwagBackendOrder) {
+        if (!$args->getSubject() instanceof Shopware_Controllers_Backend_SwagBackendOrder) {
             return;
         }
 
         /** @var Order $order */
-        $order = Shopware()->Models()->getRepository('Shopware\Models\Order\Order')->find($args->get('orderId'));
+        $order = Shopware()->Models()->getRepository(Order::class)->find($args->get('orderId'));
 
-        if (substr($order->getPayment()->getName(), 0, 13) !== "multisafepay_") {
+        $paymentFullName = $order->getPayment()->getName();
+        $paymentSplitParts = !empty($paymentFullName) ? explode('_', $paymentFullName) : [];
+        $paymentMethodName = $paymentSplitParts[1] ?? '';
+
+        if (empty($paymentMethodName) || (isset($paymentSplitParts[0]) && ($paymentSplitParts[0] !== 'multisafepay'))) {
             return;
         }
 
-        $transactionId = $this->container->get('multi_safepay_payment.components.quotenumber')->getNextQuotenumber();
+        // Retrieve the quoteNumber component
+        $quoteNumberComponent = $this->container->get('multisafepay.components.quotenumber');
+        if (is_null($quoteNumberComponent)) {
+            return;
+        }
 
+        $transactionId = $quoteNumberComponent->getNextQuotenumber();
         $order->setTransactionId($transactionId);
-        $orderRequest = $this->orderRequestBuilder->buildBackendOrder($order);
-        $pluginConfig = $this->container->get('shopware.plugin.cached_config_reader')->getByPluginName('MltisafeMultiSafepayPayment', $order->getShop());
+        $orderRequest = $this->orderRequestBuilder->buildBackendOrder($order, $paymentMethodName);
+
+        // Retrieve the cached_config_reader component
+        [$cachedConfigReader, $shop] = (new CachedConfigService($this->container))->selectConfigReader();
+        if (is_null($cachedConfigReader)) {
+            (new LoggerService($this->container))->addLog(
+                LoggerService::WARNING,
+                'Could not load plugin configuration',
+                [
+                    'CurrentSessionId' => isset($_SESSION['Shopware']['sessionId']) ? session_id() : 'session_id_not_found'
+                ]
+            );
+            return;
+        }
+        $pluginConfig = $cachedConfigReader->getByPluginName('MltisafeMultiSafepayPayment', $shop);
 
         try {
-            $response = $this->client->getSdk($pluginConfig)->getTransactionManager()->create($orderRequest);
-        } catch (\Exception $e) {
+            $clientSdk = $this->client->getSdk($pluginConfig);
+            $transactionManager = $clientSdk->getTransactionManager();
+            $response = $transactionManager->create($orderRequest);
+        } catch (ApiException | ClientExceptionInterface $exception) {
+            (new LoggerService($this->container))->addLog(
+                LoggerService::ERROR,
+                'API error occurred while trying to create a transaction',
+                [
+                    'CurrentSessionId' => isset($_SESSION['Shopware']['sessionId']) ? session_id() : 'session_id_not_found',
+                    'Exception' => $exception->getMessage()
+                ]
+            );
             return;
         }
 
@@ -103,67 +151,55 @@ class OrderBackendController implements SubscriberInterface
             'id=' . $order->getId()
         );
 
-
-        $attributes = $this->container->get('shopware_attribute.data_loader')->load('s_order_attributes', $order->getId());
+        // Retrieve the data_loader component
+        $dataLoader = $this->container->get('shopware_attribute.data_loader');
+        if (is_null($dataLoader)) {
+            return;
+        }
+        $attributes = $dataLoader->load('s_order_attributes', $order->getId());
         $attributes['multisafepay_payment_link'] = $response->getPaymentUrl();
-        $this->container->get('shopware_attribute.data_persister')->persist($attributes, 's_order_attributes', $order->getId());
+
+        // Retrieve the data_persister component
+        $dataPersister = $this->container->get('shopware_attribute.data_persister');
+        if (is_null($dataPersister)) {
+            return;
+        }
+        $dataPersister->persist($attributes, 's_order_attributes', $order->getId());
     }
 
     /**
+     * Get products from order
+     *
      * @param Order $order
      * @return array
      */
-    protected function getProducts(Order $order)
+    protected function getProducts(Order $order): array
     {
         $cart['items'] = [];
         $products = Shopware()->Models()->getRepository(Detail::class)->findBy(['order' => $order]);
         /** @var Detail $product */
         foreach ($products as $product) {
             $unitPrice = $product->getPrice() - ($product->getPrice() / (100 + $product->getTaxRate()) * $product->getTaxRate());
+            $taxInfo = $product->getTax();
+            $taxName = is_null($taxInfo) ? '' : $taxInfo->getName();
+
             $cart['items'][] = [
-                "name" => $product->getArticleName(),
-                "unit_price" => $unitPrice,
-                "quantity" => $product->getQuantity(),
+                'name' => $product->getArticleName(),
+                'unit_price' => $unitPrice,
+                'quantity' => $product->getQuantity(),
                 'merchant_item_id' => $product->getId(),
-                'tax_table_selector' => $product->getTax()->getName()
+                'tax_table_selector' => $taxName
             ];
         }
 
         $cart['items'][] = [
-            "name" => 'Shipping',
-            "unit_price" => $order->getInvoiceShippingNet(),
-            "quantity" => 1,
+            'name' => 'Shipping',
+            'unit_price' => $order->getInvoiceShippingNet(),
+            'quantity' => 1,
             'merchant_item_id' => 'msp-shipping',
             'tax_table_selector' => 'shipping-tax'
         ];
 
         return $cart;
-    }
-
-    /**
-     * @param Order $order
-     * @return array
-     */
-    protected function getTaxRates(Order $order)
-    {
-        $taxTables['tax_tables']['alternate'] = [];
-        $taxRates = Shopware()->Models()->getRepository(Tax::class)->findAll();
-        foreach ($taxRates as $taxRate) {
-            $taxTables['tax_tables']['alternate'][] = [
-                'name' => $taxRate->getName(),
-                'rules' => [[
-                    'rate' => $taxRate->getTax() / 100
-                ]]
-            ];
-        }
-
-        $taxTables['tax_tables']['alternate'][] = [
-            'name' => 'shipping-tax',
-            'rules' => [
-                ['rate' => $order->getInvoiceShippingTaxRate() / 100]
-            ]
-        ];
-
-        return $taxTables;
     }
 }

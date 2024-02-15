@@ -4,7 +4,7 @@
  *
  * Do not edit or add to this file if you wish to upgrade the MultiSafepay plugin
  * to newer versions in the future. If you wish to customize the plugin for your
- * needs please document your changes and make backups before you update.
+ * needs, please document your changes and make backups before you update.
  *
  * @category    MultiSafepay
  * @package     Shopware
@@ -22,25 +22,36 @@
 namespace MltisafeMultiSafepayPayment\Components\Builder;
 
 use MltisafeMultiSafepayPayment\Components\Builder\OrderRequestBuilder\OrderRequestBuilderInterface;
-use MltisafeMultiSafepayPayment\Components\Gateways;
 use MltisafeMultiSafepayPayment\Components\Quotenumber;
 use MultiSafepay\Api\Transactions\OrderRequest;
-use MultiSafepay\Api\Transactions\OrderRequest\Arguments\GatewayInfo\Issuer;
 use MultiSafepay\ValueObject\Money;
 use Shopware\Models\Order\Order;
 
+/**
+ * Class OrderRequestBuilder
+ *
+ * @package MltisafeMultiSafepayPayment\Components\Builder
+ */
 class OrderRequestBuilder
 {
+    /**
+     * @var OrderRequestBuilderPool
+     */
     private $orderRequestBuilderPool;
-    private $quoteNumber;
 
-    public function __construct(OrderRequestBuilderPool $orderRequestBuilderPool, Quotenumber $quoteNumber)
+    /**
+     * OrderRequestBuilder constructor
+     *
+     * @param OrderRequestBuilderPool $orderRequestBuilderPool
+     */
+    public function __construct(OrderRequestBuilderPool $orderRequestBuilderPool)
     {
         $this->orderRequestBuilderPool = $orderRequestBuilderPool;
-        $this->quoteNumber = $quoteNumber;
     }
 
     /**
+     * Build the order
+     *
      * @param $controller
      * @param $container
      * @param string $signature
@@ -48,7 +59,8 @@ class OrderRequestBuilder
      */
     public function build($controller, $container, string $signature): OrderRequest
     {
-        $quoteNumber = $container->get('multi_safepay_payment.components.quotenumber');
+        /** @var Quotenumber $quoteNumber */
+        $quoteNumber = $container->get('multisafepay.components.quotenumber');
         $orderId = $quoteNumber->getNextQuotenumber();
 
         $orderRequest = new OrderRequest();
@@ -59,14 +71,9 @@ class OrderRequestBuilder
                     $controller->getAmount() * 100,
                     $controller->getCurrencyShortName()
                 )
-            )->addType(Gateways::getGatewayType($controller->Request()->payment))
-            ->addGatewayCode(Gateways::getGatewayCode($controller->Request()->payment))
+            )->addType('redirect')
+            ->addGatewayCode($controller->Request()->payment)
             ->addData(['var1'=> $signature]);
-
-        if (!empty($controller->get('session')->get('ideal_issuer')) && Gateways::getGatewayCode($controller->Request()->payment) === 'IDEAL') {
-            $meta = new Issuer();
-            $orderRequest->addGatewayInfo($meta->addIssuerId($controller->get('session')->get('ideal_issuer')));
-        }
 
         /** @var OrderRequestBuilderInterface $builder */
         foreach ($this->orderRequestBuilderPool->getOrderRequestBuilderPool() as $builder) {
@@ -76,7 +83,14 @@ class OrderRequestBuilder
         return $orderRequest;
     }
 
-    public function buildBackendOrder(Order $order): OrderRequest
+    /**
+     * Build the order request from the backend
+     *
+     * @param Order $order
+     * @param string $paymentMethodName
+     * @return OrderRequest
+     */
+    public function buildBackendOrder(Order $order, string $paymentMethodName): OrderRequest
     {
         $transactionId = $order->getTransactionId();
         $orderRequest = new OrderRequest();
@@ -88,7 +102,7 @@ class OrderRequestBuilder
                     $order->getCurrency()
                 )
             )->addType('paymentlink')
-            ->addGatewayCode(Gateways::getGatewayCode(substr($order->getPayment()->getName(), 13)));
+            ->addGatewayCode($paymentMethodName);
 
         /** @var OrderRequestBuilderInterface $builder */
         foreach ($this->orderRequestBuilderPool->getOrderRequestBuilderPool() as $builder) {

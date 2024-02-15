@@ -2,166 +2,155 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/shopware5/shopware/5.3/engine/Shopware/Components/Plugin/schema/config.xsd">
     <elements>
-        <element required="true" type="boolean" scope="shop">
+        <element type="boolean" scope="shop">
             <name>msp_environment</name>
-            <label lang="en">Live transactions</label>
+            <label>Live transactions</label>
         </element>
-
-        <element required="true" type="text" scope="shop">
+        <element scope="shop">
             <name>msp_api_key</name>
-            <label lang="en">API Key</label>
-            <description lang="en">Enter your API Key which can be found in your MultiSafepay account.</description>
+            <label>API Key</label>
+            <description>Enter your API Key, which can be found in your MultiSafepay account.</description>
         </element>
-
         <element required="false" type="number" scope="shop">
             <name>msp_time_active</name>
-            <label lang="en">Time active</label>
+            <label>Time active</label>
             <value>30</value>
-            <description lang="en">Time an order stays active</description>
+            <description>Time an order stays active</description>
         </element>
-
         <element type="select" scope="shop">
             <name>msp_time_label</name>
-            <label lang="en"></label>
+            <label> </label>
             <value>1</value>
             <store>
                 <option>
                     <value>1</value>
-                    <label lang="en">Days</label>
+                    <label>Days</label>
                 </option>
                 <option>
                     <value>2</value>
-                    <label lang="en">Hours</label>
+                    <label>Hours</label>
                 </option>
                 <option>
                     <value>3</value>
-                    <label lang="en">Seconds</label>
+                    <label>Seconds</label>
                 </option>
             </store>
         </element>
-
         <element type="select" scope="shop">
             <name>multisafepay_order_creation</name>
-            <label lang="en">When should the order be created</label>
+            <label>When should the order be created</label>
             <value>1</value>
             <store>
                 <option>
                     <value>1</value>
-                    <label lang="en">Order created after order completion (default)</label>
+                    <label>Order created after order completion (default)</label>
                 </option>
                 <option>
                     <value>2</value>
-                    <label lang="en">Order created before order completion</label>
+                    <label>Order created before order completion</label>
                 </option>
             </store>
         </element>
-
         <element required="false" type="boolean" scope="shop">
             <name>msp_reset_stock</name>
-            <label lang="en">Reset stock when order is cancelled</label>
+            <label>Reset stock when order is cancelled</label>
             <value>false</value>
         </element>
-
-        <element required="false" type="text" scope="shop">
+        <element required="false" type="boolean" scope="shop">
+            <name>msp_group_card_payment</name>
+            <label>Group credit and debit cards together in one payment method</label>
+            <value>false</value>
+        </element>
+        <element required="false" scope="shop">
             <name>msp_quote_prefix</name>
-            <label lang="en">Quote number prefix</label>
-            <description lang="en">Prepend quote number with entered text</description>
+            <label>Quote number prefix</label>
+            <description>Prepend quote number with entered text</description>
         </element>
-
-        <element required="false" type="text" scope="shop">
+        <element required="false" scope="shop">
             <name>msp_quote_suffix</name>
-            <label lang="en">Quote number suffix</label>
-            <description lang="en">Append quote number with entered text</description>
+            <label>Quote number suffix</label>
+            <description>Append quote number with entered text</description>
         </element>
-
         <element required="false" type="boolean" scope="shop">
             <name>msp_update_refund_active</name>
-            <label lang="en">Update payment status when order is refunded</label>
+            <label>Update payment status when order is refunded</label>
             <value>true</value>
-            <description lang="en">Update the payment status automatically when order has been refunded</description>
+            <description>Update the payment status automatically when order has been refunded</description>
         </element>
         <element required="false" type="combo" scope="shop">
             <name>msp_update_refund</name>
-            <label lang="en"/>
+            <label/>
             <value>32</value> <!-- Status::PAYMENT_STATE_THE_CREDIT_HAS_BEEN_ACCEPTED -->
             <store>Shopware.apps.Base.store.PaymentStatus</store>
         </element>
-
         <element required="false" type="combo" scope="shop">
             <name>msp_update_completed</name>
-            <label lang="en">Status completed</label>
+            <label>Status completed</label>
             <value>12</value> <!-- Status::PAYMENT_STATE_COMPLETELY_PAID -->
             <store>Shopware.apps.Base.store.PaymentStatus</store>
         </element>
-
         <element required="false" type="combo" scope="shop">
             <name>msp_update_declined</name>
-            <label lang="en">Status declined</label>
+            <label>Status declined</label>
             <value>35</value> <!-- Status::PAYMENT_STATE_THE_PROCESS_HAS_BEEN_CANCELLED -->
             <store>Shopware.apps.Base.store.PaymentStatus</store>
         </element>
-
         <element required="false" type="combo" scope="shop">
             <name>msp_update_cancelled</name>
-            <label lang="en">Status cancelled</label>
+            <label>Status cancelled</label>
             <value>35</value> <!-- Status::PAYMENT_STATE_THE_PROCESS_HAS_BEEN_CANCELLED -->
             <store>Shopware.apps.Base.store.PaymentStatus</store>
         </element>
-
         <element required="false" type="combo" scope="shop">
             <name>msp_update_expired</name>
-            <label lang="en">Status expired</label>
+            <label>Status expired</label>
             <value>35</value> <!-- Status::PAYMENT_STATE_THE_PROCESS_HAS_BEEN_CANCELLED -->
             <store>Shopware.apps.Base.store.PaymentStatus</store>
         </element>
-
         <element required="false" type="combo" scope="shop">
             <name>msp_update_uncleared</name>
-            <label lang="en">Status uncleared</label>
+            <label>Status uncleared</label>
             <value>18</value> <!-- Status::PAYMENT_STATE_RESERVED -->
             <store>Shopware.apps.Base.store.PaymentStatus</store>
         </element>
-
         <element required="false" type="combo" scope="shop">
             <name>msp_update_chargedback</name>
-            <label lang="en">Status chargedback</label>
+            <label>Status chargedback</label>
             <value>35</value> <!-- Status::PAYMENT_STATE_THE_PROCESS_HAS_BEEN_CANCELLED -->
             <store>Shopware.apps.Base.store.PaymentStatus</store>
         </element>
-
         <element required="false" type="boolean" scope="shop">
             <name>msp_send_status_mail_on_completed</name>
-            <label lang="en">Send status mail on paid</label>
+            <label>Send status mail on paid</label>
             <value>true</value>
-            <description lang="en">Send status mail when order has been paid</description>
+            <description>Send status mail when order has been paid</description>
         </element>
         <element required="false" type="boolean" scope="shop">
             <name>multisafepay_create_invoice</name>
-            <label lang="en">Create an invoice when an order is completely paid</label>
+            <label>Create an invoice when an order is completely paid</label>
             <label lang="de">Erstellen Sie eine Rechnung, wenn eine Bestellung vollständig bezahlt ist</label>
             <value>true</value>
         </element>
-        <element required="false" type="text" scope="shop">
+        <element required="false" scope="shop">
             <name>msp_generic_gateway_code</name>
-            <label lang="en">Generic gateway code</label>
-            <description lang="en">Set the gateway code for the 'Generic gateway'</description>
+            <label>Generic gateway code</label>
+            <description>Set the gateway code for the 'Generic gateway'</description>
         </element>
         <element required="false" type="mediaselection" scope="shop">
             <name>msp_generic_gateway_image</name>
-            <label lang="en">Generic gateway image</label>
-            <description lang="en">
+            <label>Generic gateway image</label>
+            <description>
                 <![CDATA[Set the gateway image for the 'Generic gateway'<br><br>Make sure to refresh your cache after selecting a logo.]]>
             </description>
         </element>
+        <element required="false" scope="shop">
+            <name>multisafepay_template_id</name>
+            <label>Payment Component Template ID</label>
+            <description>If empty, the default one will be used</description>
+        </element>
         <element required="false" type="boolean">
             <name>multisafepay_debug_mode</name>
-            <label lang="en">Enable debug mode</label>
-            <description lang="en">
-                <![CDATA[This will only work for the signature check]]>
-            </description>
-            <description lang="de">
-                <![CDATA[Dies funktioniert nur für die Signaturprüfung]]>
-            </description>
+            <label>Enable debug mode</label>
         </element>
     </elements>
 </config>
