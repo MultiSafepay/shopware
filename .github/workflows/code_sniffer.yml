@@ -18,4 +18,4 @@ jobs:
       - name: Download dependencies
         run: composer install --prefer-dist
       - name: Run code sniffer
-        run: vendor/bin/phpcs --standard=phpcs.ruleset.xml -n -v .
+        run: vendor/bin/phpcs --standard=phpcs.ruleset.xml -v .

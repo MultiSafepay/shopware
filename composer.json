@@ -11,8 +11,8 @@
         "multisafepay/coding-standards":"dev-master"
     },
     "scripts": {
-        "phpcs": "@php vendor/bin/phpcs --standard=phpcs.ruleset.xml -n -v .",
-        "phpcbf": "@php vendor/bin/phpcbf --standard=phpcs.ruleset.xml -n -v ."
+        "phpcs": "@php vendor/bin/phpcs --standard=phpcs.ruleset.xml -v .",
+        "phpcbf": "@php vendor/bin/phpcbf --standard=phpcs.ruleset.xml -v ."
     },
     "config": {
         "allow-plugins": {

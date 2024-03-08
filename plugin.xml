@@ -5,7 +5,7 @@
     <label lang="en">MultiSafepay</label>
     <label lang="de">MultiSafepay</label>
 
-    <version>2.12.1</version>
+    <version>3.0.0</version>
     <copyright>(c) MultiSafepay</copyright>
     <license>proprietary</license>
     <link>https://www.multisafepay.com</link>
@@ -25,6 +25,18 @@
         ]]>
     </description>
 
+    <changelog version="3.0.0">
+        <changes lang="en"><![CDATA[
+                PLGSHPS-242: Add support to register the payment methods dynamically, via API request
+                DAVAMS-705: Santander Betaal per Maand to be discontinued
+            ]]>
+        </changes>
+        <changes lang="de"><![CDATA[
+                PLGSHPS-242: Add support to register the payment methods dynamically, via API request
+                DAVAMS-705: Santander Betaal per Maand to be discontinued
+            ]]>
+        </changes>
+    </changelog>
     <changelog version="2.12.1">
         <changes lang="en"><![CDATA[
                 PLGSHPS-259: Fix error handling on update transaction shipment request

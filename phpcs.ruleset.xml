@@ -14,4 +14,7 @@
         <exclude-pattern>*/Controllers/Frontend/*</exclude-pattern>
         <exclude-pattern>*/Controllers/Backend/*</exclude-pattern>
     </rule>
+    <rule ref="PSR1.Files.SideEffects.FoundWithSymbols">
+        <exclude-pattern>*/MltisafeMultiSafepayPayment.php</exclude-pattern>
+    </rule>
 </ruleset>
