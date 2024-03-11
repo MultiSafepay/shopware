@@ -69,7 +69,7 @@ class PaymentMethodsInstaller
      */
     public function installPaymentMethods(): void
     {
-        $paymentMethods = $this->paymentMethods->loadPaymentMethods();
+        $paymentMethods = $this->paymentMethods->loadPaymentMethods(true);
         $this->disableInactiveMultiSafepayPaymentMethods($paymentMethods);
         $this->installPaymentMethodsInShopware($paymentMethods);
     }
@@ -82,7 +82,7 @@ class PaymentMethodsInstaller
      */
     public function installPaymentMethodsWithoutShop(): void
     {
-        $paymentMethods = $this->paymentMethods->loadPaymentMethods(false);
+        $paymentMethods = $this->paymentMethods->loadPaymentMethods(true, false);
         $this->disableInactiveMultiSafepayPaymentMethods($paymentMethods);
         $this->installPaymentMethodsInShopware($paymentMethods);
     }

@@ -191,7 +191,7 @@ class MltisafeMultiSafepayPayment extends Plugin
     private function updatePaymentMethods(UpdateContext $context): void
     {
         $installer = $this->container->get('shopware.plugin_payment_installer');
-        $paymentMethods = (new PaymentMethodsService($this->container))->loadPaymentMethods();
+        $paymentMethods = (new PaymentMethodsService($this->container))->loadPaymentMethods(true);
 
         if (!empty($paymentMethods)) {
             foreach ($paymentMethods as $paymentMethod) {

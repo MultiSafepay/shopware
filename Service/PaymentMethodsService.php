@@ -59,12 +59,15 @@ class PaymentMethodsService
     /**
      * Load payment methods
      *
+     * @param bool|null $force Force the loading of
+     *                         payment methods
+     *
      * @param bool|null $shop Defaults to active shop.
      *                        If false, no shop will be used
      *
      * @return PaymentMethod[]
      */
-    public function loadPaymentMethods(bool $shop = null): array
+    public function loadPaymentMethods(bool $force = false, bool $shop = null): array
     {
         /** @var Zend_Cache_Core $cache */
         $cache = $this->container->get('cache');
@@ -74,7 +77,8 @@ class PaymentMethodsService
         $configReader = $this->container->get('shopware.plugin.config_reader');
         $pluginConfig = $configReader ? $configReader->getByPluginName('MltisafeMultiSafepayPayment', $shop) : [];
 
-        if ($cache->load($cacheId) === false) {
+        // Load payment methods using a call to the API
+        if ($force || ($cache->load($cacheId) === false)) {
             $options = [];
 
             if ($pluginConfig['msp_group_card_payment']) {
