@@ -206,7 +206,7 @@ class LoggerService
         $basePath .= '/var/log';
 
         // Check if the log directory exists, otherwise creates it and checks if the creation was ok
-        if (!is_dir($basePath) && !@mkdir($basePath, 0755, true) && !is_dir($basePath)) {
+        if (!is_dir($basePath) && !mkdir($basePath, 0755, true) && !is_dir($basePath)) {
             // var/log folder could not be created mostly due to permission issues
             $this->logToDatabase('Could not create log directory: ' . $basePath);
             return '';
