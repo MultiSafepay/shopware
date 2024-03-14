@@ -62,19 +62,6 @@ class PaymentMethodsInstaller
     }
 
     /**
-     * Install payment methods
-     *
-     * @return void
-     * @throws ClientExceptionInterface
-     */
-    public function installPaymentMethods(): void
-    {
-        $paymentMethods = $this->paymentMethods->loadPaymentMethods(true);
-        $this->disableInactiveMultiSafepayPaymentMethods($paymentMethods);
-        $this->installPaymentMethodsInShopware($paymentMethods);
-    }
-
-    /**
      * Install payment methods without a shop
      *
      * @return void
