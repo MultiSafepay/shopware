@@ -53,7 +53,8 @@
                     template: {
                         settings: {
                             embed_mode: true
-                        }
+                        },
+                        merge: true
                     },
                     {if $template_id}
                     payment_options: {
