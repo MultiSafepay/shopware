@@ -23,6 +23,7 @@
 
 {block name="frontend_index_javascript_async_ready"}
     {$smarty.block.parent}
+    {assign var="orderAmount" value=$sAmount*100}
     <script src="https://pay.multisafepay.com/sdk/components/v2/components.js"></script>
     <script>
         if (document.readyState !== 'loading') {
@@ -40,25 +41,34 @@
             {/if}
 
             let multisafepayOptions = {
-                debug: {if !$env} true {else} false {/if},
-                env: {if !$env}'test'{else}'live'{/if},
-                apiToken: '{$api_token}',
-                order: {
-                    currency: '{$currency}',
-                    amount: {$sAmount} * 100,
-                    customer: {
-                        locale: '{$locale}',
-                        country: '{$sUserData.additional.country.countryiso}',
-                    },
-                    template: {
-                        settings: {
-                            embed_mode: true
-                        },
-                        merge: true
+                "debug":{if !$env} true {else} false{/if},
+                "env": {if !$env}"test"{else}"live"{/if},
+                "apiToken": "{$api_token}",
+                "order": {
+                    "currency": "{$currency}",
+                    "amount": {$orderAmount},
+                    "customer": {
+                        "locale": "{$locale}",
+                        "country": "{$sUserData.additional.country.countryiso}"
                     },
                     {if $template_id}
-                    payment_options: {
-                        template_id: '{$template_id}'
+                    "payment_options": {
+                        "template_id": "{$template_id}",
+                        "template": {
+                            "settings": {
+                                "embed_mode": true
+                            },
+                            "merge": true
+                        }
+                    }
+                    {else}
+                    "payment_options": {
+                        "template": {
+                            "settings": {
+                                "embed_mode": true
+                            },
+                            "merge": true
+                        }
                     }
                     {/if}
                 }
