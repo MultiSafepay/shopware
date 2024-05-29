@@ -89,7 +89,7 @@ class OrderUpdateSubscriber implements SubscriberInterface
         }
 
         // Retrieve the cached_config_reader component
-        [$cachedConfigReader, $shop] = (new CachedConfigService($container))->selectConfigReader();
+        [$cachedConfigReader, $shop] = (new CachedConfigService($container))->selectConfigReader($order->getShop());
         if (is_null($cachedConfigReader)) {
             (new LoggerService($container))->addLog(
                 LoggerService::WARNING,
