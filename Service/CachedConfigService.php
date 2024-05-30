@@ -73,14 +73,14 @@ class CachedConfigService
     /**
      * Determine if the new config reader should be used based on the Shopware version
      *
-     * @param string $shopwareVersion The Shopware version.
      * @param string $cachedReaderClass The class name of the cached reader.
+     * @param string $shopwareVersion The Shopware version.
      *
      * @return bool True if the new config reader should be used, false otherwise.
      *
      * "New" refers to the config reader
      */
-    private function shouldUseNewConfigReader(string $shopwareVersion, string $cachedReaderClass): bool
+    private function shouldUseNewConfigReader(string $cachedReaderClass, string $shopwareVersion): bool
     {
         return class_exists($cachedReaderClass) &&
             version_compare($shopwareVersion, '5.7', '>=');
@@ -170,9 +170,7 @@ class CachedConfigService
         $legacyCachedReaderClass = \Shopware\Components\Plugin\CachedConfigReader::class;
 
         // Using the new config reader for Shopware 5.7 and higher
-        if (class_exists($cachedReaderClass) &&
-            $this->shouldUseNewConfigReader($shopwareVersion, $cachedReaderClass)
-        ) {
+        if ($this->shouldUseNewConfigReader($cachedReaderClass, $shopwareVersion)) {
             $cachedConfigReader = $this->container->get($cachedReaderClass);
             $shop = $this->getShopId($shop);
         } elseif (class_exists($legacyCachedReaderClass)) {
