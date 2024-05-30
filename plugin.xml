@@ -5,7 +5,7 @@
     <label lang="en">MultiSafepay</label>
     <label lang="de">MultiSafepay</label>
 
-    <version>3.0.2</version>
+    <version>3.0.3</version>
     <copyright>(c) MultiSafepay</copyright>
     <license>proprietary</license>
     <link>https://www.multisafepay.com</link>
@@ -25,6 +25,18 @@
         ]]>
     </description>
 
+    <changelog version="3.0.3">
+        <changes lang="en"><![CDATA[
+                PLGSHPS-291: Fix OrderUpdateSubscriber
+                DAVAMS-748: Fix the 'template_id' setting field within the Payment Component
+            ]]>
+        </changes>
+        <changes lang="de"><![CDATA[
+                PLGSHPS-291: Fix OrderUpdateSubscriber
+                DAVAMS-748: Fix the 'template_id' setting field within the Payment Component
+            ]]>
+        </changes>
+    </changelog>
     <changelog version="3.0.2">
         <changes lang="en"><![CDATA[
                 PLGSHPS-288: Fix payment method gathering performance in the checkout
