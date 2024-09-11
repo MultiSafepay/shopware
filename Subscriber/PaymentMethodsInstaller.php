@@ -136,6 +136,11 @@ class PaymentMethodsInstaller
         /** @var PaymentInstaller $installer */
         $installer = $this->container->get('shopware.plugin_payment_installer');
         foreach ($paymentMethods as $paymentMethod) {
+            $template = '';
+            if ($paymentMethod['id'] === 'APPLEPAY') {
+                $template = 'multisafepay_applepay.tpl';
+            }
+
             $payment = $installer->createOrUpdate(self::NAME, [
                 'name' => 'multisafepay_' . $paymentMethod['id'],
                 'description' => $paymentMethod['name'],
@@ -143,7 +148,7 @@ class PaymentMethodsInstaller
                 'active' => 1,
                 'position' => 0,
                 'additionalDescription' => '',
-                'template' => ''
+                'template' => $template
             ]);
             if (!is_null($payment)) {
                 $this->setMinAndMaxAmounts($payment->getId(), $paymentMethod);
