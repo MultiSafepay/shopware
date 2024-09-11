@@ -118,7 +118,12 @@ class PaymentFilter implements SubscriberInterface
                 $paymentMethodId = explode('_', $paymentMean['name'])[1] ?? '';
                 foreach ($paymentMethods as $paymentMethod) {
                     if ($paymentMethod['id'] === $paymentMethodId) {
-                        if (!$this->isAllowedCurrency($paymentMethod['allowed_currencies']) || !$this->isAllowedBillingCountry($paymentMethod['allowed_countries'])) {
+                        if (!$this->isAllowedCurrency($paymentMethod['allowed_currencies'])) {
+                            unset($paymentMeans[$index]);
+                            continue 2;
+                        }
+
+                        if (!$this->isAllowedBillingCountry($paymentMethod['allowed_countries'])) {
                             unset($paymentMeans[$index]);
                             continue 2;
                         }
@@ -198,7 +203,7 @@ class PaymentFilter implements SubscriberInterface
             return false;
         }
 
-        $isoName = $country->getIsoName();
+        $isoName = $country->getIso();
         if (is_null($isoName)) {
             return false;
         }
