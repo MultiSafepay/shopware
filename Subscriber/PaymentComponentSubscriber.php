@@ -91,21 +91,7 @@ class PaymentComponentSubscriber implements SubscriberInterface
     {
         return isset($paymentMethod['apps']['payment_components']) &&
             $paymentMethod['apps']['payment_components']['is_enabled'] &&
-            (
-                $paymentMethod['apps']['payment_components']['has_fields'] ||
-                $this->supportsTokenization($paymentMethod)
-            );
-    }
-
-    /**
-     * Supports tokenization
-     *
-     * @param array $paymentMethod
-     * @return bool
-     */
-    private function supportsTokenization(array $paymentMethod): bool
-    {
-        return $paymentMethod['tokenization']['is_enabled'];
+            $paymentMethod['apps']['payment_components']['has_fields'];
     }
 
     /**
