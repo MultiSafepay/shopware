@@ -48,11 +48,6 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
     /**
      * @var int
      */
-    public const TIMEOUT_ORDER_CREATION = 600;
-
-    /**
-     * @var int
-     */
     private const MULTISAFEPAY_CREATE_ORDER_BEFORE = 2;
 
     /**
@@ -213,6 +208,12 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         $pluginConfig = $cachedConfigReader->getByPluginName('MltisafeMultiSafepayPayment', $shop);
         $helper = new Helper();
 
+        // Session data must be restored to ensure verifyBasketSignature() returns true,
+        // because the 'sUserId' in the session needs to be refreshed to generate a signature
+        // that matches the one produced by getSignature() and sent in var1.
+        $hash = $this->Request()->getParam('hash');
+        $this->fillMissingSessionData($hash);
+
         if ('POST' === $this->Request()->getMethod()) {
             $request = $this->Request();
 
@@ -252,8 +253,6 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         }
 
         $status = $transaction->getStatus();
-        $createdDate = strtotime($transaction->getModified());
-        $timeoutTime = $createdDate + self::TIMEOUT_ORDER_CREATION;
         $signature = $transaction->getVar1();
         $gatewayCode = $transaction->getPaymentDetails()->getType();
 
@@ -306,12 +305,6 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
         }
 
         if (is_null($order) && Helper::isConsideredPaid($status)) {
-            if ($timeoutTime > time()) {
-                return $this->Response()
-                    ->setBody('Order is not yet created')
-                    ->setHttpResponseCode(403);
-            }
-
             $basket = $this->getBasketBasedOnSignature($signature);
             if ($basket) {
                 $this->saveOrder(
