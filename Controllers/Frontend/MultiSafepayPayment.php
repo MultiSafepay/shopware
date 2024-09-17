@@ -148,6 +148,15 @@ class Shopware_Controllers_Frontend_MultiSafepayPayment extends Shopware_Control
                 $session->offsetUnset('payload');
             }
 
+            // Override the type to direct for some specific gateways
+            if (in_array(
+                $orderRequest->getGatewayCode(),
+                OrderRequestBuilder::DIRECT_GATEWAYS_WITHOUT_COMPONENTS,
+                true
+            )) {
+                $orderRequest->addType('direct');
+            }
+
             $clientSdk = $this->client->getSdk($pluginConfig);
             $transactionManager = $clientSdk->getTransactionManager();
             $response = $transactionManager->create($orderRequest);

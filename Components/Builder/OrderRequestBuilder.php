@@ -35,6 +35,13 @@ use Shopware\Models\Order\Order;
 class OrderRequestBuilder
 {
     /**
+     * Direct gateways without 'payment components' fields
+     *
+     * @var array
+     */
+    public const DIRECT_GATEWAYS_WITHOUT_COMPONENTS = ['IDEAL', 'PAYPAL'];
+
+    /**
      * @var OrderRequestBuilderPool
      */
     private $orderRequestBuilderPool;
