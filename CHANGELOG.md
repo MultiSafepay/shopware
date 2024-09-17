@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0] - 2024-09-17
+### Added
++ PLGSHPS-303: Add support for iDEAL 2.0
+
+### Removed
++ PLGSHPS-299: Remove iDEAL issuer dropdown
+
+### Fixed
++ PLGSHPS-302: Fix billing-shipping addresses sometimes is missing on confirmation page
++ PLGSHPS-301: Fix wrong usage of getIsoName() to retrieve the ISO country ID
++ PLGSHPS-300: Fix Apple Pay template is missing when payment methods are installed
++ PLGSHPS-297: Fix issue where session is lost on notifyAction()
+
+***
+
 ## [3.0.3] - 2024-05-30
 ### Fixed
 + PLGSHPS-291: Fix OrderUpdateSubscriber

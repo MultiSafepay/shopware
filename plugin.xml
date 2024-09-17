@@ -5,7 +5,7 @@
     <label lang="en">MultiSafepay</label>
     <label lang="de">MultiSafepay</label>
 
-    <version>3.0.3</version>
+    <version>3.1.0</version>
     <copyright>(c) MultiSafepay</copyright>
     <license>proprietary</license>
     <link>https://www.multisafepay.com</link>
@@ -25,6 +25,26 @@
         ]]>
     </description>
 
+    <changelog version="3.1.0">
+        <changes lang="en"><![CDATA[
+                PLGSHPS-303: Add support for iDEAL 2.0
+                PLGSHPS-299: Remove iDEAL issuer dropdown
+                PLGSHPS-302: Fix billing-shipping addresses sometimes is missing on confirmation page
+                PLGSHPS-301: Fix wrong usage of getIsoName() to retrieve the ISO country ID
+                PLGSHPS-300: Fix Apple Pay template is missing when payment methods are installed
+                PLGSHPS-297: Fix issue where session is lost on notifyAction()
+            ]]>
+        </changes>
+        <changes lang="de"><![CDATA[
+                PLGSHPS-303: Add support for iDEAL 2.0
+                PLGSHPS-299: Remove iDEAL issuer dropdown
+                PLGSHPS-302: Fix billing-shipping addresses sometimes is missing on confirmation page
+                PLGSHPS-301: Fix wrong usage of getIsoName() to retrieve the ISO country ID
+                PLGSHPS-300: Fix Apple Pay template is missing when payment methods are installed
+                PLGSHPS-297: Fix issue where session is lost on notifyAction()
+            ]]>
+        </changes>
+    </changelog>
     <changelog version="3.0.3">
         <changes lang="en"><![CDATA[
                 PLGSHPS-291: Fix OrderUpdateSubscriber
