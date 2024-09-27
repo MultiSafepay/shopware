@@ -18,7 +18,7 @@ jobs:
         with:
           php-version: '7.2'
       - name: Get Release Version
-        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+        run: echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
         id: version
       - name: Get Changelog Entry
         id: changelog_reader
