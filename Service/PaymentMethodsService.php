@@ -24,6 +24,7 @@ namespace MltisafeMultiSafepayPayment\Service;
 use MltisafeMultiSafepayPayment\Components\Factory\Client;
 use MultiSafepay\Api\PaymentMethods\PaymentMethod;
 use MultiSafepay\Exception\ApiException;
+use MultiSafepay\Exception\InvalidDataInitializationException;
 use Psr\Http\Client\ClientExceptionInterface;
 use Zend_Cache_Core;
 use Zend_Cache_Exception;
@@ -54,6 +55,101 @@ class PaymentMethodsService
     {
         $this->container = $container;
         $this->client = new Client();
+    }
+
+    /**
+     * Convert branded payment method
+     *
+     * @param string  $paymentMethod
+     *
+     * @return string
+     */
+    public function filterBrandedPayment(string $paymentMethod): string
+    {
+        if (str_contains($paymentMethod, '-')) {
+            $paymentMethod = explode('-', $paymentMethod)[0];
+        }
+        return trim($paymentMethod);
+    }
+
+    /**
+     * Count the occurrences of the brand name after the hyphen,
+     * so the brand name can be removed later if is not repeated
+     *
+     * @param array $paymentMethodsWithBrands
+     *
+     * @return array
+     */
+    private function countBrandNamesOccurrences(array $paymentMethodsWithBrands): array
+    {
+        $secondNames = [];
+
+        foreach ($paymentMethodsWithBrands as $paymentMethod) {
+            $parts = explode(' - ', $paymentMethod['name']);
+            $secondName = $parts[1] ?? '';
+            $secondNames[] = $secondName;
+        }
+
+        // Count the occurrences of the brand name
+        return array_count_values($secondNames);
+    }
+
+    /**
+     *  Format those payment names with brands, showing just the brand
+     *  if it is not repeated in others payment methods
+     *
+     * @param array $paymentMethodsWithBrands
+     * @param array $brandNameCounts
+     *
+     * @return array
+     */
+    private function formatPaymentMethods(array $paymentMethodsWithBrands, array $brandNameCounts): array
+    {
+        $formattedPaymentMethods = [];
+
+        foreach ($paymentMethodsWithBrands as $paymentMethod) {
+            $parts = explode(' - ', $paymentMethod['name']);
+            $brandName = $parts[1] ?? '';
+
+            // Show just the brand name if it is not repeated in others payment methods
+            if (!isset($brandNameCounts[$brandName]) || ($brandNameCounts[$brandName] <= 1)) {
+                $paymentMethod['name'] = $brandName;
+            }
+            $formattedPaymentMethods[] = $paymentMethod;
+        }
+
+        return $formattedPaymentMethods;
+    }
+
+    /**
+     * Add brand to payment methods
+     *
+     * @param array $paymentMethods
+     *
+     * @return array
+     */
+    private function addBrandToPaymentMethods(array $paymentMethods): array
+    {
+        $paymentMethodsWithBrands = [];
+
+        foreach ($paymentMethods as $paymentMethod) {
+            if (!empty($paymentMethod['brands'])) {
+                foreach ($paymentMethod['brands'] as $brand) {
+                    $paymentMethodWithBrand = $paymentMethod;
+                    // Add the brand to the payment method
+                    $paymentMethodWithBrand['id'] .= '-' . $brand['id'];
+                    // Add the brand to the name.
+                    // Attention to the blank space before and after the hyphen
+                    $paymentMethodWithBrand['name'] .= ' - ' . $brand['name'];
+                    $paymentMethodsWithBrands[] = $paymentMethodWithBrand;
+                }
+            } else {
+                $paymentMethodsWithBrands[] = $paymentMethod;
+            }
+        }
+
+        $brandNamesCounts = $this->countBrandNamesOccurrences($paymentMethodsWithBrands);
+        return $this->formatPaymentMethods($paymentMethodsWithBrands, $brandNamesCounts);
     }
 
     /**
@@ -89,8 +185,9 @@ class PaymentMethodsService
                 $clientSdk = $this->client->getSdk($pluginConfig);
                 $paymentMethodManager = $clientSdk->getPaymentMethodManager();
                 $paymentMethods = $paymentMethodManager->getPaymentMethodsAsArray(true, $options);
+                $paymentMethods = $this->addBrandToPaymentMethods($paymentMethods);
                 $cache->save($paymentMethods, $cacheId);
-            } catch (ApiException | ClientExceptionInterface $exception) {
+            } catch (ApiException | ClientExceptionInterface | InvalidDataInitializationException $exception) {
                 (new LoggerService($this->container))->addLog(
                     LoggerService::ERROR,
                     'Could not load the payment methods',

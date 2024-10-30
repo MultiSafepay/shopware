@@ -23,7 +23,9 @@ namespace MltisafeMultiSafepayPayment\Components\Builder;
 
 use MltisafeMultiSafepayPayment\Components\Builder\OrderRequestBuilder\OrderRequestBuilderInterface;
 use MltisafeMultiSafepayPayment\Components\Quotenumber;
+use MltisafeMultiSafepayPayment\Service\PaymentMethodsService;
 use MultiSafepay\Api\Transactions\OrderRequest;
+use MultiSafepay\Exception\InvalidArgumentException;
 use MultiSafepay\ValueObject\Money;
 use Shopware\Models\Order\Order;
 
@@ -47,13 +49,30 @@ class OrderRequestBuilder
     private $orderRequestBuilderPool;
 
     /**
+     * @var Quotenumber
+     */
+    private $quoteNumber;
+
+    /**
+     * @var PaymentMethodsService
+     */
+    private $paymentMethodsService;
+
+    /**
      * OrderRequestBuilder constructor
      *
      * @param OrderRequestBuilderPool $orderRequestBuilderPool
+     * @param Quotenumber $quoteNumber
+     * @param PaymentMethodsService $paymentMethodsService
      */
-    public function __construct(OrderRequestBuilderPool $orderRequestBuilderPool)
-    {
+    public function __construct(
+        OrderRequestBuilderPool $orderRequestBuilderPool,
+        Quotenumber $quoteNumber,
+        PaymentMethodsService $paymentMethodsService
+    ) {
         $this->orderRequestBuilderPool = $orderRequestBuilderPool;
+        $this->quoteNumber = $quoteNumber;
+        $this->paymentMethodsService = $paymentMethodsService;
     }
 
     /**
@@ -63,12 +82,12 @@ class OrderRequestBuilder
      * @param $container
      * @param string $signature
      * @return OrderRequest
+     * @throws InvalidArgumentException
      */
     public function build($controller, $container, string $signature): OrderRequest
     {
-        /** @var Quotenumber $quoteNumber */
-        $quoteNumber = $container->get('multisafepay.components.quotenumber');
-        $orderId = $quoteNumber->getNextQuotenumber();
+        $filteredPaymentName = $this->paymentMethodsService->filterBrandedPayment($controller->Request()->payment);
+        $orderId = $this->quoteNumber->getNextQuotenumber();
 
         $orderRequest = new OrderRequest();
 
@@ -79,7 +98,7 @@ class OrderRequestBuilder
                     $controller->getCurrencyShortName()
                 )
             )->addType('redirect')
-            ->addGatewayCode($controller->Request()->payment)
+            ->addGatewayCode($filteredPaymentName)
             ->addData(['var1'=> $signature]);
 
         /** @var OrderRequestBuilderInterface $builder */
@@ -96,9 +115,12 @@ class OrderRequestBuilder
      * @param Order $order
      * @param string $paymentMethodName
      * @return OrderRequest
+     * @throws InvalidArgumentException
      */
     public function buildBackendOrder(Order $order, string $paymentMethodName): OrderRequest
     {
+        $filteredPaymentName = $this->paymentMethodsService->filterBrandedPayment($paymentMethodName);
+
         $transactionId = $order->getTransactionId();
         $orderRequest = new OrderRequest();
 
@@ -109,7 +131,7 @@ class OrderRequestBuilder
                     $order->getCurrency()
                 )
             )->addType('paymentlink')
-            ->addGatewayCode($paymentMethodName);
+            ->addGatewayCode($filteredPaymentName);
 
         /** @var OrderRequestBuilderInterface $builder */
         foreach ($this->orderRequestBuilderPool->getOrderRequestBuilderPool() as $builder) {

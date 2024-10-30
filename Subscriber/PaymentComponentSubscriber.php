@@ -146,10 +146,11 @@ class PaymentComponentSubscriber implements SubscriberInterface
 
             $component = false;
             foreach ($paymentMethods as $paymentMethod) {
-                $paymentMethodId = $paymentMethod['id'];
-                if ('multisafepay_' . $paymentMethodId === (string)$activePaymentMethod['name']) {
+                $paymentMethodId = $this->paymentMethods->filterBrandedPayment($paymentMethod['id']);
+                $activePaymentName = $this->paymentMethods->filterBrandedPayment($activePaymentMethod['name']);
+                if ('multisafepay_' . $paymentMethodId === $activePaymentName) {
                     $component = $this->supportsPaymentComponent((array)$paymentMethod);
-                    $gatewayCode = (string)$paymentMethodId;
+                    $gatewayCode = $paymentMethodId;
                     break;
                 }
             }

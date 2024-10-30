@@ -68,6 +68,7 @@
                  public="true">
             <argument type="service" id="multisafepay.builder.order_request_builder_pool"/>
             <argument type="service" id="multisafepay.components.quotenumber"/>
+            <argument type="service" id="multisafepay.service.payment_methods_service"/>
         </service>
         <service id="multisafepay.builder.order_request_builder_pool"
                  class="MltisafeMultiSafepayPayment\Components\Builder\OrderRequestBuilderPool"
