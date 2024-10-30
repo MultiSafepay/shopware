@@ -21,11 +21,16 @@
 
 namespace MltisafeMultiSafepayPayment\Service;
 
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Exception as DBALException;
+use Exception;
 use MltisafeMultiSafepayPayment\Components\Factory\Client;
 use MultiSafepay\Api\PaymentMethods\PaymentMethod;
 use MultiSafepay\Exception\ApiException;
 use MultiSafepay\Exception\InvalidDataInitializationException;
 use Psr\Http\Client\ClientExceptionInterface;
+use Shopware\Models\Country\Country;
+use Shopware\Models\Payment\Payment;
 use Zend_Cache_Core;
 use Zend_Cache_Exception;
 
@@ -55,6 +60,109 @@ class PaymentMethodsService
     {
         $this->container = $container;
         $this->client = new Client();
+    }
+
+    /**
+     * Get country IDs for a specific payment method
+     *
+     * @param array $allowedCountries
+     * @return array
+     */
+    public function getCountryIdsForPaymentMethod(array $allowedCountries): array
+    {
+        $countryIds = [];
+
+        if (!empty($allowedCountries)) {
+            // Use the ORM to get country IDs for the allowed countries
+            $repository = $this->container->get('models')->getRepository(Country::class);
+            $queryBuilder = $repository->createQueryBuilder('country');
+            $queryBuilder->select('DISTINCT country.id')
+                ->where($queryBuilder->expr()->in('country.iso', ':allowedCountries'))
+                ->setParameter('allowedCountries', $allowedCountries);
+
+            $result = $queryBuilder->getQuery()->getArrayResult();
+            $countryIds = array_column($result, 'id');
+        }
+
+        return $countryIds ?: [];
+    }
+
+    /**
+     * Install payment methods in Shopware
+     *
+     * @param array $paymentMethod
+     * @return void
+     */
+    public function processAllowedCountries(array $paymentMethod): array
+    {
+        // Getting the brand name from segment 1 in the exploded name
+        $filteredPaymentName = $this->filterBrandedPayment($paymentMethod['id'], 1);
+
+        $allowedCountries = [];
+        // It will collect the root allowed countries if any
+        if (!empty($paymentMethod['allowed_countries'])) {
+            $allowedCountries = $paymentMethod['allowed_countries'];
+        }
+
+        // It will collect the allowed countries for the specific brand
+        if (!empty($paymentMethod['brands']) && is_array($paymentMethod['brands'])) {
+            foreach ($paymentMethod['brands'] as $brand) {
+                if (!empty($brand['allowed_countries']) &&
+                    is_array($brand['allowed_countries']) &&
+                    ($brand['id'] === $filteredPaymentName)
+                ) {
+                    $allowedCountries[] = $brand['allowed_countries'];
+                }
+            }
+        }
+
+        return $allowedCountries;
+    }
+
+    /**
+     * Add specific countries for the payment method
+     *
+     * @param Payment $payment
+     * @param array $countryIds
+     *
+     * @return void
+     */
+    public function addCountriesForPaymentMethod(Payment $payment, array $countryIds): void
+    {
+        $tableName = 's_core_paymentmeans_countries';
+
+        /** @var Connection $db */
+        $db = $this->container->get('dbal_connection');
+
+        foreach ($countryIds as $countryId) {
+            try {
+                $paymentId = $payment->getId();
+
+                // Check if the entry already exists
+                $existingEntry = $db->fetchOne(
+                    'SELECT COUNT(*) FROM `' . $tableName . '` WHERE `paymentID` = ? AND `countryID` = ?',
+                    [$paymentId, $countryId]
+                );
+
+                if (empty($existingEntry)) {
+                    $db->insert($tableName, [
+                        'paymentID' => $paymentId,
+                        'countryID' => $countryId
+                    ]);
+                }
+            } catch (DBALException $exception) {
+                (new LoggerService($this->container))->addLog(
+                    LoggerService::ERROR,
+                    'Failed to insert country for payment method',
+                    [
+                        'CurrentSessionId' => isset($_SESSION['Shopware']['sessionId']) ? session_id() : 'session_id_not_found',
+                        'paymentID' => $payment->getId(),
+                        'countryID' => $countryId,
+                        'Exception' => $exception->getMessage()
+                    ]
+                );
+            }
+        }
     }
 
     /**
@@ -134,6 +242,7 @@ class PaymentMethodsService
 
         foreach ($paymentMethods as $paymentMethod) {
             if (!empty($paymentMethod['brands'])) {
+                $paymentMethodsWithBrands[] = $paymentMethod;
                 foreach ($paymentMethod['brands'] as $brand) {
                     $paymentMethodWithBrand = $paymentMethod;
                     // Add the brand to the payment method
@@ -184,8 +293,9 @@ class PaymentMethodsService
             try {
                 $clientSdk = $this->client->getSdk($pluginConfig);
                 $paymentMethodManager = $clientSdk->getPaymentMethodManager();
-                $paymentMethods = $paymentMethodManager->getPaymentMethodsAsArray(true, $options);
-                $paymentMethods = $this->addBrandToPaymentMethods($paymentMethods);
+                $paymentMethods = $this->addBrandToPaymentMethods(
+                    $paymentMethodManager->getPaymentMethodsAsArray(true, $options)
+                );
                 $cache->save($paymentMethods, $cacheId);
             } catch (ApiException | ClientExceptionInterface | InvalidDataInitializationException $exception) {
                 (new LoggerService($this->container))->addLog(

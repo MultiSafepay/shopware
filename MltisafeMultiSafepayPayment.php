@@ -111,7 +111,7 @@ class MltisafeMultiSafepayPayment extends Plugin
     private function installPaymentMethods(ActivateContext $context): void
     {
         $configReader = $this->container->get('shopware.plugin.config_reader');
-        $pluginConfig = $configReader ? $configReader->getByPluginName('MltisafeMultiSafepayPayment', null) : null;
+        $pluginConfig = $configReader ? $configReader->getByPluginName('MltisafeMultiSafepayPayment') : null;
 
         if (empty($pluginConfig['msp_api_key'])) {
             throw new RuntimeException('Please fill in the API Key in the MultiSafepay settings, and save it.');
@@ -191,7 +191,8 @@ class MltisafeMultiSafepayPayment extends Plugin
     private function updatePaymentMethods(UpdateContext $context): void
     {
         $installer = $this->container->get('shopware.plugin_payment_installer');
-        $paymentMethods = (new PaymentMethodsService($this->container))->loadPaymentMethods(true, false);
+        $paymentMethodsService = new PaymentMethodsService($this->container);
+        $paymentMethods = $paymentMethodsService->loadPaymentMethods(true, false);
 
         if (!empty($paymentMethods)) {
             foreach ($paymentMethods as $paymentMethod) {
@@ -214,6 +215,11 @@ class MltisafeMultiSafepayPayment extends Plugin
                 $payment = $installer ? $installer->createOrUpdate($context->getPlugin(), $options) : null;
                 if (!is_null($payment)) {
                     $this->setMinAndMaxAmounts($payment->getId(), $amounts);
+                    $allowedCountries = $paymentMethodsService->processAllowedCountries($paymentMethod);
+                    if (!empty($allowedCountries)) {
+                        $countryIds = $paymentMethodsService->getCountryIdsForPaymentMethod($allowedCountries);
+                        $paymentMethodsService->addCountriesForPaymentMethod($payment, $countryIds);
+                    }
                 }
             }
             $this->deletePaymentMethods();
@@ -274,7 +280,7 @@ class MltisafeMultiSafepayPayment extends Plugin
     /**
      * Installs MultiSafepay Quote Number
      *
-     * Utilize an INSERT IGNORE statement to prevent duplicate entries.
+     * Use an INSERT IGNORE statement to prevent duplicate entries.
      * This method is called during the installation process.
      *
      * @return void

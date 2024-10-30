@@ -20,12 +20,14 @@
  */
 namespace MltisafeMultiSafepayPayment\Subscriber;
 
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Exception as DBALException;
 use Exception;
 use MltisafeMultiSafepayPayment\Service\LoggerService;
 use MltisafeMultiSafepayPayment\Service\PaymentMethodsService;
 use MultiSafepay\Api\PaymentMethods\PaymentMethod;
-use Psr\Http\Client\ClientExceptionInterface;
 use Shopware\Components\Plugin\PaymentInstaller;
+use Shopware\Models\Country\Country;
 use Shopware\Models\Payment\Payment;
 
 /**
@@ -65,7 +67,6 @@ class PaymentMethodsInstaller
      * Install payment methods without a shop
      *
      * @return void
-     * @throws ClientExceptionInterface
      */
     public function installPaymentMethodsWithoutShop(): void
     {
@@ -152,6 +153,11 @@ class PaymentMethodsInstaller
             ]);
             if (!is_null($payment)) {
                 $this->setMinAndMaxAmounts($payment->getId(), $paymentMethod);
+                $allowedCountries = $this->paymentMethods->processAllowedCountries($paymentMethod);
+                if (!empty($allowedCountries)) {
+                    $countryIds = $this->paymentMethods->getCountryIdsForPaymentMethod($allowedCountries);
+                    $this->paymentMethods->addCountriesForPaymentMethod($payment, $countryIds);
+                }
             }
         }
     }
