@@ -22,6 +22,7 @@
 namespace MltisafeMultiSafepayPayment\Components;
 
 use MltisafeMultiSafepayPayment\Service\CachedConfigService;
+use MltisafeMultiSafepayPayment\Service\LoggerService;
 use Shopware\Components\NumberRangeIncrementerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -70,8 +71,18 @@ class Quotenumber
     {
         $quoteNumber = $this->numberRangeIncrementer->increment('msp_quote_number');
         [$cachedConfigReader, $shop] = (new CachedConfigService($this->container))->selectConfigReader();
-        $pluginConfig = $cachedConfigReader ? $cachedConfigReader->getByPluginName('MltisafeMultiSafepayPayment', $shop) : null;
-        $formattedNumber = $pluginConfig ? sprintf(self::DEFAULT_PATTERN, $pluginConfig['msp_quote_prefix'], $quoteNumber, $pluginConfig['msp_quote_suffix']) : $quoteNumber;
+        if (is_null($cachedConfigReader)) {
+            (new LoggerService($this->container))->addLog(
+                LoggerService::WARNING,
+                'Could not load plugin configuration',
+                [
+                    'CurrentSessionId' => isset($_SESSION['Shopware']['sessionId']) ? session_id() : 'session_id_not_found'
+                ]
+            );
+        }
+
+        $pluginConfig = $cachedConfigReader ? $cachedConfigReader->getByPluginName('MltisafeMultiSafepayPayment', $shop) : [];
+        $formattedNumber = $pluginConfig ? sprintf(self::DEFAULT_PATTERN, $pluginConfig['msp_quote_prefix'] ?? '', $quoteNumber, $pluginConfig['msp_quote_suffix'] ?? '') : $quoteNumber;
 
         return preg_replace('/\s+/', '', $formattedNumber);
     }

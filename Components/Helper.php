@@ -22,6 +22,7 @@
 namespace MltisafeMultiSafepayPayment\Components;
 
 use MltisafeMultiSafepayPayment\Service\CachedConfigService;
+use MltisafeMultiSafepayPayment\Service\LoggerService;
 use Shopware\Models\Order\Order;
 use Shopware\Models\Order\Status;
 
@@ -248,7 +249,18 @@ class Helper
      */
     public function getMultiSafepaySettings()
     {
-        [$cachedConfigReader, $shop] = (new CachedConfigService(Shopware()->Container()))->selectConfigReader();
+        $container = Shopware()->Container();
+
+        [$cachedConfigReader, $shop] = (new CachedConfigService($container))->selectConfigReader();
+        if (is_null($cachedConfigReader)) {
+            (new LoggerService($container))->addLog(
+                LoggerService::WARNING,
+                'Could not load plugin configuration',
+                [
+                    'CurrentSessionId' => isset($_SESSION['Shopware']['sessionId']) ? session_id() : 'session_id_not_found'
+                ]
+            );
+        }
 
         return $cachedConfigReader ? $cachedConfigReader->getByPluginName('MltisafeMultiSafepayPayment', $shop) : [];
     }

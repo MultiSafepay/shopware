@@ -23,6 +23,7 @@ namespace MltisafeMultiSafepayPayment\Components\Builder\OrderRequestBuilder;
 
 use MltisafeMultiSafepayPayment\Components\Helper;
 use MltisafeMultiSafepayPayment\Service\CachedConfigService;
+use MltisafeMultiSafepayPayment\Service\LoggerService;
 use MultiSafepay\Api\Transactions\OrderRequest;
 use Shopware\Models\Order\Order;
 use Shopware\Models\Shop\Shop;
@@ -70,6 +71,16 @@ class SecondsActiveBuilder implements OrderRequestBuilderInterface
     public function build(OrderRequest $orderRequest, $controller, $container): OrderRequest
     {
         [$this->cachedConfigReader, $this->shop] = (new CachedConfigService($container))->selectConfigReader();
+        if (is_null($this->cachedConfigReader)) {
+            (new LoggerService($container))->addLog(
+                LoggerService::WARNING,
+                'Could not load plugin configuration',
+                [
+                    'TransactionId' => $orderRequest->getOrderId(),
+                    'CurrentSessionId' => isset($_SESSION['Shopware']['sessionId']) ? session_id() : 'session_id_not_found'
+                ]
+            );
+        }
 
         return $orderRequest->addSecondsActive($this->getSecondsActive());
     }
@@ -83,7 +94,7 @@ class SecondsActiveBuilder implements OrderRequestBuilderInterface
     {
         $pluginConfig = $this->cachedConfigReader ? $this->cachedConfigReader->getByPluginName('MltisafeMultiSafepayPayment', $this->shop) : [];
 
-        return $pluginConfig ? Helper::getSecondsActive($pluginConfig['msp_time_label'], $pluginConfig['msp_time_active']) : 0;
+        return $pluginConfig ? Helper::getSecondsActive($pluginConfig['msp_time_label'] ?? '', $pluginConfig['msp_time_active'] ?? '') : 2592000;
     }
 
     /**
@@ -95,10 +106,22 @@ class SecondsActiveBuilder implements OrderRequestBuilderInterface
      */
     public function buildBackendOrder(OrderRequest $orderRequest, Order $order): OrderRequest
     {
-        [$this->cachedConfigReader, $this->shop] = (new CachedConfigService(Shopware()->Container()))->selectConfigReader();
+        $container = Shopware()->Container();
+
+        [$this->cachedConfigReader, $this->shop] = (new CachedConfigService($container))->selectConfigReader();
+        if (is_null($this->cachedConfigReader)) {
+            (new LoggerService($container))->addLog(
+                LoggerService::WARNING,
+                'Could not load plugin configuration',
+                [
+                    'TransactionId' => $orderRequest->getOrderId(),
+                    'CurrentSessionId' => isset($_SESSION['Shopware']['sessionId']) ? session_id() : 'session_id_not_found'
+                ]
+            );
+        }
 
         $pluginConfig = $this->cachedConfigReader ? $this->cachedConfigReader->getByPluginName('MltisafeMultiSafepayPayment', $this->shop) : [];
-        $secondsActive = $pluginConfig ? Helper::getSecondsActive($pluginConfig['msp_time_label'], $pluginConfig['msp_time_active']) : 0;
+        $secondsActive = $pluginConfig ? Helper::getSecondsActive($pluginConfig['msp_time_label'] ?? '', $pluginConfig['msp_time_active'] ?? '') : 2592000;
 
         return $orderRequest->addSecondsActive($secondsActive);
     }

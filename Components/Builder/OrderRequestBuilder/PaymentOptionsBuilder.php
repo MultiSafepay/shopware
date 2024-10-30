@@ -23,6 +23,7 @@ namespace MltisafeMultiSafepayPayment\Components\Builder\OrderRequestBuilder;
 
 use MltisafeMultiSafepayPayment\Components\Helper;
 use MltisafeMultiSafepayPayment\Service\CachedConfigService;
+use MltisafeMultiSafepayPayment\Service\LoggerService;
 use MultiSafepay\Api\Transactions\OrderRequest;
 use MultiSafepay\Api\Transactions\OrderRequest\Arguments\PaymentOptions;
 use Shopware\Components\OptinService;
@@ -65,7 +66,19 @@ class PaymentOptionsBuilder implements OrderRequestBuilderInterface
      */
     private function createHashFromSession($container): string
     {
+        $sessionId = Shopware()->Session()->get('sessionId');
+
         [$cachedConfigReader, $shop] = (new CachedConfigService($container))->selectConfigReader();
+        if (is_null($cachedConfigReader)) {
+            (new LoggerService($container))->addLog(
+                LoggerService::WARNING,
+                'Could not load plugin configuration',
+                [
+                    'CurrentSessionId' => $sessionId ?: 'session_id_not_found',
+                    'Action' => 'confirm'
+                ]
+            );
+        }
         $pluginConfig = $cachedConfigReader ? $cachedConfigReader->getByPluginName('MltisafeMultiSafepayPayment', $shop) : [];
 
         /** @var $optinService OptinService */
@@ -73,9 +86,9 @@ class PaymentOptionsBuilder implements OrderRequestBuilderInterface
         if ($optinService) {
             return $optinService->add(
                 OptinServiceInterface::TYPE_CUSTOMER_LOGIN_FROM_BACKEND,
-                Helper::getSecondsActive($pluginConfig['msp_time_label'], $pluginConfig['msp_time_active']),
+                Helper::getSecondsActive($pluginConfig['msp_time_label'] ?? '', $pluginConfig['msp_time_active'] ?? ''),
                 [
-                    'sessionId'   => Shopware()->Session()->get('sessionId'),
+                    'sessionId'   => $sessionId ?: '',
                     'sessionData' => json_encode($_SESSION['Shopware'])
                 ]
             );
