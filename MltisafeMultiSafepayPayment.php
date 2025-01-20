@@ -174,7 +174,7 @@ class MltisafeMultiSafepayPayment extends Plugin
             $attributes = $dataLoader ? $dataLoader->load('s_core_paymentmeans_attributes', $paymentMethodId) : [];
 
             $attributes['msp_min_amount'] = $paymentMethodAmounts['min_amount'];
-            $attributes['msp_max_amount'] = $paymentMethodAmounts['max_amount'] ?? 0.0;
+            $attributes['msp_max_amount'] = $paymentMethodAmounts['max_amount'];
             $dataPersister = $this->container->get('shopware_attribute.data_persister');
             if (!is_null($dataPersister)) {
                 $dataPersister->persist($attributes, 's_core_paymentmeans_attributes', $paymentMethodId);
@@ -202,10 +202,19 @@ class MltisafeMultiSafepayPayment extends Plugin
                     'name' => 'multisafepay_' . $paymentMethodId,
                     'description' => $paymentMethodName
                 ];
-                $amounts = [
-                    'min_amount' => $paymentMethod['allowed_amount']['min'],
-                    'max_amount' => $paymentMethod['allowed_amount']['max']
-                ];
+
+                if ($paymentMethod['type'] === 'coupon') {
+                    $amounts = [
+                        'max_amount' => 0.0,
+                        'min_amount' => 0.0
+                    ];
+                } else {
+                    $amounts = [
+                        // The maximum amount may be null at the source
+                        'max_amount' => !empty($paymentMethod['allowed_amount']['max']) ? (float)$paymentMethod['allowed_amount']['max'] / 100 : 0.0,
+                        'min_amount' => !empty($paymentMethod['allowed_amount']['min']) ? (float)$paymentMethod['allowed_amount']['min'] / 100 : 0.0
+                    ];
+                }
 
                 if (!$this->isPaymentMethodInstalled('multisafepay_' . $paymentMethodId)) {
                     $options = $this->getPaymentMethodOptions($paymentMethodId, $paymentMethodName);

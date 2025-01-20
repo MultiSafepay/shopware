@@ -117,9 +117,15 @@ class PaymentMethodsInstaller
     {
         if (!is_null($paymentMethod['allowed_amount']['max']) || !empty($paymentMethod['allowed_amount']['min'])) {
             $attributes = $this->container->get('shopware_attribute.data_loader')->load('s_core_paymentmeans_attributes', $paymentMethodId);
-            // Max amount can be null
-            $attributes['msp_max_amount'] = $paymentMethod['allowed_amount']['max'] / 100 ?? 0.0;
-            $attributes['msp_min_amount'] = (float)$paymentMethod['allowed_amount']['min'] / 100;
+
+            if ($paymentMethod['type'] === 'coupon') {
+                $attributes['msp_max_amount'] = $attributes['msp_min_amount'] = 0.0;
+            } else {
+                // The maximum amount may be null at the source
+                $attributes['msp_max_amount'] = !empty($paymentMethod['allowed_amount']['max']) ? (float)$paymentMethod['allowed_amount']['max'] / 100 : 0.0;
+                $attributes['msp_min_amount'] = !empty($paymentMethod['allowed_amount']['min']) ? (float)$paymentMethod['allowed_amount']['min'] / 100 : 0.0;
+            }
+
             $this->container
                 ->get('shopware_attribute.data_persister')
                 ->persist($attributes, 's_core_paymentmeans_attributes', $paymentMethodId);
