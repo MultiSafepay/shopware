@@ -188,9 +188,9 @@ class LoggerService
      */
     private function getDefaultLogPath(): string
     {
-        // Getting the base path of Shopware using Symphony's kernel.root_dir,
+        // Getting the base path of Shopware using Symphony's kernel.project_dir,
         // avoiding pass null to rtrim because PHP 8.x will throw a TypeError
-        $basePath = rtrim($this->container->getParameter('kernel.root_dir') ?? '', '/');
+        $basePath = rtrim($this->container->getParameter('kernel.project_dir') ?? '', '/');
         if (!$basePath) {
             // Getting the base path of Shopware using the native DocPath
             $basePath = rtrim(Shopware()->DocPath() ?? '', '/');
@@ -310,22 +310,11 @@ class LoggerService
      */
     public function getDocumentRoot(): ?string
     {
-        // First, we catch the usual places where the document root is stored
-        if (!empty($_SERVER['DOCUMENT_ROOT'])) {
-            return rtrim($_SERVER['DOCUMENT_ROOT'], '/');
-        }
+        // Max depth to search for shopware.php to avoid infinite loops, "if any"
+        $maxDepth = 5;
 
-        // Secondly, from the environment variable
-        $envRoot = getenv('DOCUMENT_ROOT');
-        if (!empty($envRoot)) {
-            return rtrim($envRoot, '/');
-        }
-
-        // Otherwise, from Shopware 5 installation root
-        $maxDepth = 5; // Max depth to search for shopware.php to avoid infinite loops, "if any"
-
-        // Search for the mentioned main landing file to get the "folder root", where
-        // the installation was placed, since distros sometimes use different paths
+        // Firstly, the main landing file is searched to determine the folder root where the
+        // installation was placed, as distributions sometimes use different paths
         $currentDir = realpath(__DIR__);
         while (($currentDir !== '/') && !file_exists($currentDir . '/shopware.php') && ($maxDepth > 0)) {
             $currentDir = dirname($currentDir);
@@ -335,6 +324,17 @@ class LoggerService
             // shopware.php is found, so the current directory is identified
             // as the target to add the log file
             return rtrim($currentDir, '/');
+        }
+
+        // Secondly, the usual place where the document root is stored is checked
+        if (!empty($_SERVER['DOCUMENT_ROOT'])) {
+            return rtrim($_SERVER['DOCUMENT_ROOT'], '/');
+        }
+
+        // Thirdly, from the environment variable
+        $envRoot = getenv('DOCUMENT_ROOT');
+        if (!empty($envRoot)) {
+            return rtrim($envRoot, '/');
         }
 
         // If all the above fails, return 'null', therefore the
