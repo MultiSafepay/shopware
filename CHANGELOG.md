@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.0] - 2025-02-06
+### Added
++ PLGSHPS-305: Add the default countries in root and branded payments
++ PLGSHPS-296: Add support for branded cards
++ PLGSHPS-292: Add the new logging to all calls to the configuration reader
+
+### Fixed
++ PLGSHPS-309: Fix getDefaultLogPath method, within LoggerService
++ DAVAMS-873: Fix gift cards hidden at checkout when the maximum amount is surpassed
+
+***
+
 ## [3.1.0] - 2024-09-17
 ### Added
 + PLGSHPS-303: Add support for iDEAL 2.0
