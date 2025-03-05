@@ -5,6 +5,7 @@
     <rule ref="./vendor/multisafepay/coding-standards/php71.phpcs.xml">
         <exclude name="PHPCompatibility.Keywords.ForbiddenNamesAsDeclared.objectFound"/>
         <exclude name="SlevomatCodingStandard.ControlStructures.AssignmentInCondition.AssignmentInCondition"/>
+        <exclude name="SlevomatCodingStandard.TypeHints.DeclareStrictTypes"/>
     </rule>
     <rule ref="Squiz.Classes.ValidClassName.NotCamelCaps">
         <exclude-pattern>*/Controllers/Frontend/*</exclude-pattern>

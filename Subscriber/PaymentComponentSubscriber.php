@@ -31,6 +31,7 @@ use MltisafeMultiSafepayPayment\Service\LoggerService;
 use MltisafeMultiSafepayPayment\Service\PaymentMethodsService;
 use MultiSafepay\Exception\ApiException;
 use Psr\Http\Client\ClientExceptionInterface;
+use Shopware\Models\Customer\Customer;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -95,6 +96,18 @@ class PaymentComponentSubscriber implements SubscriberInterface
     }
 
     /**
+     * Supports payment component
+     *
+     * @param array $paymentMethod
+     * @return bool
+     */
+    private function supportsTokenization(array $paymentMethod): bool
+    {
+        return isset($paymentMethod['tokenization']) &&
+            $paymentMethod['tokenization']['is_enabled'];
+    }
+
+    /**
      * On post-dispatch checkout
      *
      * @param Enlight_Controller_ActionEventArgs $args
@@ -144,12 +157,25 @@ class PaymentComponentSubscriber implements SubscriberInterface
                 }
             }
 
-            $component = false;
+            $gatewayCode = '';
+            $component = $isRegistered = $tokenization = false;
+            if ($session->offsetExists('sUserId')) {
+                $customerReference = (string)$session->offsetGet('sUserId');
+                $modelManager = $this->container->get('models');
+                if ($modelManager) {
+                    $customer = $modelManager->getRepository(Customer::class)->find($customerReference);
+                    $isRegistered = ($customer instanceof Customer) && ($customer->getAccountMode() === Customer::ACCOUNT_MODE_CUSTOMER);
+                }
+            }
+
             foreach ($paymentMethods as $paymentMethod) {
                 $paymentMethodId = $this->paymentMethods->filterBrandedPayment($paymentMethod['id']);
                 $activePaymentName = $this->paymentMethods->filterBrandedPayment($activePaymentMethod['name']);
                 if ('multisafepay_' . $paymentMethodId === $activePaymentName) {
                     $component = $this->supportsPaymentComponent((array)$paymentMethod);
+                    if ($isRegistered) {
+                        $tokenization = $this->supportsTokenization((array)$paymentMethod);
+                    }
                     $gatewayCode = $paymentMethodId;
                     break;
                 }
@@ -164,14 +190,53 @@ class PaymentComponentSubscriber implements SubscriberInterface
 
             try {
                 $clientSdk = $this->client->getSdk($pluginConfig);
-                $apiTokenManager = $clientSdk->getApiTokenManager();
-                $apiToken = $apiTokenManager->get()->getApiToken();
+            } catch (Exception $exception) {
+                (new LoggerService($this->container))->addLog(
+                    LoggerService::ERROR,
+                    'Could not make a PHP-SDK instance',
+                    [
+                        'CurrentSessionId' => isset($_SESSION['Shopware']['sessionId']) ? session_id() : 'session_id_not_found',
+                        'Action' => 'confirm',
+                        'Exception' => $exception->getMessage()
+                    ]
+                );
+                return;
+            }
+
+            try {
+                $apiToken = $clientSdk->getApiTokenManager()->get()->getApiToken();
             } catch (ApiException | ClientExceptionInterface $exception) {
+                (new LoggerService($this->container))->addLog(
+                    LoggerService::ERROR,
+                    'API Token could not be retrieved',
+                    [
+                        'CurrentSessionId' => isset($_SESSION['Shopware']['sessionId']) ? session_id() : 'session_id_not_found',
+                        'Action' => 'confirm',
+                        'Exception' => $exception->getMessage()
+                    ]
+                );
                 $apiToken = null;
+            }
+
+            try {
+                $tokens = $clientSdk->getTokenManager()->getListByGatewayCodeAsArray((string)($customerReference ?? ''), $gatewayCode) ?? [];
+            } catch (ApiException | ClientExceptionInterface $exception) {
+                (new LoggerService($this->container))->addLog(
+                    LoggerService::ERROR,
+                    'Tokens could not be retrieved',
+                    [
+                        'CurrentSessionId' => isset($_SESSION['Shopware']['sessionId']) ? session_id() : 'session_id_not_found',
+                        'Action' => 'confirm',
+                        'Exception' => $exception->getMessage()
+                    ]
+                );
+                $tokens = [];
             }
 
             $shopService = $this->container->get('shop');
             $view->assign('component', true);
+            $view->assign('tokenization', $tokenization);
+            $view->assign('tokens', json_encode($tokens));
             $view->assign('api_token', $apiToken ?? '');
             $view->assign('currency', $shopService ? $shopService->getCurrency()->getCurrency() : '');
             $view->assign('locale', $shopService ? $shopService->getLocale()->getLocale() : '');
@@ -187,6 +252,11 @@ class PaymentComponentSubscriber implements SubscriberInterface
         if ($args->getRequest()->getParam('payload') && ((string)$controller->Request()->getActionName() === 'payment')) {
             $payload = $args->getRequest()->getParam('payload');
             $session->offsetSet('payload', $payload);
+        }
+
+        if (!is_null($args->getRequest()->getParam('tokenize')) && ((string)$controller->Request()->getActionName() === 'payment')) {
+            $tokenize = $args->getRequest()->getParam('tokenize');
+            $session->offsetSet('tokenize', !empty($tokenize));
         }
     }
 }

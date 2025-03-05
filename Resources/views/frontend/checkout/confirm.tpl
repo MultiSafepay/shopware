@@ -71,7 +71,13 @@
                         }
                     }
                     {/if}
+                },
+                {if $tokenization}
+                "recurring": {
+                    "model": "cardOnFile",
+                    "tokens": {$tokens}
                 }
+                {/if}
             }
 
             this.multiSafepay = new MultiSafepay(multisafepayOptions)
@@ -97,11 +103,19 @@
                     return false;
                 }
 
-                let input = document.createElement('input');
-                input.setAttribute('name', 'payload');
-                input.setAttribute('value', self.multiSafepay.getPaymentData().payload);
-                input.setAttribute('type', 'hidden');
-                form.appendChild(input);
+                let input_payload = document.createElement('input');
+                input_payload.setAttribute('name', 'payload');
+                input_payload.setAttribute('value', self.multiSafepay.getPaymentData().payload);
+                input_payload.setAttribute('type', 'hidden');
+                form.appendChild(input_payload);
+
+                {if $tokenization}
+                let input_tokenize = document.createElement('input');
+                input_tokenize.setAttribute('name', 'tokenize');
+                input_tokenize.setAttribute('value', self.multiSafepay.getPaymentData().tokenize ?? '0');
+                input_tokenize.setAttribute('type', 'hidden');
+                form.appendChild(input_tokenize);
+                {/if}
 
                 return true;
             })

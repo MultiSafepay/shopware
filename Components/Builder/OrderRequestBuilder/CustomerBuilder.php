@@ -24,8 +24,10 @@ namespace MltisafeMultiSafepayPayment\Components\Builder\OrderRequestBuilder;
 use MltisafeMultiSafepayPayment\Components\Helper;
 use MultiSafepay\Api\Transactions\OrderRequest;
 use MultiSafepay\Api\Transactions\OrderRequest\Arguments\CustomerDetails;
+use MultiSafepay\Exception\InvalidArgumentException;
 use MultiSafepay\ValueObject\Customer\Address;
 use MultiSafepay\ValueObject\Customer\AddressParser;
+use Shopware\Models\Customer\Customer;
 use Shopware\Models\Order\Order;
 
 /**
@@ -42,6 +44,7 @@ class CustomerBuilder implements OrderRequestBuilderInterface
      * @param $controller
      * @param $container
      * @return OrderRequest
+     * @throws InvalidArgumentException
      */
     public function build(OrderRequest $orderRequest, $controller, $container): OrderRequest
     {
@@ -50,6 +53,21 @@ class CustomerBuilder implements OrderRequestBuilderInterface
         $customerDetails = new OrderRequest\Arguments\CustomerDetails();
         $shop = $container->get('shop');
         [$street, $houseNumber] = (new AddressParser())->parse($user['billingaddress']['street'], $user['billingaddress']['additionalAddressLine1'] ?? '');
+
+        $customerReference = $isTokenized = false;
+        $session = $controller->get('session');
+
+        if ($session->offsetExists('sUserId')) {
+            $customerReference = (string)$session->offsetGet('sUserId');
+            $modelManager = $container->get('models');
+            if ($modelManager) {
+                $customer = $modelManager->getRepository(Customer::class)->find($customerReference);
+                $isRegistered = ($customer instanceof Customer) && ($customer->getAccountMode() === Customer::ACCOUNT_MODE_CUSTOMER);
+                if ($isRegistered) {
+                    $isTokenized = $session->offsetExists('tokenize') && $session->offsetGet('tokenize');
+                }
+            }
+        }
 
         $address->addCity($user['billingaddress']['city'])
             ->addCountryCode($user['additional']['country']['countryiso'])
@@ -66,6 +84,10 @@ class CustomerBuilder implements OrderRequestBuilderInterface
             ->addIpAddressAsString(Helper::getRemoteIP())
             ->addForwardedIpAsString(Helper::getForwardedIP());
 
+        // Check if the user is logged in and tokenization is enabled
+        if ($customerReference && $isTokenized) {
+            $customerDetails->addReference($customerReference);
+        }
         if ($user['billingaddress']['company']) {
             $customerDetails->addCompanyName($user['billingaddress']['company']);
         }
